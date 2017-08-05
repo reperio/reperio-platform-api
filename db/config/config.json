@@ -1,0 +1,9 @@
+{
+  "development": {
+    "username": "reperio",
+    "password": "reperio",
+    "database": "reperio_dev",
+    "host": "10.2.3.31",
+    "dialect": "mysql"
+  }
+}
