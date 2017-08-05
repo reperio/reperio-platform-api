@@ -17,9 +17,7 @@ module.exports = function(sequelize, DataTypes) {
         last_login_date: DataTypes.DATE
     }, {
         tableName: "users",
-        timestamps: false,
-        createdAt: true,
-        updatedAt: true,
+        timestamps: true,
         deletedAt: false,
         freezeTableName: true
     });
