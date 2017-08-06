@@ -8,7 +8,8 @@ UsersHandler.routes.push({
     method: 'GET',
     path:'/users',
     handler: getAllUsers
-}
+});
+
 async function getAllUsers(request, reply) {
     const uow = await request.app.getNewUoW(false);
     const users = await uow.usersRepository.getAllUsers();

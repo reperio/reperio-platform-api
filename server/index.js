@@ -1,8 +1,38 @@
 'use strict';
 
+const Config = require('./config');
 const Hapi = require('hapi');
 const moment = require("moment");
 const jwt = require("jsonwebtoken");
+
+const winston = require('winston');
+require('winston-daily-rotate-file');
+
+var file_transport = new (winston.transports.DailyRotateFile)({
+    filename: './logs/log',
+    datePattern: 'reperio-yyyy-MM-dd.',
+    prepend: true,
+    level: Config.log_level,
+    humanReadableUnhandledException: true,
+    handleExceptions: true,
+    json: true
+});
+
+var console_transport = new (winston.transports.Console)({
+    prepend: true,
+    level: Config.log_level,
+    humanReadableUnhandledException: true,
+    handleExceptions: true,
+    json: false,
+    colorize: true
+});
+
+var logger = new (winston.Logger)({
+    transports: [
+      file_transport,
+      console_transport
+    ]
+});
 
 const UoW = require("../db/unitOfWork");
 
@@ -19,6 +49,8 @@ server.connection({
 
 server.app.jwtKey = "f49b26e0-cdf1-4dc3-8379-de07b32b13c9";
 server.app.jwtValidTimespan = 3600;
+
+server.app.logger = logger;
 
 const validateFunc = (decoded, request, callback) => {
     return callback(null, true);
@@ -47,7 +79,7 @@ server.register(require('hapi-auth-jwt2'), function (err) {
 });
 
 server.register({
-    register: require("./api")
+    register: require("../api")
 }, {
     routes: {
         prefix: "/api"

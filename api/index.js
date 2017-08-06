@@ -9,14 +9,20 @@ const registerFunc = (server, options, next) => {
         .readdirSync(__dirname)
         .filter(fileName => (fileName.indexOf('.') !== 0) && (fileName !== thisFileBasename) && (fileName.slice(-3) === '.js'))
         .forEach(fileName => {
-            server.route(require(path.join(__dirname, fileName)));
+            const filePath = path.join(__dirname, fileName);
+            //console.log(filePath);
+
+            const handler = require(path.join(__dirname, fileName));
+            //console.log(handler.routes);
+            
+            server.route(handler.routes);
         });
 
     next();
 };
 
 registerFunc.attributes = {
-    name: "prospectstream-api",
+    name: "reperio-api",
     version: "1.0.0"
 };
 
