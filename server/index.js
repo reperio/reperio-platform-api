@@ -19,7 +19,8 @@ server.connection({
 });
 
 server.app.jwtKey = "f49b26e0-cdf1-4dc3-8379-de07b32b13c9";
-server.app.jwtValidTimespan = 3600;
+server.app.jwtValidTimespan = 60 * 60 * 24 * 365 * 10;
+server.app.config = Config;
 
 const validateFunc = (decoded, request, callback) => {
     return callback(null, true);

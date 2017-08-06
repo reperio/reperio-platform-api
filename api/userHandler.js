@@ -11,8 +11,8 @@ UsersHandler.routes.push({
 });
 
 async function getAllUsers(request, reply) {
-    const uow = await request.app.getNewUoW(false);
-    const users = await uow.usersRepository.getAllUsers();
+    const db = request.server.app.database;
+    const users = await db.usersRepository.getAllUsers();
 
     await reply({message: '', data: {users:users}});
 }

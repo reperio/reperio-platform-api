@@ -6,7 +6,6 @@ const Joi = require('joi');
 const AuthHandler = {};
 AuthHandler.routes = [];
     
-AuthHandler.login = login;
 AuthHandler.routes.push({
     method: 'POST',
     path: '/auth/login',
@@ -19,7 +18,7 @@ AuthHandler.routes.push({
             }
         }
     },
-    handler: AuthHandler.login,
+    handler: login,
     
 });
 
