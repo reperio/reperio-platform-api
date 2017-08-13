@@ -134,7 +134,19 @@ server.ext({
     }
 });
 
+
 if (!module.parent) {
+
+    server.ext({
+        type: "onRequest",
+        method: async (request, reply) => {
+            request.app.getNewUoW = () => {
+                console.log('test request function');
+            };
+
+            await reply.continue();
+        }
+    });
 
     const app_file_transport = new (winston.transports.DailyRotateFile)({
         filename: './logs/log',

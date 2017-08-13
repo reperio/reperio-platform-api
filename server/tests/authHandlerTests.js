@@ -44,6 +44,10 @@ describe('AuthHandler', function() {
 				username:'adfasdfdsa', 
 				password: 'password'
 			};
+
+			request.app = {};
+
+			request.app.getNewUoW = () => console.log('REPLACED');
 			
 			const usersRepositoryMock = sinon.mock(server.app.database.usersRepository);
     		usersRepositoryMock.expects("getUserByUsername").once().returns(null);

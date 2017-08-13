@@ -29,6 +29,9 @@ async function login(request, reply) {
     //     request.server.app.logger.error(err);
     //     return reply(boom.badImplementation(err));
     // }
+
+    request.app.getNewUoW();
+
     const db = request.server.app.database;
 
     const user = await db.usersRepository.getUserByUsername(request.payload.username);

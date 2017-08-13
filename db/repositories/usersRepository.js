@@ -1,5 +1,5 @@
 class UsersRepository {
-    constructor(dataModel) {
+    constructor(uow) {
         this.dataModel = dataModel;
     }
 
