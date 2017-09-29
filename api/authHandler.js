@@ -23,15 +23,6 @@ AuthHandler.routes.push({
 });
 
 async function login(request, reply) {
-    //try {
-    //    throw new Error('test');    
-    // } catch(err) {
-    //     request.server.app.logger.error(err);
-    //     return reply(boom.badImplementation(err));
-    // }
-
-    request.app.getNewUoW();
-
     const db = request.server.app.database;
 
     const user = await db.usersRepository.getUserByUsername(request.payload.username);
