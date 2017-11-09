@@ -3,6 +3,7 @@
 const Config = require('./config');
 const Hapi = require('hapi');
 const Poop = require('poop');
+const Inert = require('inert');
 const moment = require("moment");
 const jwt = require("jsonwebtoken");
 
@@ -71,6 +72,43 @@ server.register({
         console.error(err);
     }
 });
+
+server.register({
+    register: Inert
+}, (err) => {
+    if (err) {
+        console.error(err);
+    }
+});
+
+const plugins = Config.plugins;
+
+if (plugins) {
+    for (let index = 0 ; index < Config.plugins.length ; ++index) {
+        const plugin = Config.plugins[index];
+
+        console.log(`Loading plugin: ${plugin.name}`);
+
+        try {
+
+            server.register({
+                register: require(plugin.path)
+            }, {
+                routes: {
+                    vhost: plugin.vhost
+                }
+            }, (err) => {
+                if (err) {
+                    console.error(`Failed to load plugin: ${plugin.name}`)
+                    console.error(err);
+                }
+            });
+        } catch(err) {
+            console.error(`Failed to load plugin: ${plugin.name}`)
+            console.error(err);
+        }
+    }
+}
 
 
 server.app.database = new DataModel();
