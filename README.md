@@ -1,1 +1,1 @@
-# reperio-platform-core
+# platform-api

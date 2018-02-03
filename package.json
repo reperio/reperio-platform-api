@@ -1,0 +1,39 @@
+{
+  "name": "platform-api",
+  "version": "1.0.0",
+  "description": "",
+  "licsense": "MPL2",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc --pretty",
+    "tsc-watch": "tsc --pretty -w",
+    "dev": "concurrently -k -r -s first \"npm run tsc-watch\" \"nodemon dist/index.js\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reperio/platform-api.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/reperio/platform-api/issues"
+  },
+  "homepage": "https://github.com/reperio/platform-api#readme",
+  "dependencies": {
+    "hapijs-starter": "^1.1.0",
+    "moment": "^2.20.1",
+    "moment-timezone": "^0.5.14",
+    "winston": "^2.4.0",
+    "winston-daily-rotate-file": "^1.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^9.4.0",
+    "concurrently": "^3.5.1",
+    "jest": "^22.1.4",
+    "nodemon": "^1.14.12",
+    "ts-node": "^4.1.0",
+    "typescript": "^2.7.1",
+    "typescript-eslint-parser": "^12.0.0"
+  }
+}
