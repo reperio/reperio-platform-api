@@ -1,12 +1,10 @@
-import ReperioServer from 'hapijs-starter'
-import API from './api'
+const ReperioServer = require('hapijs-starter').default;
+const API = require('./api');
 
 
 const start = async function () {
     try {
         const reperio_server = new ReperioServer();
-
-        await reperio_server.startServer();
 
         const apiPluginPackage = {
             plugin: API,
@@ -18,9 +16,10 @@ const start = async function () {
 
         await reperio_server.registerAdditionalPlugin(apiPluginPackage);
 
+        await reperio_server.startServer();
     } catch (err) {
         console.error(err);
     }
-}
+};
 
 start();
