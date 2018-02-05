@@ -21,7 +21,9 @@
   },
   "homepage": "https://github.com/reperio/platform-api#readme",
   "dependencies": {
+    "bcrypt": "^1.0.3",
     "hapijs-starter": "^2.0.0",
+    "jsonwebtoken": "^8.1.1",
     "knex": "^0.14.2",
     "moment": "^2.20.1",
     "moment-timezone": "^0.5.14",

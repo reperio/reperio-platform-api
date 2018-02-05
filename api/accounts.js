@@ -13,7 +13,6 @@ module.exports = [
             return {status: 0, message: 'success', data: accounts};
         },
         config: {
-            auth: false
         }
     }
 ];

@@ -1,10 +1,11 @@
 const ReperioServer = require('hapijs-starter').default;
 const API = require('./api');
 const UnitOfWork = require('./db');
+const Config = require('./config');
 
 const start = async function () {
     try {
-        const reperio_server = new ReperioServer();
+        const reperio_server = new ReperioServer({authEnabled: true, authSecret: Config.jsonSecret});
 
         const apiPluginPackage = {
             plugin: API,
@@ -30,6 +31,8 @@ const start = async function () {
                 return h.continue;
             }
         });
+
+        reperio_server.app.config = Config;
 
         await reperio_server.startServer();
     } catch (err) {
