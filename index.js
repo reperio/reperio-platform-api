@@ -1,6 +1,6 @@
 const ReperioServer = require('hapijs-starter').default;
 const API = require('./api');
-
+const UnitOfWork = require('./db');
 
 const start = async function () {
     try {
@@ -15,6 +15,21 @@ const start = async function () {
         };
 
         await reperio_server.registerAdditionalPlugin(apiPluginPackage);
+
+        await reperio_server.registerExtension({
+            type: 'onRequest',
+            method: async (request, h) => {
+                request.app.uows = [];
+        
+                request.app.getNewUoW = async () => {
+                    const uow = new UnitOfWork(reperio_server.app.logger);
+                    request.app.uows.push(uow);
+                    return uow;
+                };
+
+                return h.continue;
+            }
+        });
 
         await reperio_server.startServer();
     } catch (err) {

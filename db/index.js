@@ -1,6 +1,6 @@
 
 const {knex, Model} = require('./connect');
-const Repositories = require('./repositories');
+const repositories = require('./repositories');
 
 const models = require('./models');
 
@@ -15,7 +15,16 @@ class UnitOfWork {
 
         this._logger = logger;
 
-        this._repositories = new Repositories(this);
+        this._cachedRepositories = {};
+
+        for (const [repositoryName, Repository] of Object.entries(repositories)) {
+            Object.defineProperty(this, repositoryName, {
+                get: () => {
+                    this._cachedRepositories[repositoryName] = this._cachedRepositories[repositoryName] || new Repository(this);
+                    return this._cachedRepositories[repositoryName];
+                }
+            });
+        }
     }
 
     async beginTransaction() {
