@@ -1,4 +1,4 @@
-const ReperioServer = require('hapijs-starter').default;
+const ReperioServer = require('hapijs-starter').Server;
 const API = require('./api');
 const UnitOfWork = require('./db');
 const Config = require('./config');

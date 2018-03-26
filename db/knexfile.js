@@ -1,8 +1,9 @@
  const config = {
     development: {
-        client: 'mysql',
+        client: 'pg',
         connection: {
-            host: '10.2.3.31',
+            host: 'localhost',
+            port: '5431',
             user: 'reperio',
             password: 'reperio',
             database: 'reperio_platform_dev',
