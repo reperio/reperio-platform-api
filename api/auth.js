@@ -1,42 +1,73 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const Joi = require('joi');
+
+function unauthorized(h) {
+    const response = h.response('unauthorized');
+    response.statusCode = 401;
+    return response;
+}
+
+function loginSuccess(h, token) {
+    const response = h.response();
+    response.header('Authorization', `Bearer ${token}`);
+    response.header('Access-Control-Expose-Headers', 'Authorization');
+
+    return response;
+}
+
+async function validatePassword(password, hash) {
+    const valid = await bcrypt.compare(password, hash);
+
+    return valid;
+}
+
+function getAuthToken(user, secret) {
+    const tokenPayload = {
+        currentUserId: user.id,
+        userId: user.id,
+        userEmail: user.email
+    };
+
+    const token = jwt.sign(tokenPayload, secret, {
+        expiresIn: '12h'
+    });
+
+    return token;
+}
 
 module.exports = [
     {
         method: 'POST',
         path: '/auth/login',
-        config: {auth: false},
         handler: async (request, h) => {
             const logger = request.server.app.logger;
-            logger.debug(`Auth/Login - ${JSON.stringify(request.payload)}`);
-            //const uow = await request.app.getNewUoW();
-            //const user = await uow.usersRepository.getUserByEmail(request.payload.email);
-            
-            const user = {
-                id: 'abcd',
-                email: 'bradgardner@sevenhillstechnology.com',
-                password: '$2a$12$pRM5xSQ5MQp7R8gy9..TBe.x1ZyBcWRSIrPMT5UqboatLi3gaDZUe', //password is 'password'
-                isActive: true
-            };
+            try {
+                logger.debug(`Auth/Login - ${JSON.stringify(request.payload)}`);
+                const uow = await request.app.getNewUoW();
 
-            const passwordValid = await bcrypt.compare(request.payload.password, user.password);
+                const user = await uow.usersRepository.getUserByEmail(request.payload.email);
 
-            if (user === null || !user.isActive || !passwordValid) {
-                const response = h.response('unauthorized');
-                response.statusCode = 401;
-                return response;
+                if (!user || !validatePassword(request.payload.password, user.password)) {
+                    return unauthorized(h);
+                }
+
+                const token = getAuthToken(user, request.server.app.config.jsonSecret);
+
+                return loginSuccess(h, token);
+            } catch (err) {
+                logger.error(err);
+                return unauthorized(h);
             }
-            
-            const tokenPayload = {
-                userId: user.id,
-                userEmail: user.email
-            };
-
-            const token = jwt.sign(tokenPayload, request.server.app.config.jsonSecret, {
-                expiresIn: '12h'
-            });
-
-            return token;
+        },
+        options: {
+            auth: false,
+            validate: {
+                payload: {
+                    email: Joi.string().required(),
+                    password: Joi.string().required()
+                }
+            }
         }
     }
 ];

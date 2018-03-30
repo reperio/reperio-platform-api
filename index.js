@@ -5,7 +5,13 @@ const Config = require('./config');
 
 const start = async function () {
     try {
-        const reperio_server = new ReperioServer({authEnabled: true, authSecret: Config.jsonSecret});
+        //status monitor is turned off due to dependency issue with the pidusage dependency on the master branch of hapijs-status-monitor
+        const reperio_server = new ReperioServer({
+            statusMonitor: false,
+            cors: true,
+            corsOrigins: ['*'],
+            authEnabled: true,
+            authSecret: Config.jsonSecret});
 
         const apiPluginPackage = {
             plugin: API,
