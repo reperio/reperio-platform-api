@@ -3,9 +3,9 @@ class AccountsRepository {
         this.uow = uow;
     }
 
-    async getAllAccounts() {
+    async getAllBillingAccounts() {
         try {
-            const q = this.uow._models.Account
+            const q = this.uow._models.BillingAccount
                 .query(this.uow._transaction)
                 .orderBy('name', 'ASC');
 
@@ -13,7 +13,7 @@ class AccountsRepository {
 
             return hosts;
         } catch (err) {
-            this.uow._logger.error('Failed to fetch hosts from database');
+            this.uow._logger.error('Failed to fetch billing accounts from database');
             this.uow._logger.error(err);
             throw err;
         }

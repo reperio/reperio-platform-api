@@ -10,7 +10,7 @@ exports.up = async function(knex) {
     });
 
     await knex.schema.alterTable('users', t => {
-        t.uuid('organizationId').references('organizations.id');
+        t.uuid('organizationId').notNullable().references('organizations.id');
     });
 };
 
