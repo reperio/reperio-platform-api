@@ -3,6 +3,22 @@ class UsersRepository {
         this.uow = uow;
     }
 
+    async createUser(userDetail) {
+        try {
+            const q = this.uow._models.User
+                .query(this.uow._transaction)
+                .insertAndFetch(userDetail);
+
+            const user = await q;
+
+            return user;
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to create user: ${userDetail.email} for org ${userDetail.organizationId}`);
+            throw err;
+        }
+    }
+
     async getUserById(userId) {
         try {
             const q = this.uow._models.User

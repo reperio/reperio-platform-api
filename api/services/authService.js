@@ -21,6 +21,10 @@ class AuthService {
     
         return token;
     }
+
+    async hashPassword(password) {
+        return bcrypt.hash(password, 12);
+    }
 }
 
 module.exports = AuthService;

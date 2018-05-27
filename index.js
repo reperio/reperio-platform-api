@@ -1,4 +1,4 @@
-const ReperioServer = require('hapijs-starter').Server;
+const ReperioServer = require('hapijs-starter');
 const API = require('./api');
 const UnitOfWork = require('./db');
 const Config = require('./config');
@@ -7,7 +7,7 @@ const start = async function () {
     try {
         //status monitor is turned off due to dependency issue with the pidusage dependency on the master branch of hapijs-status-monitor
         const reperio_server = new ReperioServer({
-            statusMonitor: false,
+            statusMonitor: true,
             cors: true,
             corsOrigins: ['*'],
             authEnabled: true,
