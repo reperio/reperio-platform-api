@@ -1,6 +1,6 @@
 const BaseModel = require('./baseModel');
 
-class Account extends BaseModel {
+class BillingAccount extends BaseModel {
     static get tableName() {
         return 'billingAccounts';
     }
@@ -22,4 +22,4 @@ class Account extends BaseModel {
     }
 }
 
-module.exports = Account;
+module.exports = BillingAccount;

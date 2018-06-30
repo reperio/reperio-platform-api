@@ -1,7 +1,7 @@
 const Model = require('objection').Model;
 const BaseModel = require('./baseModel');
 
-class Account extends BaseModel {
+class Organization extends BaseModel {
     static get tableName() {
         return 'organizations';
     }
@@ -38,4 +38,4 @@ class Account extends BaseModel {
     }
 }
 
-module.exports = Account;
+module.exports = Organization;
