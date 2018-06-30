@@ -5,7 +5,7 @@
   "licsense": "MPL2",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --coverage",
     "build": "tsc --pretty",
     "tsc-watch": "tsc --pretty -w",
     "dev": "concurrently -k -r -s first \"npm run tsc-watch\" \"nodemon dist/index.js\""
@@ -36,8 +36,11 @@
     "winston-daily-rotate-file": "^1.7.2"
   },
   "devDependencies": {
+    "chai": "^4.1.2",
     "concurrently": "^3.5.1",
     "jest": "^22.1.4",
-    "nodemon": "^1.14.12"
+    "nodemon": "^1.14.12",
+    "sinon": "^6.0.1",
+    "sinon-chai": "^3.2.0"
   }
 }
