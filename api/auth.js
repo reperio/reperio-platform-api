@@ -55,19 +55,15 @@ module.exports = [
                 logger.debug(`New account signup, organization=${signupDetails.organization} email=${signupDetails.email}`);
 
                 //validate signup details
-                
-
-                //create org
-                const organization = await uow.organizationsRepository.createOrganization(signupDetails.organization);
-
                 if (signupDetails.password !== signupDetails.confirmPassword) {
                     return httpResponseService.badData(h);
                 }
+
+                //create org
+                const organization = await uow.organizationsRepository.createOrganization(signupDetails.organization);
                 
                 //create user in org
                 const password = await authService.hashPassword(signupDetails.password);
-
-                console.log('password: ', password);
 
                 const userDetail = {
                     firstName: signupDetails.firstName,
