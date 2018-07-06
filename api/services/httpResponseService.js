@@ -7,6 +7,12 @@ class AuthService {
         response.statusCode = 401;
         return response;
     }
+
+    badData(h) {
+        const response = h.response('bad data');
+        response.statusCode = 400;
+        return response;
+    }
     
     loginSuccess(h, token) {
         const response = h.response();

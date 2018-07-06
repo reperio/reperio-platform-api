@@ -1,3 +1,5 @@
+const uuid4 = require("uuid/v4");
+
 class UsersRepository {
     constructor(uow) {
         this.uow = uow;
@@ -5,6 +7,7 @@ class UsersRepository {
 
     async createUser(userDetail) {
         try {
+            userDetail.id = uuid4();
             const q = this.uow._models.User
                 .query(this.uow._transaction)
                 .insertAndFetch(userDetail);
