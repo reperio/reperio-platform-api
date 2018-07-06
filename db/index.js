@@ -29,20 +29,15 @@ class UnitOfWork {
 
     async beginTransaction() {
         if (this._transaction !== null) {
-            throw new Error('Cannot begin transaction, a transaction already exists for this unit of work');
+            throw new Error("A transaction already exists for this unit of work");
         }
-        
-        //TODO does this even work?!? It never resolves.....
-        await new Promise(resolve => {
-            knex.transaction(trx => {
-                this._transaction = trx;
-            });
-        });
+
+        this._transaction = await transaction.start(knex);
     }
 
     async commitTransaction() {
         if (this._transaction === null) {
-            throw new Error('Cannot commit transaction, a transaction does not exist for this unit of work');
+            throw new Error("A transaction does not exist for this unit of work");
         }
         await this._transaction.commit();
         this._transaction = null;
@@ -50,7 +45,7 @@ class UnitOfWork {
 
     async rollbackTransaction() {
         if (this._transaction === null) {
-            throw new Error('Cannot rollback transaction, a transaction does not exist for this unit of work');
+            throw new Error("A transaction does not exist for this unit of work");
         }
         await this._transaction.rollback();
         this._transaction = null;

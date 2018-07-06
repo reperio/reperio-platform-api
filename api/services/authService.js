@@ -8,7 +8,7 @@ class AuthService {
         return valid;
     }
     
-    getAuthToken(user, secret) {
+    getAuthToken(user, secret, jwtValidTimespan) {
         const tokenPayload = {
             currentUserId: user.id,
             userId: user.id,
@@ -16,14 +16,15 @@ class AuthService {
         };
     
         const token = jwt.sign(tokenPayload, secret, {
-            expiresIn: '12h'
+            expiresIn: jwtValidTimespan
         });
     
         return token;
     }
 
     async hashPassword(password) {
-        return bcrypt.hash(password, 12);
+        const hashedPassword = await bcrypt.hash(password, 12);
+        return hashedPassword;
     }
 }
 
