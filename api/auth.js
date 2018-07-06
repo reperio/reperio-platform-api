@@ -52,7 +52,7 @@ module.exports = [
             try {
                 const signupDetails = request.payload;
 
-                logger.debug(`New account signup, organization=${signupDetails.organization} email=${signupDetails.email}`);
+                logger.debug(`New account signup, email=${signupDetails.email}`);
 
                 //validate signup details
                 if (signupDetails.password !== signupDetails.confirmPassword) {
@@ -60,7 +60,7 @@ module.exports = [
                 }
 
                 //create org
-                const organization = await uow.organizationsRepository.createOrganization(signupDetails.organization);
+                const organization = await uow.organizationsRepository.createOrganization(signupDetails.email);
                 
                 //create user in org
                 const password = await authService.hashPassword(signupDetails.password);
@@ -94,8 +94,7 @@ module.exports = [
                     lastName: Joi.string().required(),
                     email: Joi.string().required(),
                     password: Joi.string().required(),
-                    confirmPassword: Joi.string().required(),
-                    organization: Joi.string().required()
+                    confirmPassword: Joi.string().required()
                 }
             }
         }
