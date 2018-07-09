@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const API = require('./api');
 const UnitOfWork = require('./db');
 const Config = require('./config');
+const RecaptchaService = require('./api/services/recaptchaService');
 
 const start = async function () {
     try {
@@ -37,6 +38,18 @@ const start = async function () {
 
                 return h.continue;
             }
+        });
+
+        await reperio_server.registerExtension({
+            type: 'onRequest',
+                method: async (request, h) => {
+                    request.app.getNewRecaptcha = async () => {
+                        const recaptcha = new RecaptchaService('https://www.google.com/recaptcha/api/siteverify', reperio_server.app.logger);
+                        return recaptcha;
+                    };
+    
+                    return h.continue;
+                }
         });
 
         await reperio_server.registerExtension({

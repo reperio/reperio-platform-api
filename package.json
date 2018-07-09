@@ -32,6 +32,7 @@
     "mysql": "^2.15.0",
     "objection": "^0.9.4",
     "pg": "^7.4.3",
+    "request-promise-native": "^1.0.5",
     "uuid": "^3.3.2",
     "winston": "^2.4.3",
     "winston-daily-rotate-file": "^1.7.2"

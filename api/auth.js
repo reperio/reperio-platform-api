@@ -2,6 +2,7 @@ const Joi = require('joi');
 const AuthService = require('./services/authService');
 const HttpResponseService = require('./services/httpResponseService');
 const EmailService = require('./services/emailService');
+const RecaptchaService = require('./services/recaptchaService');
 
 module.exports = [
     {
@@ -95,6 +96,30 @@ module.exports = [
                     email: Joi.string().required(),
                     password: Joi.string().required(),
                     confirmPassword: Joi.string().required()
+                }
+            }
+        }
+    },{
+        method: 'POST',
+        path: '/auth/recaptcha',
+        handler: async (request, h) => {
+            const recaptcha = await request.app.getNewRecaptcha();
+            const logger = request.server.app.logger;
+            const payload = request.payload;
+
+            try {
+                const response = await recaptcha.siteVerify(request.server.app.config.secret, payload.response, request.info.remoteAddress);
+                return response;
+            } catch (err) {
+                logger.error(err);
+                throw err;
+            }
+        },
+        options: {
+            auth: false,
+            validate: {
+                payload: {
+                    response: Joi.string().required()
                 }
             }
         }
