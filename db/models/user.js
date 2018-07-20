@@ -15,7 +15,7 @@ class User extends BaseModel {
             properties: {
                 id: { type: 'string' },
                 firstName: { type: 'string' },
-                lasttName: { type: 'string' },
+                lastName: { type: 'string' },
                 email: { type: 'string' },
                 password: { type: 'string' },
                 organizationId: {type: 'string'},
