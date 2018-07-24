@@ -4,6 +4,7 @@ const API = require('./api');
 const UnitOfWork = require('./db');
 const Config = require('./config');
 const RecaptchaService = require('./api/services/recaptchaService');
+const {knex} = require('./db/connect');
 
 const start = async function () {
     try {
@@ -24,6 +25,13 @@ const start = async function () {
         };
 
         await reperio_server.registerAdditionalPlugin(apiPluginPackage);
+
+        knex.on('query', (query) => {
+            for (let bind of query.bindings) {
+                query.sql = query.sql.replace('?', `'${bind}'`);
+            }
+            reperio_server.app.logger.debug(query.sql);
+        });
 
         await reperio_server.registerExtension({
             type: 'onRequest',

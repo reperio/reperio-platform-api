@@ -53,6 +53,50 @@ class UsersRepository {
             throw err;
         }
     }
+
+    async updateRoles(userId, roleIds) {
+        try {
+            await this.uow._models.UserRole
+                .query(this.uow._transaction)
+                .where({userId})
+                .delete();
+
+            const userRoles = roleIds.map((id) => {
+                return {
+                    roleId: id,
+                    userId
+                };
+            });
+
+            const q = this.uow._models.UserRole
+                .query(this.uow._transaction)
+                .insertAndFetch(userRoles);
+
+            return await q;
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to update user roles`);
+            throw err;
+        }
+    }
+
+    async getUserRoles(userId) {
+        try {
+            const userRoles = await this.uow._models.UserRole
+                .query(this.uow._transaction)
+                .where('userId', userId);
+
+            const q = this.uow._models.Role
+                .query(this.uow._transaction)
+                .whereIn('id', userRoles.map((userRole) => {return userRole.roleId}));
+
+            return await q;
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to fetch user roles`);
+            throw err;
+        }
+    }
 }
 
 module.exports = UsersRepository;

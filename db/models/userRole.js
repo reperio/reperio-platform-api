@@ -6,6 +6,10 @@ class UserRole extends BaseModel {
         return 'userRoles';
     }
 
+    static get idColumn() {
+        return ['roleId', 'userId'];
+    }
+
     static get jsonSchema() {
         return {
             type: 'Object',
@@ -29,7 +33,7 @@ class UserRole extends BaseModel {
                     to: 'roles.id'
                 }
             },
-            permissions: {
+            users: {
                 relation: Model.HasOneRelation,
                 modelClass: User,
                 join: {

@@ -1,9 +1,12 @@
 const Model = require('objection').Model;
-const BaseModel = require('./baseModel');
 
-class RolePermission extends BaseModel {
+class RolePermission extends Model {
     static get tableName() {
         return 'rolePermissions';
+    }
+
+    static get idColumn() {
+        return ['roleId', 'permissionId'];
     }
 
     static get jsonSchema() {

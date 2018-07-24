@@ -23,14 +23,23 @@ class Role extends BaseModel {
 
     static get relationMappings() {
         const RolePermission = require('./rolePermission');
+        const UserRole = require('./userRole');
 
         return {
-            permissions: {
+            rolePermissions: {
                 relation: Model.HasManyRelation,
                 modelClass: RolePermission,
                 join: {
                     from: 'roles.id',
                     to: 'rolePermissions.roleId'
+                }
+            },
+            userRoles: {
+                relation: Model.HasManyRelation,
+                modelClass: UserRole,
+                join: {
+                    from: 'roles.id',
+                    to: 'userRoles.roleId'
                 }
             }
         };

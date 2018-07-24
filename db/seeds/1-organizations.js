@@ -9,9 +9,7 @@ exports.seed = function (knex, Promise) {
             return knex('organizations').insert([
                 {
                     id: '966f4157-934c-45e7-9f44-b1e5fd8b79a7',
-                    name: 'Test Organization',
-                    createdAt: moment().utc().toDate(),
-                    updatedAt: moment().utc().toDate()
+                    name: 'Test Organization'
                 }
             ]);
         });
