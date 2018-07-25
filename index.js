@@ -35,21 +35,14 @@ const start = async function () {
                     request.app.uows.push(uow);
                     return uow;
                 };
+              
+                request.app.getNewRecaptcha = async () => {
+                    const recaptcha = new RecaptchaService('https://www.google.com/recaptcha/api/siteverify', reperio_server.app.logger);
+                    return recaptcha;
+                };
 
                 return h.continue;
             }
-        });
-
-        await reperio_server.registerExtension({
-            type: 'onRequest',
-                method: async (request, h) => {
-                    request.app.getNewRecaptcha = async () => {
-                        const recaptcha = new RecaptchaService('https://www.google.com/recaptcha/api/siteverify', reperio_server.app.logger);
-                        return recaptcha;
-                    };
-    
-                    return h.continue;
-                }
         });
 
         await reperio_server.registerExtension({

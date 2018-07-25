@@ -95,7 +95,8 @@ module.exports = [
                     lastName: Joi.string().required(),
                     email: Joi.string().required(),
                     password: Joi.string().required(),
-                    confirmPassword: Joi.string().required()
+                    confirmPassword: Joi.string().required(),
+                    organization: Joi.string().required()
                 }
             }
         }
