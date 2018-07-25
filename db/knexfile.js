@@ -3,7 +3,7 @@
         client: 'pg',
         connection: {
             host: 'localhost',
-            port: '5431',
+            port: '5432',
             user: 'reperio',
             password: 'reperio',
             database: 'reperio_platform_dev',

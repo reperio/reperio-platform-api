@@ -1,13 +1,19 @@
+const uuid4 = require("uuid/v4");
+
 class OrganizationsRepository {
     constructor(uow) {
         this.uow = uow;
     }
 
     async createOrganization(name) {
+        const organizationModel = {
+            name,
+            id: uuid4()
+        };
         try {
             const q = this.uow._models.Organization
                 .query(this.uow._transaction)
-                .insertAndFetch({name: name});
+                .insertAndFetch(organizationModel);
 
             const organization = await q;
 

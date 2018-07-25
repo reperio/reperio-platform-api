@@ -22,7 +22,7 @@ module.exports = [
                     return httpResponseService.unauthorized(h);
                 }
 
-                const token = authService.getAuthToken(user, request.server.app.config.jsonSecret);
+                const token = authService.getAuthToken(user, request.server.app.config.jsonSecret, request.server.app.config.jwtValidTimespan);
 
                 return httpResponseService.loginSuccess(h, token);
             } catch (err) {
@@ -46,6 +46,7 @@ module.exports = [
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
             const authService = new AuthService();
+            const emailService = new EmailService();
             const httpResponseService = new HttpResponseService();
 
             try {
@@ -54,13 +55,15 @@ module.exports = [
                 logger.debug(`New account signup, organization=${signupDetails.organization} email=${signupDetails.email}`);
 
                 //validate signup details
-                
+                if (signupDetails.password !== signupDetails.confirmPassword) {
+                    return httpResponseService.badData(h);
+                }
 
                 //create org
                 const organization = await uow.organizationsRepository.createOrganization(signupDetails.organization);
                 
                 //create user in org
-                const password = authService.hashPassword(signupDetails.password);
+                const password = await authService.hashPassword(signupDetails.password);
 
                 const userDetail = {
                     firstName: signupDetails.firstName,
@@ -72,10 +75,10 @@ module.exports = [
                 const user = await uow.usersRepository.createUser(userDetail);
                 
                 //sign the user in
-                const token = authService.getAuthToken(user, request.server.app.config.jsonSecret);
+                const token = authService.getAuthToken(user, request.server.app.config.jsonSecret, request.server.app.config.jwtValidTimespan);
 
                 //send email confirmation email
-                EmailService.sendEmail('', '', '', '');
+                emailService.sendEmail('', '', '', '');
 
                 return httpResponseService.loginSuccess(h, token);
             } catch (err) {
@@ -84,13 +87,15 @@ module.exports = [
             }
         },
         options: {
+            auth: false,
             validate: {
                 payload: {
                     firstName: Joi.string().required(),
-                    lasttName: Joi.string().required(),
+                    lastName: Joi.string().required(),
                     email: Joi.string().required(),
                     password: Joi.string().required(),
-                    confirmPassword: Joi.string().required()
+                    confirmPassword: Joi.string().required(),
+                    organization: Joi.string().required()
                 }
             }
         }
