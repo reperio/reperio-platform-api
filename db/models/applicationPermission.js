@@ -1,9 +1,9 @@
 const Model = require('objection').Model;
 const BaseModel = require('./baseModel');
 
-class Organization extends BaseModel {
+class ApplicationPermission extends BaseModel {
     static get tableName() {
-        return 'organizations';
+        return 'applicationPermissions';
     }
 
     auto_generated_id() {
@@ -14,35 +14,28 @@ class Organization extends BaseModel {
         return {
             type: 'Object',
             properties: {
-                id: { type: 'string' },
-                name: { type: 'string' }
+                id: { type: 'uuid' },
+                applicationId: { type: 'uuid' },
+                permissionName: { type: 'string' },
+                description: { type: 'string' }
             }
         };
     }
 
     static get relationMappings() {
-        //const User = require('./user');
         const OrganizationApplication = require('./organizationApplication');
 
         return {
-            // users: {
-            //     relation: Model.HasManyRelation,
-            //     modelClass: User,
-            //     join: {
-            //         from: 'organizations.id',
-            //         to: 'users.organizationId'
-            //     }
-            // },
             organizationApplications: {
                 relation: Model.HasManyRelation,
                 modelClass: OrganizationApplication,
                 join: {
-                    from: 'organizations.id',
-                    to: 'organizationApplications.organizationId'
+                    from: 'applicationPermissions.id',
+                    to: 'organizationApplications.applicationId'
                 }
             }
         };
     }
 }
 
-module.exports = Organization;
+module.exports = ApplicationPermission;
