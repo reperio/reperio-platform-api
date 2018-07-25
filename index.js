@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const API = require('./api');
 const UnitOfWork = require('./db');
 const Config = require('./config');
+const RecaptchaService = require('./api/services/recaptchaService');
 
 const start = async function () {
     try {
@@ -33,6 +34,11 @@ const start = async function () {
                     const uow = new UnitOfWork(reperio_server.app.logger);
                     request.app.uows.push(uow);
                     return uow;
+                };
+              
+                request.app.getNewRecaptcha = async () => {
+                    const recaptcha = new RecaptchaService('https://www.google.com/recaptcha/api/siteverify', reperio_server.app.logger);
+                    return recaptcha;
                 };
 
                 return h.continue;
