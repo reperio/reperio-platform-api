@@ -12,13 +12,6 @@ class UnitOfWork {
         this._transaction = null;
         this._logger = logger;
 
-        knex.on('query', (query) => {
-            for (let bind of query.bindings) {
-                query.sql = query.sql.replace('?', `'${bind}'`);
-            }
-            this._logger.debug(query.sql);
-        });
-
         this._cachedRepositories = {};
 
         for (const [repositoryName, Repository] of Object.entries(repositories)) {

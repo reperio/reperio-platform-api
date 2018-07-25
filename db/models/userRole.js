@@ -1,47 +1,48 @@
 const Model = require('objection').Model;
+const BaseModel = require('./baseModel');
 
-class RolePermission extends Model {
+class UserRole extends BaseModel {
     static get tableName() {
-        return 'rolePermissions';
+        return 'userRoles';
     }
 
     static get idColumn() {
-        return ['roleId', 'permissionId'];
+        return ['roleId', 'userId'];
     }
 
     static get jsonSchema() {
         return {
             type: 'Object',
             properties: {
-                roleId: { type: 'string' },
-                permissionId: { type: 'string' }
+                roleId: { type: 'uuid' },
+                userId: { type: 'uuid' }
             }
         };
     }
 
     static get relationMappings() {
         const Role = require('./role');
-        const Permission = require('./permission');
+        const User = require('./user');
 
         return {
             roles: {
                 relation: Model.HasOneRelation,
                 modelClass: Role,
                 join: {
-                    from: 'rolePermissions.roleId',
+                    from: 'userRoles.roleId',
                     to: 'roles.id'
                 }
             },
-            permissions: {
+            users: {
                 relation: Model.HasOneRelation,
-                modelClass: Permission,
+                modelClass: User,
                 join: {
-                    from: 'rolePermissions.permissionId',
-                    to: 'permissions.id'
+                    from: 'userRoles.userId',
+                    to: 'users.id'
                 }
             }
         };
     }
 }
 
-module.exports = RolePermission;
+module.exports = UserRole;

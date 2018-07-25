@@ -15,9 +15,7 @@ class Organization extends BaseModel {
             type: 'Object',
             properties: {
                 id: { type: 'string' },
-                name: { type: 'string' },
-                createdAt: {type: 'date' },
-                updatedAt: {type: 'date' }
+                name: { type: 'string' }
             }
         };
     }

@@ -16,11 +16,9 @@ class User extends BaseModel {
                 id: { type: 'string' },
                 firstName: { type: 'string' },
                 lastName: { type: 'string' },
+                phoneNumber: { type: 'string'},
                 email: { type: 'string' },
-                password: { type: 'string' },
-                organizationId: {type: 'string'},
-                createdAt: {type: 'date' },
-                updatedAt: {type: 'date' }
+                password: { type: 'string' }
             }
         };
     }
