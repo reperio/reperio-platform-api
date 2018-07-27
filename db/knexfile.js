@@ -26,7 +26,7 @@
         client: 'pg',
         connection: {
             host: process.env.PG_CONNECTION_HOST,
-            database: "phone_provisioner",
+            database: "reperio_platform",
             user: process.env.PG_CONNECTION_USER,
             timezone: 'UTC',
             dateStrings: true,
