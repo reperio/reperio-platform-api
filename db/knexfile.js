@@ -23,12 +23,11 @@
         }
     },
     test: {
-        client: 'mysql',
+        client: 'pg',
         connection: {
-            host: '10.2.3.31',
-            user: 'reperio',
-            password: 'reperio',
-            database: 'reperio_platform_dev' + '_' + (Math.floor(Math.random() * (10000 - 1 + 1) + 1)).toString(),
+            host: process.env.PG_CONNECTION_HOST,
+            database: "phone_provisioner",
+            user: process.env.PG_CONNECTION_USER,
             timezone: 'UTC',
             dateStrings: true,
             typeCast: (field, next) => {
