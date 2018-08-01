@@ -70,8 +70,7 @@ module.exports = [
                     firstName: signupDetails.firstName,
                     lastName: signupDetails.lastName,
                     email: signupDetails.email,
-                    password: password,
-                    organizationId: organization.id
+                    password: password
                 };
                 const user = await uow.usersRepository.createUser(userDetail);
                 
@@ -95,8 +94,7 @@ module.exports = [
                     lastName: Joi.string().required(),
                     email: Joi.string().required(),
                     password: Joi.string().required(),
-                    confirmPassword: Joi.string().required(),
-                    organization: Joi.string().required()
+                    confirmPassword: Joi.string().required()
                 }
             }
         }
