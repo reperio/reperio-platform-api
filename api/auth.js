@@ -17,7 +17,7 @@ module.exports = [
                 logger.debug(`Auth/Login - ${JSON.stringify(request.payload)}`);
                 const uow = await request.app.getNewUoW();
 
-                const user = await uow.usersRepository.getUserByEmail(request.payload.email);
+                const user = await uow.usersRepository.getUserByEmail(request.payload.primaryEmail);
 
                 if (!user || !authService.validatePassword(request.payload.password, user.password)) {
                     return httpResponseService.unauthorized(h);
@@ -35,7 +35,7 @@ module.exports = [
             auth: false,
             validate: {
                 payload: {
-                    email: Joi.string().required(),
+                    primaryEmail: Joi.string().required(),
                     password: Joi.string().required()
                 }
             }
@@ -69,7 +69,10 @@ module.exports = [
                 const userDetail = {
                     firstName: signupDetails.firstName,
                     lastName: signupDetails.lastName,
-                    email: signupDetails.email,
+                    primaryEmail: signupDetails.primaryEmail,
+                    primaryEmailVerified: false,
+                    disabled: false,
+                    deleted: false,
                     password: password
                 };
                 const user = await uow.usersRepository.createUser(userDetail);
@@ -92,7 +95,7 @@ module.exports = [
                 payload: {
                     firstName: Joi.string().required(),
                     lastName: Joi.string().required(),
-                    email: Joi.string().required(),
+                    primaryEmail: Joi.string().required(),
                     password: Joi.string().required(),
                     confirmPassword: Joi.string().required()
                 }

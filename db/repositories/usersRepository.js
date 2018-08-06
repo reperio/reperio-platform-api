@@ -17,7 +17,7 @@ class UsersRepository {
             return user;
         } catch (err) {
             this.uow._logger.error(err);
-            this.uow._logger.error(`Failed to create user: ${userDetail.email} for org ${userDetail.organizationId}`);
+            this.uow._logger.error(`Failed to create user: ${userDetail.primaryEmail}`);
             throw err;
         }
     }
