@@ -38,17 +38,17 @@ class UsersRepository {
         }
     }
 
-    async getUserByEmail(email) {
+    async getUserByEmail(primaryEmail) {
         try {
             const q = this.uow._models.User
                 .query(this.uow._transaction)
-                .where('email', email);
+                .where('primaryEmail', primaryEmail);
 
             const user = await q;
 
             return user[0];
         } catch (err) {
-            this.uow._logger.error(`Failed to fetch user using email: ${email}`);
+            this.uow._logger.error(`Failed to fetch user using email: ${primaryEmail}`);
             this.uow._logger.error(err);
             throw err;
         }
