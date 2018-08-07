@@ -74,7 +74,7 @@ module.exports = [
             logger.debug(`Creating role`);
             const payload = request.payload;
 
-            const role = await uow.rolesRepository.createRole(payload.name, payload.description);
+            const role = await uow.rolesRepository.createRole(payload.name, payload.organizationId, payload.applicationId);
 
             await uow.rolePermissionsRepository.update(role.id, payload.permissionIds);
             
@@ -85,7 +85,9 @@ module.exports = [
             validate: {
                 payload: {
                     name: Joi.string().required(),
-                    description: Joi.string(),
+                    deleted: Joi.boolean().required(),
+                    organizationId: Joi.string().guid().required(),
+                    applicationId: Joi.string().guid().optional(),
                     permissionIds: Joi.array()
                         .items(
                             Joi.string()
