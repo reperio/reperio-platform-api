@@ -61,7 +61,7 @@ module.exports = [
                 }
 
                 //create org
-                const organization = await uow.organizationsRepository.createOrganization(signupDetails.email);
+                const organization = await uow.organizationsRepository.createOrganization(signupDetails.email, true);
                 
                 //create user in org
                 const password = await authService.hashPassword(signupDetails.password);

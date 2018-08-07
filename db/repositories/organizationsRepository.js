@@ -5,10 +5,12 @@ class OrganizationsRepository {
         this.uow = uow;
     }
 
-    async createOrganization(name) {
+    async createOrganization(name, personal) {
         const organizationModel = {
             name,
-            id: uuid4()
+            id: uuid4(),
+            personal,
+            deleted: false
         };
         try {
             const q = this.uow._models.Organization

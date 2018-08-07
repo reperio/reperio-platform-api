@@ -15,7 +15,9 @@ class Organization extends BaseModel {
             type: 'Object',
             properties: {
                 id: { type: 'string' },
-                name: { type: 'string' }
+                name: { type: 'string' },
+                personal: { type: 'boolan' },
+                deleted: { type: 'boolan' }
             }
         };
     }
@@ -25,22 +27,14 @@ class Organization extends BaseModel {
         const OrganizationApplication = require('./organizationApplication');
 
         return {
-            // users: {
+            // organizationApplications: {
             //     relation: Model.HasManyRelation,
-            //     modelClass: User,
+            //     modelClass: OrganizationApplication,
             //     join: {
             //         from: 'organizations.id',
-            //         to: 'users.organizationId'
+            //         to: 'organizationApplications.organizationId'
             //     }
-            // },
-            organizationApplications: {
-                relation: Model.HasManyRelation,
-                modelClass: OrganizationApplication,
-                join: {
-                    from: 'organizations.id',
-                    to: 'organizationApplications.organizationId'
-                }
-            }
+            // }
         };
     }
 }
