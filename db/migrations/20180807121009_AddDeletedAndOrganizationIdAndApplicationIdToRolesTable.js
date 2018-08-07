@@ -12,9 +12,9 @@ exports.up = async function(knex, Promise) {
 exports.down = async function(knex, Promise) {
     await knex.schema
         .alterTable('roles', t => {
-            t.dropCoumn('deleted');
+            t.dropColumn('deleted');
             t.string('description');
-            t.dropCoumn('organizationId');   
-            t.dropCoumn('applicationId');
+            t.dropColumn('organizationId');   
+            t.dropColumn('applicationId');
         });
 };
