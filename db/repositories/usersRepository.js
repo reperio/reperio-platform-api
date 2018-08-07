@@ -97,6 +97,40 @@ class UsersRepository {
             throw err;
         }
     }
+
+    async deleteUser(id) {
+        try {
+            const q = this.uow._models.User
+                .query(this.uow._transaction)
+                .patch({deleted: true})
+                .where('id', id);
+
+            const result = await q;
+
+            return result;
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to delete user`);
+            throw err;
+        }
+    }
+
+    async disableUser(id) {
+        try {
+            const q = this.uow._models.User
+                .query(this.uow._transaction)
+                .patch({disabled: true})
+                .where('id', id);
+
+            const result = await q;
+
+            return result;
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to disable user`);
+            throw err;
+        }
+    }
 }
 
 module.exports = UsersRepository;
