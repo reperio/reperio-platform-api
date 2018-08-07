@@ -5,10 +5,12 @@ class PermissionsRepository {
         this.uow = uow;
     }
 
-    async createPermission(name, description) {
+    async createPermission(name, description, applicationId) {
         const payload = {
             name,
             description,
+            deleted: false,
+            applicationId,
             id: v4()
         };
 

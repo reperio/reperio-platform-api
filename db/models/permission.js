@@ -14,9 +14,11 @@ class Permission extends BaseModel {
         return {
             type: 'Object',
             properties: {
-                id: { type: 'string' },
+                id: { type: 'uuid' },
                 name: { type: 'string' },
-                description: { type: 'string' }
+                description: { type: 'string' },
+                deleted: { type: 'boolean' },
+                applicationId: { type: 'uuid' }
             }
         };
     }
