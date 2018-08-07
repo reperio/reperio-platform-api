@@ -85,6 +85,23 @@ class RolesRepository {
             throw err;
         }
     }
+
+    async deleteRole(id) {
+        try {
+            const q = this.uow._models.Role
+                .query(this.uow._transaction)
+                .patch({deleted: true})
+                .where('id', id);
+
+            const result = await q;
+
+            return result;
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to delete role`);
+            throw err;
+        }
+    }
 }
 
 module.exports = RolesRepository;
