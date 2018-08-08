@@ -76,6 +76,30 @@ module.exports = [
                 }
             }
         }
+    },
+    {
+        method: 'DELETE',
+        path: '/users/{id}',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const id = request.params.id;
+
+            logger.debug(`Deleting user with id: ${id}`);
+
+            const result = await uow.usersRepository.deleteUser(id);
+            
+            return result;
+        },
+        options: {
+            auth: false,
+            validate: {
+                params: {
+                    id: Joi.string().uuid().required()
+                }
+            }
+        }  
     }
+
 ];
 

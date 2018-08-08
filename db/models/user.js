@@ -13,12 +13,14 @@ class User extends BaseModel {
         return {
             type: 'Object',
             properties: {
-                id: { type: 'string' },
+                id: { type: 'uuid' },
                 firstName: { type: 'string' },
                 lastName: { type: 'string' },
-                phoneNumber: { type: 'string'},
-                email: { type: 'string' },
-                password: { type: 'string' }
+                primaryEmail: { type: 'string' },
+                primaryEmailVerified: { type: 'boolean' },
+                password: { type: 'string' },
+                disabled: { type: 'boolean' },
+                deleted: { type: 'boolean' }
             }
         };
     }

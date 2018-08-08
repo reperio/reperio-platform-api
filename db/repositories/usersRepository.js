@@ -17,7 +17,7 @@ class UsersRepository {
             return user;
         } catch (err) {
             this.uow._logger.error(err);
-            this.uow._logger.error(`Failed to create user: ${userDetail.email} for org ${userDetail.organizationId}`);
+            this.uow._logger.error(`Failed to create user: ${userDetail.primaryEmail}`);
             throw err;
         }
     }
@@ -38,17 +38,17 @@ class UsersRepository {
         }
     }
 
-    async getUserByEmail(email) {
+    async getUserByEmail(primaryEmail) {
         try {
             const q = this.uow._models.User
                 .query(this.uow._transaction)
-                .where('email', email);
+                .where('primaryEmail', primaryEmail);
 
             const user = await q;
 
             return user[0];
         } catch (err) {
-            this.uow._logger.error(`Failed to fetch user using email: ${email}`);
+            this.uow._logger.error(`Failed to fetch user using email: ${primaryEmail}`);
             this.uow._logger.error(err);
             throw err;
         }
@@ -94,6 +94,40 @@ class UsersRepository {
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to fetch user roles`);
+            throw err;
+        }
+    }
+
+    async deleteUser(id) {
+        try {
+            const q = this.uow._models.User
+                .query(this.uow._transaction)
+                .patch({deleted: true})
+                .where('id', id);
+
+            const result = await q;
+
+            return result;
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to delete user`);
+            throw err;
+        }
+    }
+
+    async disableUser(id) {
+        try {
+            const q = this.uow._models.User
+                .query(this.uow._transaction)
+                .patch({disabled: true})
+                .where('id', id);
+
+            const result = await q;
+
+            return result;
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to disable user`);
             throw err;
         }
     }
