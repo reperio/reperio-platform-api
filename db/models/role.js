@@ -16,7 +16,9 @@ class Role extends BaseModel {
             properties: {
                 id: { type: 'string' },
                 name: { type: 'string' },
-                description: { type: 'string' }
+                deleted: { type: 'boolean' },
+                organizationId: { type: 'string' },
+                applicationId: { type: 'string' },
             }
         };
     }
@@ -24,24 +26,33 @@ class Role extends BaseModel {
     static get relationMappings() {
         const RolePermission = require('./rolePermission');
         const UserRole = require('./userRole');
+        const Organization = require('./organization');
 
         return {
-            rolePermissions: {
-                relation: Model.HasManyRelation,
-                modelClass: RolePermission,
+            organizations: {
+                relation: Model.HasOneRelation,
+                modelClass: Organization,
                 join: {
-                    from: 'roles.id',
-                    to: 'rolePermissions.roleId'
-                }
-            },
-            userRoles: {
-                relation: Model.HasManyRelation,
-                modelClass: UserRole,
-                join: {
-                    from: 'roles.id',
-                    to: 'userRoles.roleId'
+                    from: 'roles.organizationId',
+                    to: 'organizations.id'
                 }
             }
+            // rolePermissions: {
+            //     relation: Model.HasManyRelation,
+            //     modelClass: RolePermission,
+            //     join: {
+            //         from: 'roles.id',
+            //         to: 'rolePermissions.roleId'
+            //     }
+            // },
+            // userRoles: {
+            //     relation: Model.HasManyRelation,
+            //     modelClass: UserRole,
+            //     join: {
+            //         from: 'roles.id',
+            //         to: 'userRoles.roleId'
+            //     }
+            // }
         };
     }
 }

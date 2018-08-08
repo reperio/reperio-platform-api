@@ -74,7 +74,7 @@ module.exports = [
             logger.debug(`Creating role`);
             const payload = request.payload;
 
-            const role = await uow.rolesRepository.createRole(payload.name, payload.description);
+            const role = await uow.rolesRepository.createRole(payload.name, payload.organizationId, payload.applicationId);
 
             await uow.rolePermissionsRepository.update(role.id, payload.permissionIds);
             
@@ -85,7 +85,9 @@ module.exports = [
             validate: {
                 payload: {
                     name: Joi.string().required(),
-                    description: Joi.string(),
+                    deleted: Joi.boolean().required(),
+                    organizationId: Joi.string().guid().required(),
+                    applicationId: Joi.string().guid().optional(),
                     permissionIds: Joi.array()
                         .items(
                             Joi.string()
@@ -123,5 +125,29 @@ module.exports = [
                 }
             }
         }  
+    },
+    {
+        method: 'DELETE',
+        path: '/roles/{id}',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const id = request.params.id;
+
+            logger.debug(`Deleting role with id: ${id}`);
+
+            const result = await uow.rolesRepository.deleteRole(id);
+            
+            return result;
+        },
+        options: {
+            auth: false,
+            validate: {
+                params: {
+                    id: Joi.string().uuid().required()
+                }
+            }
+        }  
     }
+
 ];
