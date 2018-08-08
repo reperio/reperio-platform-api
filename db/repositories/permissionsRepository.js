@@ -5,10 +5,12 @@ class PermissionsRepository {
         this.uow = uow;
     }
 
-    async createPermission(name, description) {
+    async createPermission(name, description, applicationId) {
         const payload = {
             name,
             description,
+            deleted: false,
+            applicationId,
             id: v4()
         };
 
@@ -57,6 +59,24 @@ class PermissionsRepository {
             throw err;
         }
     }
+
+    async deletePermission(id) {
+        try {
+            const q = this.uow._models.Permission
+                .query(this.uow._transaction)
+                .patch({deleted: true})
+                .where('id', id);
+
+            const result = await q;
+
+            return result;
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to delete permission`);
+            throw err;
+        }
+    }
+
 }
 
 module.exports = PermissionsRepository;
