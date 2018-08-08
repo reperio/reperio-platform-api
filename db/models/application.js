@@ -14,10 +14,12 @@ class Application extends BaseModel {
         return {
             type: 'Object',
             properties: {
-                id: { type: 'string' },
+                id: { type: 'uuid' },
                 name: { type: 'string' },
-                description: { type: 'string' },
-                baseUrl: { type: 'string' },
+                apiUrl: { type: 'string' },
+                clientUrl: { type: 'string' },
+                secretKey: { type: 'string' },
+                deleted: { type: 'boolean' },
             }
         };
     }
