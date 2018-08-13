@@ -36,23 +36,23 @@ class Role extends BaseModel {
                     from: 'roles.organizationId',
                     to: 'organizations.id'
                 }
+            },
+            rolePermissions: {
+                relation: Model.HasManyRelation,
+                modelClass: RolePermission,
+                join: {
+                    from: 'roles.id',
+                    to: 'rolePermissions.roleId'
+                }
+            },
+            userRoles: {
+                relation: Model.HasManyRelation,
+                modelClass: UserRole,
+                join: {
+                    from: 'roles.id',
+                    to: 'userRoles.roleId'
+                }
             }
-            // rolePermissions: {
-            //     relation: Model.HasManyRelation,
-            //     modelClass: RolePermission,
-            //     join: {
-            //         from: 'roles.id',
-            //         to: 'rolePermissions.roleId'
-            //     }
-            // },
-            // userRoles: {
-            //     relation: Model.HasManyRelation,
-            //     modelClass: UserRole,
-            //     join: {
-            //         from: 'roles.id',
-            //         to: 'userRoles.roleId'
-            //     }
-            // }
         };
     }
 }
