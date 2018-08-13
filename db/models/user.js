@@ -24,6 +24,21 @@ class User extends BaseModel {
             }
         };
     }
+
+    static get relationMappings() {
+        const UserPhones = require('./userPhones');
+
+        return {
+            users: {
+                relation: Model.HasManyRelation,
+                modelClass: UserPhones,
+                join: {
+                    from: 'users.id',
+                    to: 'userPhones.userId'
+                }
+            }
+        };
+    }
 }
 
 module.exports = User;
