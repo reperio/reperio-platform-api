@@ -67,7 +67,7 @@ module.exports = [
     },
     {
         method: 'GET',
-        path: '/permissions/{id}',
+        path: '/organizations/{id}',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
