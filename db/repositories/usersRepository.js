@@ -47,6 +47,21 @@ class UsersRepository {
         }
     }
 
+    async getAllUsers() {
+        try {
+            const q = this.uow._models.User
+                .query(this.uow._transaction);
+
+            const users = await q;
+
+            return users;
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch users`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
     async getUserByEmail(primaryEmail) {
         try {
             const q = this.uow._models.User

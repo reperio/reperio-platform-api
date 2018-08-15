@@ -25,6 +25,27 @@ module.exports = [
         }
     },
     {
+        method: 'GET',
+        path: '/users',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+
+            logger.debug(`Fetching all users`);
+
+            const users = await uow.usersRepository.getAllUsers();
+
+            users.forEach(x => x.password = null);
+
+            return users;
+        },
+        options: {
+            auth: false,
+            validate: {
+            }
+        }
+    },
+    {
         method: 'PUT',
         path: '/users/{userId}/roles',
         handler: async (request, h) => {
