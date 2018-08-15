@@ -72,7 +72,7 @@ module.exports = [
                     password
                 };
                 
-                const user = await uow.usersRepository.createUser(userModel);
+                const user = await uow.usersRepository.createUser(userModel, [organization.id]);
                 
                 //sign the user in
                 const token = authService.getAuthToken(user, request.server.app.config.jsonSecret, request.server.app.config.jwtValidTimespan);

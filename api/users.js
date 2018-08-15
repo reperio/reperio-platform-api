@@ -65,7 +65,7 @@ module.exports = [
                 password: null
             };
 
-            const user = await uow.usersRepository.createUser(userDetail);
+            const user = await uow.usersRepository.createUser(userDetail, payload.organizationIds);
             
             return user;
         },
@@ -76,7 +76,10 @@ module.exports = [
                     firstName: Joi.string().required(),
                     lastName: Joi.string().required(),
                     primaryEmail: Joi.string().required(),
-                    organizationId: Joi.string().guid().required()
+                    organizationIds: Joi.array()
+                    .items(
+                        Joi.string().guid()
+                    ).min(1).required()
                 }
             }
         }
