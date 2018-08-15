@@ -53,7 +53,7 @@ module.exports = [
             try {
                 const signupDetails = request.payload;
 
-                logger.debug(`New account signup, email=${signupDetails.email}`);
+                logger.debug(`New account signup, email=${signupDetails.primaryEmail}`);
 
                 //validate signup details
                 if (signupDetails.password !== signupDetails.confirmPassword) {
@@ -61,21 +61,18 @@ module.exports = [
                 }
 
                 //create org
-                const organization = await uow.organizationsRepository.createOrganization(signupDetails.email, true);
+                const organization = await uow.organizationsRepository.createOrganization(signupDetails.primaryEmail, true);
                 
-                //create user in org
                 const password = await authService.hashPassword(signupDetails.password);
 
-                const userDetail = {
+                const userModel = {
                     firstName: signupDetails.firstName,
                     lastName: signupDetails.lastName,
                     primaryEmail: signupDetails.primaryEmail,
-                    primaryEmailVerified: false,
-                    disabled: false,
-                    deleted: false,
-                    password: password
+                    password
                 };
-                const user = await uow.usersRepository.createUser(userDetail);
+                
+                const user = await uow.usersRepository.createUser(userModel);
                 
                 //sign the user in
                 const token = authService.getAuthToken(user, request.server.app.config.jsonSecret, request.server.app.config.jwtValidTimespan);
