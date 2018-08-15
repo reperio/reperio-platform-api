@@ -67,6 +67,28 @@ module.exports = [
     },
     {
         method: 'GET',
+        path: '/organizations/user/{userId}',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+
+            logger.debug(`Fetching all organizations by user`);
+
+            const organizations = await uow.organizationsRepository.getOrganizationsByUser(userId);
+            
+            return organizations;
+        },
+        options: {
+            auth: false,
+            validate: {
+                params: {
+                    userId: Joi.string().guid().required()
+                }
+            }
+        }
+    },
+    {
+        method: 'GET',
         path: '/organizations/{id}',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();

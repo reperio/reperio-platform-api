@@ -19,7 +19,7 @@ class User extends BaseModel {
                 lastName: { type: 'string' },
                 primaryEmail: { type: 'string' },
                 primaryEmailVerified: { type: 'boolean' },
-                password: { type: 'string' },
+                password: { type: ['string', 'null']},
                 disabled: { type: 'boolean' },
                 deleted: { type: 'boolean' }
             }
@@ -29,9 +29,10 @@ class User extends BaseModel {
     static get relationMappings() {
         const UserPhone = require('./userPhone');
         const UserEmail = require('./userEmail');
+        const UserOrganization = require('./userOrganization');
 
         return {
-            userPhone: {
+            userPhones: {
                 relation: Model.HasManyRelation,
                 modelClass: UserPhone,
                 join: {
@@ -39,12 +40,20 @@ class User extends BaseModel {
                     to: 'userPhones.userId'
                 }
             },
-            userEmail: {
+            userEmails: {
                 relation: Model.HasManyRelation,
                 modelClass: UserEmail,
                 join: {
                     from: 'users.id',
                     to: 'userEmails.userId'
+                }
+            },
+            userOrganizations: {
+                relation: Model.HasManyRelation,
+                modelClass: UserOrganization,
+                join: {
+                    from: 'users.id',
+                    to: 'userOrganizations.userId'
                 }
             }
         };

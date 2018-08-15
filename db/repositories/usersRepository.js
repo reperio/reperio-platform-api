@@ -5,7 +5,7 @@ class UsersRepository {
         this.uow = uow;
     }
 
-    async createUser(newUser) {
+    async createUser(newUser, organizationIds) {
         try {
             const userModel = {
                 firstName: newUser.firstName,
@@ -17,16 +17,27 @@ class UsersRepository {
                 deleted: false
             };
 
-            const q = this.uow._models.User
+            const user = await this.uow._models.User
                 .query(this.uow._transaction)
                 .insertAndFetch(userModel);
 
-            const user = await q;
+            const userOrganizationModel = organizationIds
+                .map(organizationId => {
+                    return {
+                        userId: user.id,
+                        organizationId
+                    }
+            });
+
+            await this.uow._models.UserOrganization
+                .query(this.uow._transaction)
+                .insert(userOrganizationModel)
+                .returning("*");
 
             return user;
         } catch (err) {
             this.uow._logger.error(err);
-            this.uow._logger.error(`Failed to create user: ${userModel.primaryEmail}`);
+            this.uow._logger.error(`Failed to create user: ${newUser.primaryEmail}`);
             throw err;
         }
     }
@@ -35,6 +46,7 @@ class UsersRepository {
         try {
             const q = this.uow._models.User
                 .query(this.uow._transaction)
+                .eager('userOrganizations.organization')
                 .where('id', userId);
 
             const user = await q;
@@ -50,7 +62,8 @@ class UsersRepository {
     async getAllUsers() {
         try {
             const q = this.uow._models.User
-                .query(this.uow._transaction);
+                .query(this.uow._transaction)
+                .eager('userOrganizations.organization');
 
             const users = await q;
 
@@ -66,6 +79,7 @@ class UsersRepository {
         try {
             const q = this.uow._models.User
                 .query(this.uow._transaction)
+                .eager('userOrganizations.organization')
                 .where('primaryEmail', primaryEmail);
 
             const user = await q;
