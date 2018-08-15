@@ -5,19 +5,28 @@ class UsersRepository {
         this.uow = uow;
     }
 
-    async createUser(userDetail) {
+    async createUser(newUser) {
         try {
-            userDetail.id = uuid4();
+            const userModel = {
+                firstName: newUser.firstName,
+                lastName: newUser.lastName,
+                password: newUser.password,
+                primaryEmail: newUser.primaryEmail,
+                primaryEmailVerified: false,
+                disabled: false,
+                deleted: false
+            };
+
             const q = this.uow._models.User
                 .query(this.uow._transaction)
-                .insertAndFetch(userDetail);
+                .insertAndFetch(userModel);
 
             const user = await q;
 
             return user;
         } catch (err) {
             this.uow._logger.error(err);
-            this.uow._logger.error(`Failed to create user: ${userDetail.primaryEmail}`);
+            this.uow._logger.error(`Failed to create user: ${userModel.primaryEmail}`);
             throw err;
         }
     }
