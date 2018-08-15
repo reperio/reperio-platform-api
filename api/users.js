@@ -19,7 +19,7 @@ module.exports = [
         options: {
             validate: {
                 params: {
-                    userId: Joi.string().required()
+                    userId: Joi.string().uuid().required()
                 }
             }
         }
@@ -42,6 +42,42 @@ module.exports = [
         options: {
             auth: false,
             validate: {
+            }
+        }
+    },
+    {
+        method: 'POST',
+        path: '/users',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+
+            logger.debug(`Creating user`);
+            const payload = request.payload;
+
+            const userDetail = {
+                firstName: payload.firstName,
+                lastName: payload.lastName,
+                primaryEmail: payload.primaryEmail,
+                primaryEmailVerified: false,
+                disabled: false,
+                deleted: false,
+                password: null
+            };
+
+            const user = await uow.usersRepository.createUser(userDetail);
+            
+            return user;
+        },
+        options: {
+        auth: false,
+            validate: {
+                payload: {
+                    firstName: Joi.string().required(),
+                    lastName: Joi.string().required(),
+                    primaryEmail: Joi.string().required(),
+                    organizationId: Joi.string().guid().required()
+                }
             }
         }
     },

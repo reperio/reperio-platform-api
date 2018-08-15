@@ -66,6 +66,7 @@ class UsersRepository {
         try {
             const q = this.uow._models.User
                 .query(this.uow._transaction)
+                .mergeEager('[organizations]')
                 .where('primaryEmail', primaryEmail);
 
             const user = await q;

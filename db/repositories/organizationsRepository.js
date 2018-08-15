@@ -60,6 +60,23 @@ class OrganizationsRepository {
         }
     }
 
+    async getOrganizationsByUser(userId) {
+        try {
+            const q = this.uow._models.Organization
+                .query(this.uow._transaction)
+                .join('userOrganizations as userOrganization', 'userOrganization.organizationId', 'organizations.id')
+                .where('userOrganization.userId', '=', userId);
+
+            const organizations = await q;
+
+            return organizations;
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch organizations by userId: ${userId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
     async getAllOrganizations() {
         try {
             const q = this.uow._models.Organization
