@@ -29,7 +29,8 @@ module.exports = [
             const id = request.params.id;
 
             const permission = await uow.permissionsRepository.getPermissionById(id);
-            
+
+            logger.debug(permission.id + " " + permission.name);
             return permission;
         },
         options: {
@@ -52,7 +53,7 @@ module.exports = [
             const payload = request.payload;
 
             const permission = await uow.permissionsRepository.createPermission(payload.name, payload.description, payload.applicationId);
-            
+
             return permission;
         },
         options: {
