@@ -66,5 +66,34 @@ module.exports = [
                 }
             }
         }  
+    },
+    {
+        method: 'PUT',
+        path: '/permissions/{permissionId}',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+
+            logger.debug(`Editing permission`);
+            const id = request.params.permissionId;
+            const payload = request.payload;
+
+            const permission = await uow.permissionsRepository.editPermission(id, payload.name, payload.description, payload.applicationId);
+
+            return permission;
+        },
+        options: {
+            auth: false,
+            validate: {
+                params: {
+                    permissionId: Joi.string().guid()
+                },
+                payload: {
+                    name: Joi.string().required(),
+                    description: Joi.string().required(),
+                    applicationId: Joi.string().guid().optional()
+                }
+            }
+        }
     }
 ];

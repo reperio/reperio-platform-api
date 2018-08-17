@@ -60,6 +60,32 @@ class PermissionsRepository {
         }
     }
 
+    async editPermission(id, name, description, applicationId) {
+        const permission = {
+            name,
+            description,
+            deleted: false,
+            applicationId,
+            id: id
+        };
+
+        try {
+            const q = this.uow._models.Permission
+                .query(this.uow._transaction)
+                .where({id: id})
+                .patch(permission)
+                .returning("*");
+
+            const updatedPermission = await q;
+
+            return updatedPermission.length > 0 ? updatedPermission[0] : null;
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to create permission`);
+            throw err;
+        }
+    }
+
     async deletePermission(id) {
         try {
             const q = this.uow._models.Permission
