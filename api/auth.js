@@ -60,6 +60,11 @@ module.exports = [
                     return httpResponseService.badData(h);
                 }
 
+                const existingUser = await uow.usersRepository.getUserByEmail(request.payload.primaryEmail);
+                if (existingUser != null) {
+                    return httpResponseService.conflict(h);
+                }
+
                 //create org
                 const organization = await uow.organizationsRepository.createOrganization(signupDetails.primaryEmail, true);
                 

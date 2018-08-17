@@ -21,6 +21,12 @@ class AuthService {
     
         return response;
     }
+
+    conflict(h) {
+        const response = h.response('conflict');
+        response.statusCode = 409;
+        return response;
+    }
 }
 
 module.exports = AuthService;

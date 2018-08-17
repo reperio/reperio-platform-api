@@ -1,4 +1,5 @@
 const Joi = require('joi');
+const HttpResponseService = require('./services/httpResponseService');
 
 module.exports = [
     {
@@ -51,21 +52,35 @@ module.exports = [
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
+            const httpResponseService = new HttpResponseService();
 
             logger.debug(`Creating user`);
             const payload = request.payload;
 
+            //validate signup details
+            if (payload.password !== payload.confirmPassword) {
+                return httpResponseService.badData(h);
+            }
+
             const userDetail = {
                 firstName: payload.firstName,
                 lastName: payload.lastName,
+                password: payload.password,
                 primaryEmail: payload.primaryEmail,
                 primaryEmailVerified: false,
                 disabled: false,
-                deleted: false,
-                password: null
+                deleted: false
             };
 
+            const existingUser = await uow.usersRepository.getUserByEmail(request.payload.primaryEmail);
+            if (existingUser != null) {
+                return httpResponseService.conflict(h);
+            }
+
             const user = await uow.usersRepository.createUser(userDetail, payload.organizationIds);
+
+            //create org
+            const organization = await uow.organizationsRepository.createOrganization(payload.primaryEmail, true);
             
             return user;
         },
@@ -75,6 +90,8 @@ module.exports = [
                 payload: {
                     firstName: Joi.string().required(),
                     lastName: Joi.string().required(),
+                    password: Joi.string().optional(),
+                    confirmPassword: Joi.string().optional(),
                     primaryEmail: Joi.string().required(),
                     organizationIds: Joi.array()
                     .items(
