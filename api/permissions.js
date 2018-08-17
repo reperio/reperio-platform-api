@@ -30,7 +30,6 @@ module.exports = [
 
             const permission = await uow.permissionsRepository.getPermissionById(id);
 
-            logger.debug(permission.id + " " + permission.name);
             return permission;
         },
         options: {
@@ -92,6 +91,29 @@ module.exports = [
                     name: Joi.string().required(),
                     description: Joi.string().required(),
                     applicationId: Joi.string().guid().optional()
+                }
+            }
+        }
+    },
+    {
+        method: 'DELETE',
+        path: '/permissions/{permissionId}',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const id = request.params.permissionId;
+
+            logger.debug(`Deleting permission with id: ${id}`);
+
+            const result = await uow.permissionsRepository.deletePermission(id);
+
+            return result;
+        },
+        options: {
+            auth: false,
+            validate: {
+                params: {
+                    permissionId: Joi.string().uuid().required()
                 }
             }
         }

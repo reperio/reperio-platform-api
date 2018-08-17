@@ -102,7 +102,6 @@ class PermissionsRepository {
             throw err;
         }
     }
-
 }
 
 module.exports = PermissionsRepository;
