@@ -42,12 +42,80 @@ class UsersRepository {
         }
     }
 
+    async editUser(modifiedUser, userId) {
+        try {
+            const userModel = {
+                firstName: modifiedUser.firstName,
+                lastName: modifiedUser.lastName,
+                primaryEmail: modifiedUser.primaryEmail,
+                primaryEmailVerified: modifiedUser.primaryEmailVerified,
+                disabled: modifiedUser.disabled,
+                deleted: modifiedUser.disabled
+            };
+
+            const user = await this.uow._models.User
+                .query(this.uow._transaction)
+                .patch(userModel)
+                .where('id', userId);
+
+            return user;
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to create user: ${modifiedUser.primaryEmail}`);
+            throw err;
+        }
+    }
+
+    async replaceUserOrganizations(userId, userOrganizations, primaryEmail) {
+        try {
+            await this.uow.beginTransaction();
+            const personal = await this.uow._models.UserOrganization
+                .query(this.uow._transaction)
+                .join('organizations as organization', 'userOrganizations.organizationId', 'organization.id')
+                .where('organization.name', primaryEmail)
+                .andWhere('userId', userId);
+
+            const deletedUserOrganizationModel = personal
+                .map(item => {
+                    return {
+                        userId: item.userId,
+                        organizationId: item.organizationId
+                    }
+                });
+
+            const insertedUserOrganizationModel = userOrganizations
+                .map(item => {
+                    return {
+                        userId: userId,
+                        organizationId: item
+                    }
+                });
+
+            await this.uow._models.UserOrganization
+                .query(this.uow._transaction)
+                .where({userId})
+                .delete()
+
+            const q = await this.uow._models.UserOrganization
+                .query(this.uow._transaction)
+                .insert(insertedUserOrganizationModel.concat(deletedUserOrganizationModel))
+                .returning("*");
+
+            await this.uow.commitTransaction();
+        } catch (err) {
+            this.uow._logger.error(`Failed to update a users organizations: ${userId}`);
+            this.uow._logger.error(err);
+            await this.uow.rollbackTransaction();
+            throw err;
+        }
+    }
+
     async getUserById(userId) {
         try {
             const q = this.uow._models.User
                 .query(this.uow._transaction)
                 .eager('userOrganizations.organization')
-                .where('id', userId);
+                .where('users.id', userId);
 
             const user = await q;
 

@@ -10,8 +10,8 @@ class UserOrganization extends Model {
         return {
             type: 'Object',
             properties: {
-                organizationId: { type: 'uuid' },
-                userId: { type: 'uuid' }
+                organizationId: { type: 'string' },
+                userId: { type: 'string' }
             }
         };
     }

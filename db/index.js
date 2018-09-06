@@ -25,11 +25,15 @@ class UnitOfWork {
     }
 
     async beginTransaction() {
-        if (this._transaction !== null) {
+        if (this._transaction != null) {
             throw new Error("A transaction already exists for this unit of work");
         }
-
-        this._transaction = await transaction.start(knex);
+        await new Promise(resolve => {
+            knex.transaction(trx => {
+                this._transaction = trx;
+                resolve();
+            });
+        });
     }
 
     async commitTransaction() {
