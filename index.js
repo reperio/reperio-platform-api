@@ -27,8 +27,10 @@ const start = async function () {
         await reperio_server.registerAdditionalPlugin(apiPluginPackage);
 
         knex.on('query', (query) => {
-            for (let bind of query.bindings) {
-                query.sql = query.sql.replace('?', `'${bind}'`);
+            if (query.bindings) {
+                for (let bind of query.bindings) {
+                    query.sql = query.sql.replace('?', `'${bind}'`);
+                }
             }
             reperio_server.app.logger.debug(query.sql);
         });

@@ -103,6 +103,51 @@ module.exports = [
     },
     {
         method: 'PUT',
+        path: '/users/{userId}',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const httpResponseService = new HttpResponseService();
+
+            logger.debug(`Editing user`);
+            const payload = request.payload;
+
+            const existingUser = await uow.usersRepository.getUserById(request.params.userId);
+
+            const userDetail = {
+                firstName: payload.firstName,
+                lastName: payload.lastName,
+                primaryEmail: payload.primaryEmail,
+                primaryEmailVerified: existingUser.primaryEmail != payload.primaryEmail ? false : existingUser.primaryEmailVerified,
+                disabled: existingUser.disabled,
+                deleted: existingUser.deleted
+            };
+
+            const user = await uow.usersRepository.editUser(userDetail, request.params.userId);
+            const test = await uow.usersRepository.replaceUserOrganizations(request.params.userId, payload.organizationIds, userDetail.primaryEmail);
+            
+            return user;
+        },
+        options: {
+        auth: false,
+            validate: {
+                params: {
+                    userId: Joi.string().guid(),
+                },
+                payload: {
+                    firstName: Joi.string().required(),
+                    lastName: Joi.string().required(),
+                    primaryEmail: Joi.string().required(),
+                    organizationIds: Joi.array()
+                    .items(
+                        Joi.string().guid()
+                    ).optional()
+                }
+            }
+        }
+    },
+    {
+        method: 'PUT',
         path: '/users/{userId}/roles',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
