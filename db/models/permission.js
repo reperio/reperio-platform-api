@@ -16,8 +16,12 @@ class Permission extends BaseModel {
             properties: {
                 id: { type: 'string' },
                 name: { type: 'string' },
+                displayName: { type: 'string' },
                 description: { type: 'string' },
                 deleted: { type: 'boolean' },
+                isSystemAdminPermission: { type: 'boolean' },
+                createdDate: { type: 'dateTime' },
+                lastEditedDate: { type: 'dateTime' },
                 applicationId: { type: 'uuid' }
             }
         };

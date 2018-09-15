@@ -5,35 +5,12 @@ class PermissionsRepository {
         this.uow = uow;
     }
 
-    async createPermission(name, description, applicationId) {
-        const payload = {
-            name,
-            description,
-            deleted: false,
-            applicationId,
-            id: v4()
-        };
-
-        try {
-            const q = this.uow._models.Permission
-                .query(this.uow._transaction)
-                .insertAndFetch(payload);
-
-            const permission = await q;
-
-            return permission;
-        } catch (err) {
-            this.uow._logger.error(err);
-            this.uow._logger.error(`Failed to create permission`);
-            throw err;
-        }
-    }
-
     async getPermissionById(permissionId) {
         try {
             const q = this.uow._models.Permission
                 .query(this.uow._transaction)
-                .where('id', permissionId);
+                .where('id', permissionId)
+                .eager('rolePermissions.roles');
 
             const permission = await q;
 
@@ -48,7 +25,8 @@ class PermissionsRepository {
     async getAllPermissions() {
         try {
             const q = this.uow._models.Permission
-                .query(this.uow._transaction);
+                .query(this.uow._transaction)
+                .eager('rolePermissions.roles');
 
             const permissions = await q;
 
@@ -65,8 +43,8 @@ class PermissionsRepository {
             name,
             description,
             deleted: false,
-            applicationId,
-            id: id
+            lastEditedDate: moment.now(),
+            applicationId
         };
 
         try {
@@ -82,23 +60,6 @@ class PermissionsRepository {
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to create permission`);
-            throw err;
-        }
-    }
-
-    async deletePermission(id) {
-        try {
-            const q = this.uow._models.Permission
-                .query(this.uow._transaction)
-                .patch({deleted: true})
-                .where('id', id);
-
-            const result = await q;
-
-            return result;
-        } catch (err) {
-            this.uow._logger.error(err);
-            this.uow._logger.error(`Failed to delete permission`);
             throw err;
         }
     }
