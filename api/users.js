@@ -13,9 +13,10 @@ module.exports = [
 
             logger.debug(`Fetching user ${userId}`);
 
-            const accounts = await uow.usersRepository.getUserById(userId);
+            const user = await uow.usersRepository.getUserById(userId);
+            user.password = null;
             
-            return {status: 0, message: 'success', data: accounts};
+            return user;
         },
         options: {
             validate: {
