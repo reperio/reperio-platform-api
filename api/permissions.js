@@ -29,7 +29,7 @@ module.exports = [
             const id = request.params.id;
 
             const permission = await uow.permissionsRepository.getPermissionById(id);
-            
+
             return permission;
         },
         options: {
@@ -42,28 +42,34 @@ module.exports = [
         }  
     },
     {
-        method: 'POST',
-        path: '/permissions',
+        method: 'PUT',
+        path: '/permissions/{permissionId}',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
 
-            logger.debug(`Creating permission`);
+            logger.debug(`Editing permission`);
+            const id = request.params.permissionId;
             const payload = request.payload;
 
-            const permission = await uow.permissionsRepository.createPermission(payload.name, payload.description, payload.applicationId);
-            
+            const permission = await uow.permissionsRepository.editPermission(id, payload.name, payload.displayName, payload.description, payload.applicationId, payload.isSystemAdminPermission);
+
             return permission;
         },
         options: {
             auth: false,
             validate: {
+                params: {
+                    permissionId: Joi.string().guid()
+                },
                 payload: {
                     name: Joi.string().required(),
                     description: Joi.string().required(),
-                    applicationId: Joi.string().guid().optional()
+                    displayName: Joi.string().required(),
+                    applicationId: Joi.string().guid().optional(),
+                    isSystemAdminPermission: Joi.boolean().optional()
                 }
             }
-        }  
+        }
     }
 ];

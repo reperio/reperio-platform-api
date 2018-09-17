@@ -1,39 +1,17 @@
 const v4 = require('uuid/v4');
+const moment = require('moment');
 
 class PermissionsRepository {
     constructor(uow) {
         this.uow = uow;
     }
 
-    async createPermission(name, description, applicationId) {
-        const payload = {
-            name,
-            description,
-            deleted: false,
-            applicationId,
-            id: v4()
-        };
-
-        try {
-            const q = this.uow._models.Permission
-                .query(this.uow._transaction)
-                .insertAndFetch(payload);
-
-            const permission = await q;
-
-            return permission;
-        } catch (err) {
-            this.uow._logger.error(err);
-            this.uow._logger.error(`Failed to create permission`);
-            throw err;
-        }
-    }
-
     async getPermissionById(permissionId) {
         try {
             const q = this.uow._models.Permission
                 .query(this.uow._transaction)
-                .where('id', permissionId);
+                .where('id', permissionId)
+                .eager('rolePermissions.roles');
 
             const permission = await q;
 
@@ -48,35 +26,46 @@ class PermissionsRepository {
     async getAllPermissions() {
         try {
             const q = this.uow._models.Permission
-                .query(this.uow._transaction);
+                .query(this.uow._transaction)
+                .eager('rolePermissions.roles');
 
             const permissions = await q;
 
             return permissions;
-        } catch (err) {
+        } catch (err) { 
             this.uow._logger.error(`Failed to fetch permissions`);
             this.uow._logger.error(err);
             throw err;
         }
     }
 
-    async deletePermission(id) {
+    async editPermission(id, name, displayName, description, applicationId, isSystemAdminPermission) {
+        const permission = {
+            name,
+            description,
+            deleted: false,
+            lastEditedDate: moment.utc().format(),
+            applicationId,
+            displayName,
+            isSystemAdminPermission
+        };
+
         try {
             const q = this.uow._models.Permission
                 .query(this.uow._transaction)
-                .patch({deleted: true})
-                .where('id', id);
+                .where({id: id})
+                .patch(permission)
+                .returning("*");
 
-            const result = await q;
+            const updatedPermission = await q;
 
-            return result;
+            return updatedPermission.length > 0 ? updatedPermission[0] : null;
         } catch (err) {
             this.uow._logger.error(err);
-            this.uow._logger.error(`Failed to delete permission`);
+            this.uow._logger.error(`Failed to edit permission`);
             throw err;
         }
     }
-
 }
 
 module.exports = PermissionsRepository;

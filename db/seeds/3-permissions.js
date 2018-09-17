@@ -9,15 +9,23 @@ exports.seed = function (knex, Promise) {
             // Inserts seed entries
             return knex('permissions').insert([
                 {
-                    id: v4(),
-                    name: 'test',
-                    description: 'This is a test.',
+                    id: 'd2d6438c-b92e-11e8-96f8-529269fb1459',
+                    name: 'TestAdminPermission',
+                    displayName: 'Test Admin Permission',
+                    description: 'This is a test of an admin user.',
+                    isSystemAdminPermission: true,
+                    createdDate:  moment().utc().format(),
+                    lastEditedDate: moment().utc().format(),
                     deleted: false
                 },
                 {
-                    id: v4(),
-                    name: 'test2',
-                    description: 'This is a second test.',
+                    id: 'd2d654da-b92e-11e8-96f8-529269fb1459',
+                    name: 'TestPermission',
+                    displayName: 'Test Permission',
+                    description: 'This is a test of a regular user.',
+                    isSystemAdminPermission: false,
+                    createdDate: moment().utc().format(),
+                    lastEditedDate: moment().utc().format(),
                     deleted: false
                 }
             ]);
