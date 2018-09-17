@@ -52,7 +52,7 @@ module.exports = [
             const id = request.params.permissionId;
             const payload = request.payload;
 
-            const permission = await uow.permissionsRepository.editPermission(id, payload.name, payload.description, payload.applicationId);
+            const permission = await uow.permissionsRepository.editPermission(id, payload.name, payload.displayName, payload.description, payload.applicationId, payload.isSystemAdminPermission);
 
             return permission;
         },
@@ -65,7 +65,9 @@ module.exports = [
                 payload: {
                     name: Joi.string().required(),
                     description: Joi.string().required(),
-                    applicationId: Joi.string().guid().optional()
+                    displayName: Joi.string().required(),
+                    applicationId: Joi.string().guid().optional(),
+                    isSystemAdminPermission: Joi.boolean().optional()
                 }
             }
         }

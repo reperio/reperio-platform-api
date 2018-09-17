@@ -1,4 +1,5 @@
 const v4 = require('uuid/v4');
+const moment = require('moment');
 
 class PermissionsRepository {
     constructor(uow) {
@@ -31,20 +32,22 @@ class PermissionsRepository {
             const permissions = await q;
 
             return permissions;
-        } catch (err) {
+        } catch (err) { 
             this.uow._logger.error(`Failed to fetch permissions`);
             this.uow._logger.error(err);
             throw err;
         }
     }
 
-    async editPermission(id, name, description, applicationId) {
+    async editPermission(id, name, displayName, description, applicationId, isSystemAdminPermission) {
         const permission = {
             name,
             description,
             deleted: false,
-            lastEditedDate: moment.now(),
-            applicationId
+            lastEditedDate: moment.utc().format(),
+            applicationId,
+            displayName,
+            isSystemAdminPermission
         };
 
         try {
@@ -59,7 +62,7 @@ class PermissionsRepository {
             return updatedPermission.length > 0 ? updatedPermission[0] : null;
         } catch (err) {
             this.uow._logger.error(err);
-            this.uow._logger.error(`Failed to create permission`);
+            this.uow._logger.error(`Failed to edit permission`);
             throw err;
         }
     }
