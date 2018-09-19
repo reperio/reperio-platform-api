@@ -66,6 +66,26 @@ class PermissionsRepository {
             throw err;
         }
     }
+
+    async managePermissionsUsedByRoles(rolePermissions, permissionId) {
+        try {
+            await this.uow._models.RolePermission
+                .query(this.uow._transaction)
+                .where({permissionId})
+                .delete();
+
+            const q = await this.uow._models.RolePermission
+                .query(this.uow._transaction)
+                .insert(rolePermissions)
+                .returning("*");
+
+            return q;
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to update role permissions`);
+            throw err;
+        }
+    }
 }
 
 module.exports = PermissionsRepository;
