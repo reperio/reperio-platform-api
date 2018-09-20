@@ -19,7 +19,7 @@ module.exports = [
             auth: false,
             validate: {
                 payload: {
-                    name: Joi.string().uuid().required(),
+                    name: Joi.string().required(),
                     personal: Joi.bool().required()
                 }
             }
