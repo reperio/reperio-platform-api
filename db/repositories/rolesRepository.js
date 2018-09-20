@@ -33,6 +33,7 @@ class RolesRepository {
         try {
             const q = this.uow._models.Role
                 .query(this.uow._transaction)
+                .eager('rolePermissions.permissions')
                 .where('id', roleId);
 
             const role = await q;
@@ -60,6 +61,21 @@ class RolesRepository {
         }
     }
 
+    async editRole(id, name) {
+        try {
+            return await this.uow._models.Role
+                .query(this.uow._transaction)
+                .where({id: id})
+                .patch({name})
+                .returning("*");
+
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to edit role`);
+            throw err;
+        }
+    }
+
     async updateRolePermissions(roleId, permissionIds) {
         try {
             await this.uow._models.RolePermission
@@ -76,7 +92,8 @@ class RolesRepository {
 
             const q = this.uow._models.RolePermission
                 .query(this.uow._transaction)
-                .insertAndFetch(rolePermissions);
+                .insert(rolePermissions)
+                .returning("*");
 
             return await q;
         } catch (err) {
