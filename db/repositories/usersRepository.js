@@ -66,24 +66,9 @@ class UsersRepository {
         }
     }
 
-    async replaceUserOrganizations(userId, userOrganizations, primaryEmail) {
+    async replaceUserOrganizations(userId, userOrganizations) {
         try {
-            await this.uow.beginTransaction();
-            const personal = await this.uow._models.UserOrganization
-                .query(this.uow._transaction)
-                .join('organizations as organization', 'userOrganizations.organizationId', 'organization.id')
-                .where('organization.name', primaryEmail)
-                .andWhere('userId', userId);
-
-            const deletedUserOrganizationModel = personal
-                .map(item => {
-                    return {
-                        userId: item.userId,
-                        organizationId: item.organizationId
-                    }
-                });
-
-            const insertedUserOrganizationModel = userOrganizations
+            const insert = userOrganizations
                 .map(item => {
                     return {
                         userId: userId,
@@ -98,14 +83,12 @@ class UsersRepository {
 
             const q = await this.uow._models.UserOrganization
                 .query(this.uow._transaction)
-                .insert(insertedUserOrganizationModel.concat(deletedUserOrganizationModel))
+                .insert(insert)
                 .returning("*");
 
-            await this.uow.commitTransaction();
         } catch (err) {
             this.uow._logger.error(`Failed to update a users organizations: ${userId}`);
             this.uow._logger.error(err);
-            await this.uow.rollbackTransaction();
             throw err;
         }
     }

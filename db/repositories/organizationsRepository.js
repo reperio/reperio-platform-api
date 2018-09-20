@@ -65,7 +65,8 @@ class OrganizationsRepository {
             const q = this.uow._models.Organization
                 .query(this.uow._transaction)
                 .join('userOrganizations as userOrganization', 'userOrganization.organizationId', 'organizations.id')
-                .where('userOrganization.userId', '=', userId);
+                .where('userOrganization.userId', '=', userId)
+                .orderBy('name');
 
             const organizations = await q;
 
@@ -80,7 +81,8 @@ class OrganizationsRepository {
     async getAllOrganizations() {
         try {
             const q = this.uow._models.Organization
-                .query(this.uow._transaction);
+                .query(this.uow._transaction)
+                .orderBy('name');
 
             const organizations = await q;
 

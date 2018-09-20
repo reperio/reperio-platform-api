@@ -72,6 +72,8 @@ module.exports = [
                 disabled: false,
                 deleted: false
             };
+            
+            await uow.beginTransaction();
 
             const existingUser = await uow.usersRepository.getUserByEmail(request.payload.primaryEmail);
             if (existingUser != null) {
@@ -79,10 +81,10 @@ module.exports = [
             }
 
             const user = await uow.usersRepository.createUser(userDetail, payload.organizationIds);
+            await uow.organizationsRepository.createOrganization(payload.primaryEmail, true);
 
-            //create org
-            const organization = await uow.organizationsRepository.createOrganization(payload.primaryEmail, true);
-            
+            await uow.commitTransaction();
+
             return user;
         },
         options: {
@@ -97,7 +99,7 @@ module.exports = [
                     organizationIds: Joi.array()
                     .items(
                         Joi.string().guid()
-                    ).min(1).required()
+                    ).optional()
                 }
             }
         }
@@ -108,10 +110,10 @@ module.exports = [
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const httpResponseService = new HttpResponseService();
 
             logger.debug(`Editing user`);
             const payload = request.payload;
+            await uow.beginTransaction();
 
             const existingUser = await uow.usersRepository.getUserById(request.params.userId);
 
@@ -125,7 +127,9 @@ module.exports = [
             };
 
             const user = await uow.usersRepository.editUser(userDetail, request.params.userId);
-            const test = await uow.usersRepository.replaceUserOrganizations(request.params.userId, payload.organizationIds, userDetail.primaryEmail);
+            await uow.usersRepository.replaceUserOrganizations(request.params.userId, payload.organizationIds);
+
+            await uow.commitTransaction();
             
             return user;
         },
@@ -158,7 +162,9 @@ module.exports = [
             const userId = request.params.userId;
             const roleIds = request.payload.roleIds;
 
+            await uow.beginTransaction();
             const userRoles = await uow.usersRepository.updateRoles(userId, roleIds);
+            await uow.commitTransaction();
             
             return userRoles;
         },
