@@ -52,8 +52,12 @@ module.exports = [
             const id = request.params.permissionId;
             const payload = request.payload;
 
+            await uow.beginTransaction();
+
             const permission = await uow.permissionsRepository.editPermission(id, payload.name, payload.displayName, payload.description, payload.applicationId, payload.isSystemAdminPermission);
             await uow.permissionsRepository.managePermissionsUsedByRoles(payload.rolePermissions, id);
+
+            await uow.commitTransaction();
 
             return permission;
         },

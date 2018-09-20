@@ -60,6 +60,8 @@ module.exports = [
                     return httpResponseService.badData(h);
                 }
 
+                await uow.beginTransaction();
+
                 const existingUser = await uow.usersRepository.getUserByEmail(request.payload.primaryEmail);
                 if (existingUser != null) {
                     return httpResponseService.conflict(h);
@@ -84,6 +86,8 @@ module.exports = [
 
                 //send email confirmation email
                 emailService.sendEmail('', '', '', '');
+
+                await uow.commitTransaction();
 
                 return httpResponseService.loginSuccess(h, token);
             } catch (err) {

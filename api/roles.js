@@ -73,11 +73,15 @@ module.exports = [
 
             logger.debug(`Creating role`);
             const payload = request.payload;
+            
+            await uow.beginTransaction();
 
             const role = await uow.rolesRepository.createRole(payload.name, payload.organizationId, payload.applicationId);
 
             await uow.rolePermissionsRepository.update(role.id, payload.permissionIds);
-            
+
+            await uow.commitTransaction();
+
             return role;
         },
         options: {
