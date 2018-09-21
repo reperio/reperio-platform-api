@@ -109,11 +109,14 @@ module.exports = [
 
             logger.debug(`Updating role`);
             const id = request.params.id;
-            const permissionIds = request.payload.permissionIds;
+            const payload = request.payload;
+            await uow.beginTransaction();
 
-            const rolePermissions = await uow.rolesRepository.updateRolePermissions(id, permissionIds);
-            
-            return rolePermissions;
+            const role = await uow.rolesRepository.editRole(id, payload.name);
+            await uow.rolesRepository.updateRolePermissions(id, payload.permissionIds);
+
+            await uow.commitTransaction();
+            return role;
         },
         options: {
         auth: false,
@@ -122,6 +125,7 @@ module.exports = [
                     id: Joi.string().guid(),
                 },
                 payload: {
+                    name: Joi.string().required(),
                     permissionIds: Joi.array()
                         .items(
                             Joi.string()
