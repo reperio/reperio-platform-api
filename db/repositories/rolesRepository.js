@@ -33,7 +33,7 @@ class RolesRepository {
         try {
             const q = this.uow._models.Role
                 .query(this.uow._transaction)
-                .eager('rolePermissions.permissions')
+                .eager('rolePermissions.permission')
                 .where('id', roleId);
 
             const role = await q;
@@ -49,7 +49,25 @@ class RolesRepository {
     async getAllRoles() {
         try {
             const q = this.uow._models.Role
-                .query(this.uow._transaction);
+                .query(this.uow._transaction)
+                .eager('rolePermissions.permission');
+
+            const roles = await q;
+
+            return roles;
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch roles`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async getAllActiveRoles() {
+        try {
+            const q = this.uow._models.Role
+                .query(this.uow._transaction)
+                .eager('rolePermissions.permission')
+                .where('deleted', false);
 
             const roles = await q;
 

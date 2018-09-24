@@ -30,6 +30,7 @@ class User extends BaseModel {
         const UserPhone = require('./userPhone');
         const UserEmail = require('./userEmail');
         const UserOrganization = require('./userOrganization');
+        const UserRole = require('./userRole');
 
         return {
             userPhones: {
@@ -54,6 +55,14 @@ class User extends BaseModel {
                 join: {
                     from: 'users.id',
                     to: 'userOrganizations.userId'
+                }
+            },
+            userRoles: {
+                relation: Model.HasManyRelation,
+                modelClass: UserRole,
+                join: {
+                    from: 'users.id',
+                    to: 'userRoles.userId'
                 }
             }
         };
