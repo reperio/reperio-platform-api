@@ -29,7 +29,7 @@ class RolePermission extends BaseModel {
                     to: 'roles.id'
                 }
             },
-            permissions: {
+            permission: {
                 relation: Model.HasOneRelation,
                 modelClass: Permission,
                 join: {

@@ -80,8 +80,8 @@ module.exports = [
                 return httpResponseService.conflict(h);
             }
 
-            const user = await uow.usersRepository.createUser(userDetail, payload.organizationIds);
-            await uow.organizationsRepository.createOrganization(payload.primaryEmail, true);
+            const organization = await uow.organizationsRepository.createOrganization(payload.primaryEmail, true);
+            const user = await uow.usersRepository.createUser(userDetail, payload.organizationIds.concat(organization.id));
 
             await uow.commitTransaction();
 
@@ -128,6 +128,7 @@ module.exports = [
 
             const user = await uow.usersRepository.editUser(userDetail, request.params.userId);
             await uow.usersRepository.replaceUserOrganizations(request.params.userId, payload.organizationIds);
+            await uow.usersRepository.replaceUserRoles(request.params.userId, payload.roleIds);
 
             await uow.commitTransaction();
             
@@ -144,6 +145,10 @@ module.exports = [
                     lastName: Joi.string().required(),
                     primaryEmail: Joi.string().required(),
                     organizationIds: Joi.array()
+                    .items(
+                        Joi.string().guid()
+                    ).optional(),
+                    roleIds: Joi.array()
                     .items(
                         Joi.string().guid()
                     ).optional()

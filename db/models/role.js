@@ -18,7 +18,7 @@ class Role extends BaseModel {
                 name: { type: 'string' },
                 deleted: { type: 'boolean' },
                 organizationId: { type: 'string' },
-                applicationId: { type: 'string' },
+                applicationId: { type: ['string', 'null'] },
             }
         };
     }
@@ -29,7 +29,7 @@ class Role extends BaseModel {
         const Organization = require('./organization');
 
         return {
-            organizations: {
+            organization: {
                 relation: Model.HasOneRelation,
                 modelClass: Organization,
                 join: {

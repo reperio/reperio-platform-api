@@ -10,7 +10,7 @@ module.exports = [
 
             logger.debug(`Fetching all roles`);
 
-            const roles = await uow.rolesRepository.getAllRoles();
+            const roles = await uow.rolesRepository.getAllActiveRoles();
             
             return roles;
         },
@@ -78,7 +78,7 @@ module.exports = [
 
             const role = await uow.rolesRepository.createRole(payload.name, payload.organizationId, payload.applicationId);
 
-            await uow.rolePermissionsRepository.update(role.id, payload.permissionIds);
+            await uow.rolesRepository.updateRolePermissions(role.id, payload.permissionIds);
 
             await uow.commitTransaction();
 
@@ -89,12 +89,11 @@ module.exports = [
             validate: {
                 payload: {
                     name: Joi.string().required(),
-                    deleted: Joi.boolean().required(),
                     organizationId: Joi.string().guid().required(),
-                    applicationId: Joi.string().guid().optional(),
+                    applicationId: Joi.string().guid().allow(null),
                     permissionIds: Joi.array()
                         .items(
-                            Joi.string()
+                            Joi.string().guid()
                         ).min(1).required()
                 }
             }

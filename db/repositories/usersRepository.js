@@ -93,11 +93,39 @@ class UsersRepository {
         }
     }
 
+    async replaceUserRoles(userId, userRoles) {
+        try {
+            const insert = userRoles
+                .map(item => {
+                    return {
+                        userId: userId,
+                        roleId: item
+                    }
+                });
+
+            await this.uow._models.UserRole
+                .query(this.uow._transaction)
+                .where({userId})
+                .delete()
+
+            const q = await this.uow._models.UserRole
+                .query(this.uow._transaction)
+                .insert(insert)
+                .returning("*");
+
+        } catch (err) {
+            this.uow._logger.error(`Failed to update a users roles: ${userId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
     async getUserById(userId) {
         try {
             const q = this.uow._models.User
                 .query(this.uow._transaction)
-                .eager('userOrganizations.organization')
+                .mergeEager('userOrganizations.organization')
+                .mergeEager('userRoles.role.rolePermissions.permission')
                 .where('users.id', userId);
 
             const user = await q;
@@ -130,7 +158,8 @@ class UsersRepository {
         try {
             const q = this.uow._models.User
                 .query(this.uow._transaction)
-                .eager('userOrganizations.organization')
+                .mergeEager('userOrganizations.organization')
+                .mergeEager('userRoles.role.rolePermissions.permission')
                 .where('primaryEmail', primaryEmail);
 
             const user = await q;
