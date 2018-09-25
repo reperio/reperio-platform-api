@@ -2,7 +2,7 @@ const Joi = require('joi');
 const AuthService = require('./services/authService');
 const HttpResponseService = require('./services/httpResponseService');
 const EmailService = require('./services/emailService');
-const RecaptchaService = require('./services/recaptchaService');
+const moment = require('moment');
 
 module.exports = [
     {
@@ -84,8 +84,8 @@ module.exports = [
                 //sign the user in
                 const token = authService.getAuthToken(user, request.server.app.config.jsonSecret, request.server.app.config.jwtValidTimespan);
 
-                //send email confirmation email
-                emailService.sendEmail('', '', '', '');
+                //send verification email
+                await emailService.sendEmail(user, uow, request);
 
                 await uow.commitTransaction();
 
@@ -128,6 +128,32 @@ module.exports = [
             validate: {
                 payload: {
                     response: Joi.string().required()
+                }
+            }
+        }
+    }, {
+        method: 'POST',
+        path: '/auth/emailVerification',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const payload = request.payload;
+            const entry = await uow.emailVerificationsRepository.getEntry(payload.token);
+            
+            if (moment().utc().diff(entry.createdAt, 'minutes') >= 10) {
+                return false;
+            }
+            else {
+                await uow.usersRepository.verifyUserEmail(entry.userEmailId);
+                return true;
+            }
+
+        },
+        options: {
+            auth: false,
+            validate: {
+                payload: {
+                    token: Joi.string().guid().required()
                 }
             }
         }
