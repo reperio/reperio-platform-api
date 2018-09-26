@@ -5,6 +5,7 @@ const UnitOfWork = require('./db');
 const Config = require('./config');
 const RecaptchaService = require('./api/services/recaptchaService');
 const {knex} = require('./db/connect');
+const MessageHelper = require('./helpers/messageHelper');
 
 const start = async function () {
     try {
@@ -35,6 +36,8 @@ const start = async function () {
             reperio_server.app.logger.debug(query.sql);
         });
 
+        reperio_server.app.config = Config;
+
         await reperio_server.registerExtension({
             type: 'onRequest',
             method: async (request, h) => {
@@ -49,6 +52,10 @@ const start = async function () {
                 request.app.getNewRecaptcha = async () => {
                     const recaptcha = new RecaptchaService('https://www.google.com/recaptcha/api/siteverify', reperio_server.app.logger);
                     return recaptcha;
+                };
+
+                request.app.getNewMessageHelper = async () => {
+                    return new MessageHelper(reperio_server.app.logger, Config);
                 };
 
                 return h.continue;
@@ -87,8 +94,6 @@ const start = async function () {
                 return h.continue;
             }
         });
-
-        reperio_server.app.config = Config;
 
         await reperio_server.startServer();
     } catch (err) {

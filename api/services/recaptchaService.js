@@ -8,7 +8,6 @@ class RecaptchaService {
     }
 
     async siteVerify(secret, response, remoteip) {
-        const payload = {secret, response, remoteip}
         const options = {
             uri: `${this.url}?secret=${secret}&response=${response}&remoteip=${remoteip}`,
             method: 'POST',

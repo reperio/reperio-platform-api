@@ -34,6 +34,8 @@ class UsersRepository {
                 .insert(userOrganizationModel)
                 .returning("*");
 
+
+
             return user;
         } catch (err) {
             this.uow._logger.error(err);
@@ -150,6 +152,23 @@ class UsersRepository {
         } catch (err) {
             this.uow._logger.error(`Failed to fetch users`);
             this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async verifyUserEmail(id) {
+        try {
+            const q = this.uow._models.UserEmail
+                .query(this.uow._transaction)
+                .patch({emailVerified: true})
+                .where('id', id);
+
+            const result = await q;
+
+            return result;
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to verify email`);
             throw err;
         }
     }

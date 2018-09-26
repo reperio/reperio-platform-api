@@ -1,5 +1,6 @@
 const Joi = require('joi');
 const HttpResponseService = require('./services/httpResponseService');
+const EmailService = require('./services/emailService');
 
 module.exports = [
     {
@@ -54,6 +55,7 @@ module.exports = [
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
             const httpResponseService = new HttpResponseService();
+            const emailService = new EmailService();
 
             logger.debug(`Creating user`);
             const payload = request.payload;
@@ -82,6 +84,9 @@ module.exports = [
 
             const organization = await uow.organizationsRepository.createOrganization(payload.primaryEmail, true);
             const user = await uow.usersRepository.createUser(userDetail, payload.organizationIds.concat(organization.id));
+            
+            //send verification email
+            await emailService.sendEmail(user.id, user.primaryEmail, uow, request);
 
             await uow.commitTransaction();
 
