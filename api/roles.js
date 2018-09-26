@@ -13,9 +13,6 @@ module.exports = [
             const roles = await uow.rolesRepository.getAllActiveRoles();
             
             return roles;
-        },
-        options: {
-            //auth: false
         }
     },
     {
@@ -33,7 +30,6 @@ module.exports = [
             return role;
         },
         options: {
-        //auth: false,
             validate: {
                 params: {
                     id: Joi.string().guid().required()
@@ -56,7 +52,6 @@ module.exports = [
             return role;
         },
         options: {
-        //auth: false,
             validate: {
                 params: {
                     id: Joi.string().guid().required()
@@ -85,7 +80,6 @@ module.exports = [
             return role;
         },
         options: {
-        auth: false,
             validate: {
                 payload: {
                     name: Joi.string().required(),
@@ -118,7 +112,6 @@ module.exports = [
             return role;
         },
         options: {
-        auth: false,
             validate: {
                 params: {
                     id: Joi.string().guid(),
@@ -148,7 +141,6 @@ module.exports = [
             return result;
         },
         options: {
-            auth: false,
             validate: {
                 params: {
                     id: Joi.string().uuid().required()

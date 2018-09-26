@@ -68,13 +68,13 @@ class UsersRepository {
         }
     }
 
-    async replaceUserOrganizations(userId, userOrganizations) {
+    async replaceUserOrganizationsByUserId(userId, organizationIds) {
         try {
-            const insert = userOrganizations
-                .map(item => {
+            const insert = organizationIds
+                .map(organizationId => {
                     return {
-                        userId: userId,
-                        organizationId: item
+                        userId,
+                        organizationId
                     }
                 });
 
@@ -89,7 +89,34 @@ class UsersRepository {
                 .returning("*");
 
         } catch (err) {
-            this.uow._logger.error(`Failed to update a users organizations: ${userId}`);
+            this.uow._logger.error(`Failed to update a users organizations with userId: ${userId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async replaceUserOrganizationsByOrganizationId(organizationId, userIds) {
+        try {
+            const insert = userIds
+                .map(userId => {
+                    return {
+                        userId,
+                        organizationId
+                    }
+                });
+
+            await this.uow._models.UserOrganization
+                .query(this.uow._transaction)
+                .where({organizationId})
+                .delete()
+
+            const q = await this.uow._models.UserOrganization
+                .query(this.uow._transaction)
+                .insert(insert)
+                .returning("*");
+
+        } catch (err) {
+            this.uow._logger.error(`Failed to update user organizations with orgId: ${organizationId}`);
             this.uow._logger.error(err);
             throw err;
         }

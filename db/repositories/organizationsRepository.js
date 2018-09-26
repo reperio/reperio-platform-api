@@ -48,7 +48,8 @@ class OrganizationsRepository {
         try {
             const q = this.uow._models.Organization
                 .query(this.uow._transaction)
-                .where('id', id);
+                .where('id', id)
+                .eager('userOrganizations.user');
 
             const organization = await q;
 
@@ -90,6 +91,21 @@ class OrganizationsRepository {
         } catch (err) {
             this.uow._logger.error(`Failed to fetch organizations`);
             this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async editOrganization(id, name) {
+        try {
+            return await this.uow._models.Organization
+                .query(this.uow._transaction)
+                .where({id: id})
+                .patch({name})
+                .returning("*");
+
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to edit organization`);
             throw err;
         }
     }

@@ -13,9 +13,6 @@ module.exports = [
             const apps = await uow.applicationsRepository.getAllApplications();
             
             return apps;
-        },
-        options: {
-            auth: false
         }
     },
     {
@@ -33,7 +30,6 @@ module.exports = [
             return app;
         },
         options: {
-            auth: false,
             validate: {
                 params: {
                     id: Joi.string().guid().required()
@@ -56,7 +52,6 @@ module.exports = [
             return app;
         },
         options: {
-            auth: false,
             validate: {
                 payload: {
                     name: Joi.string().required(),
@@ -82,7 +77,6 @@ module.exports = [
             return app;
         },
         options: {
-            auth: false,
             validate: {
                 params: {
                     id: Joi.string().uuid().required()
