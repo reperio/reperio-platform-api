@@ -13,9 +13,6 @@ module.exports = [
             const permissions = await uow.permissionsRepository.getAllPermissions();
             
             return permissions;
-        },
-        options: {
-            auth: false
         }
     },
     {
@@ -33,7 +30,6 @@ module.exports = [
             return permission;
         },
         options: {
-            auth: false,
             validate: {
                 params: {
                     id: Joi.string().guid().required()
@@ -62,7 +58,6 @@ module.exports = [
             return permission;
         },
         options: {
-            auth: false,
             validate: {
                 params: {
                     permissionId: Joi.string().guid()

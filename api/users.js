@@ -41,11 +41,6 @@ module.exports = [
             users.forEach(x => x.password = null);
 
             return users;
-        },
-        options: {
-            auth: false,
-            validate: {
-            }
         }
     },
     {
@@ -93,7 +88,6 @@ module.exports = [
             return user;
         },
         options: {
-        auth: false,
             validate: {
                 payload: {
                     firstName: Joi.string().required(),
@@ -132,7 +126,7 @@ module.exports = [
             };
 
             const user = await uow.usersRepository.editUser(userDetail, request.params.userId);
-            await uow.usersRepository.replaceUserOrganizations(request.params.userId, payload.organizationIds);
+            await uow.usersRepository.replaceUserOrganizationsByUserId(request.params.userId, payload.organizationIds);
             await uow.usersRepository.replaceUserRoles(request.params.userId, payload.roleIds);
 
             await uow.commitTransaction();
@@ -140,7 +134,6 @@ module.exports = [
             return user;
         },
         options: {
-        auth: false,
             validate: {
                 params: {
                     userId: Joi.string().guid(),
@@ -179,7 +172,6 @@ module.exports = [
             return userRoles;
         },
         options: {
-        auth: false,
             validate: {
                 params: {
                     userId: Joi.string().guid(),
@@ -208,7 +200,6 @@ module.exports = [
             return userRoles;
         },
         options: {
-        auth: false,
             validate: {
                 params: {
                     userId: Joi.string().guid(),
@@ -231,7 +222,6 @@ module.exports = [
             return result;
         },
         options: {
-            auth: false,
             validate: {
                 params: {
                     id: Joi.string().uuid().required()
@@ -239,6 +229,4 @@ module.exports = [
             }
         }  
     }
-
 ];
-

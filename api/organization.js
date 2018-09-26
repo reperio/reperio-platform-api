@@ -10,16 +10,25 @@ module.exports = [
             const payload = request.payload;
 
             logger.debug(`Creating organization`);
+            await uow.beginTransaction();
 
-            const result = await uow.organizationsRepository.createOrganization(payload.name, payload.personal);
+            const organization = await uow.organizationsRepository.createOrganization(payload.name, payload.personal);
+            if (organization && payload.userIds.length > 0) {
+                await uow.usersRepository.replaceUserOrganizationsByOrganizationId(organization.id, payload.userIds);
+            }
+
+            await uow.commitTransaction();
             
-            return result;
+            return organization;
         },
         options: {
-            auth: false,
             validate: {
                 payload: {
                     name: Joi.string().required(),
+                    userIds: Joi.array()
+                        .items(
+                            Joi.string()
+                        ).required(),
                     personal: Joi.bool().required()
                 }
             }
@@ -40,7 +49,6 @@ module.exports = [
             return result;
         },
         options: {
-            auth: false,
             validate: {
                 params: {
                     id: Joi.string().uuid().required()
@@ -60,9 +68,6 @@ module.exports = [
             const organizations = await uow.organizationsRepository.getAllOrganizations();
             
             return organizations;
-        },
-        options: {
-            auth: false
         }
     },
     {
@@ -79,7 +84,6 @@ module.exports = [
             return organizations;
         },
         options: {
-            auth: false,
             validate: {
                 params: {
                     userId: Joi.string().guid().required()
@@ -102,10 +106,42 @@ module.exports = [
             return organization;
         },
         options: {
-            auth: false,
             validate: {
                 params: {
                     id: Joi.string().guid().required()
+                }
+            }
+        }  
+    },
+    {
+        method: 'PUT',
+        path: '/organizations/{id}',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+
+            logger.debug(`Updating organization`);
+            const id = request.params.id;
+            const payload = request.payload;
+            await uow.beginTransaction();
+
+            const organization = await uow.organizationsRepository.editOrganization(id, payload.name);
+            await uow.usersRepository.replaceUserOrganizationsByOrganizationId(id, payload.userIds);
+
+            await uow.commitTransaction();
+            return organization;
+        },
+        options: {
+            validate: {
+                params: {
+                    id: Joi.string().guid(),
+                },
+                payload: {
+                    name: Joi.string().required(),
+                    userIds: Joi.array()
+                        .items(
+                            Joi.string()
+                        ).required()
                 }
             }
         }  
