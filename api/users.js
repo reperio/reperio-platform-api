@@ -84,7 +84,9 @@ module.exports = [
 
             const organization = await uow.organizationsRepository.createOrganization(payload.primaryEmail, true);
             const user = await uow.usersRepository.createUser(userDetail, payload.organizationIds.concat(organization.id));
-            await emailService.sendEmail(user, uow, request);
+            
+            //send verification email
+            await emailService.sendEmail(user.id, user.primaryEmail, uow, request);
 
             await uow.commitTransaction();
 

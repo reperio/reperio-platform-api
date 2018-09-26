@@ -85,7 +85,7 @@ module.exports = [
                 const token = authService.getAuthToken(user, request.server.app.config.jsonSecret, request.server.app.config.jwtValidTimespan);
 
                 //send verification email
-                await emailService.sendEmail(user, uow, request);
+                await emailService.sendEmail(user.id, user.primaryEmail, uow, request);
 
                 await uow.commitTransaction();
 
@@ -139,15 +139,21 @@ module.exports = [
             const logger = request.server.app.logger;
             const payload = request.payload;
             const entry = await uow.emailVerificationsRepository.getEntry(payload.token);
-            
-            if (moment().utc().diff(entry.createdAt, 'minutes') >= 10) {
-                return false;
+            if (entry) {
+                logger.debug(`Email verification`);
+                if (moment().utc().diff(entry.createdAt, 'minutes') >= request.server.app.config.email.linkTimeout) {
+                    logger.debug(`Link expired`);
+                    return false;
+                }
+                else {
+                    await uow.usersRepository.verifyUserEmail(entry.userEmailId);
+                    logger.debug(`Email verification successful`);
+                    return true;
+                }
             }
             else {
-                await uow.usersRepository.verifyUserEmail(entry.userEmailId);
-                return true;
+                return false;
             }
-
         },
         options: {
             auth: false,

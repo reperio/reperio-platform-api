@@ -13,6 +13,7 @@ module.exports = {
         sendGridApiKey: process.env.CORE_SENDGRID_API_KEY || '',
         method: process.env.CORE_EMAIL_METHOD || 'smtp', // must be either 'smtp' or 'sendgrid',
         rejectUnauthorizedTLS: process.env.CORE_SMTP_REJECT_UNAUTHORIZED_TLS || true,
-        barUrl: process.env.CORE_BAR_URL || ''
+        barUrl: process.env.CORE_BAR_URL || '',
+        linkTimeout: process.env.CORE_LINK_TIMEOUT || 10
     }
 };

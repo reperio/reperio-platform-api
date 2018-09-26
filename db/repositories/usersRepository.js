@@ -156,19 +156,6 @@ class UsersRepository {
         }
     }
 
-    async insertUserEmail(userId, email) {
-        const userEmail = {
-            userId,
-            email,
-            emailVerified: false,
-            deleted: false
-        };
-
-        return await this.uow._models.UserEmail
-            .query(this.uow._transaction)
-            .insertAndFetch(userEmail);
-    }
-
     async verifyUserEmail(id) {
         try {
             const q = this.uow._models.UserEmail
