@@ -17,8 +17,8 @@ class User extends BaseModel {
                 id: { type: 'string' },
                 firstName: { type: 'string' },
                 lastName: { type: 'string' },
-                primaryEmail: { type: 'string' },
-                primaryEmailVerified: { type: 'boolean' },
+                primaryEmailAddress: { type: 'string' },
+                primaryEmailId: { type: 'string' },
                 password: { type: ['string', 'null']},
                 disabled: { type: 'boolean' },
                 deleted: { type: 'boolean' }
@@ -47,6 +47,14 @@ class User extends BaseModel {
                 join: {
                     from: 'users.id',
                     to: 'userEmails.userId'
+                }
+            },
+            primaryEmail: {
+                relation: Model.HasOneRelation,
+                modelClass: UserEmail,
+                join: {
+                    from: 'users.primaryEmailId',
+                    to: 'userEmails.id'
                 }
             },
             userOrganizations: {

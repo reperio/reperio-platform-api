@@ -5,10 +5,11 @@ class EmailVerificationsRepository {
         this.uow = uow;
     }
 
-    async addEntry(userEmailId) {
+    async addEntry(userEmailId, userId) {
         const payload = {
            createdAt: moment.utc().format(),
-           userEmailId
+           userEmailId,
+           userId
         }
         try {
             const q = this.uow._models.EmailVerification
@@ -36,6 +37,23 @@ class EmailVerificationsRepository {
             return entry[0];
         } catch (err) {
             this.uow._logger.error(`Failed to fetch email verification using id: ${id}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async trigger(id, now) {
+        try {
+            const q = this.uow._models.EmailVerification
+                .query(this.uow._transaction)
+                .patch({triggeredAt: now})
+                .where('id', id);
+
+            const entry = await q;
+
+            return entry;
+        } catch (err) {
+            this.uow._logger.error(`Failed to trigger email verification: ${id}`);
             this.uow._logger.error(err);
             throw err;
         }

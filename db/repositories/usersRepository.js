@@ -5,17 +5,8 @@ class UsersRepository {
         this.uow = uow;
     }
 
-    async createUser(newUser, organizationIds) {
+    async createUser(userModel, organizationIds) {
         try {
-            const userModel = {
-                firstName: newUser.firstName,
-                lastName: newUser.lastName,
-                password: newUser.password,
-                primaryEmail: newUser.primaryEmail,
-                primaryEmailVerified: false,
-                disabled: false,
-                deleted: false
-            };
 
             const user = await this.uow._models.User
                 .query(this.uow._transaction)
@@ -34,8 +25,6 @@ class UsersRepository {
                 .insert(userOrganizationModel)
                 .returning("*");
 
-
-
             return user;
         } catch (err) {
             this.uow._logger.error(err);
@@ -46,24 +35,16 @@ class UsersRepository {
 
     async editUser(modifiedUser, userId) {
         try {
-            const userModel = {
-                firstName: modifiedUser.firstName,
-                lastName: modifiedUser.lastName,
-                primaryEmail: modifiedUser.primaryEmail,
-                primaryEmailVerified: modifiedUser.primaryEmailVerified,
-                disabled: modifiedUser.disabled,
-                deleted: modifiedUser.disabled
-            };
-
             const user = await this.uow._models.User
                 .query(this.uow._transaction)
-                .patch(userModel)
-                .where('id', userId);
+                .patch(modifiedUser)
+                .where('id', userId)
+                .returning("*");
 
-            return user;
+            return user[0];
         } catch (err) {
             this.uow._logger.error(err);
-            this.uow._logger.error(`Failed to create user: ${modifiedUser.primaryEmail}`);
+            this.uow._logger.error(`Failed to edit user: ${userId}`);
             throw err;
         }
     }
@@ -155,6 +136,7 @@ class UsersRepository {
                 .query(this.uow._transaction)
                 .mergeEager('userOrganizations.organization')
                 .mergeEager('userRoles.role.rolePermissions.permission')
+                .mergeEager('userEmails')
                 .where('users.id', userId);
 
             const user = await q;
@@ -206,7 +188,8 @@ class UsersRepository {
                 .query(this.uow._transaction)
                 .mergeEager('userOrganizations.organization')
                 .mergeEager('userRoles.role.rolePermissions.permission')
-                .where('primaryEmail', primaryEmail);
+                .mergeEager('userEmails')
+                .where('primaryEmailAddress', primaryEmail);
 
             const user = await q;
 

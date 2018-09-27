@@ -1,19 +1,21 @@
-exports.seed = function (knex, Promise) {
+exports.seed = async function (knex, Promise) {
   // Deletes ALL existing entries
-  return knex('emailVerifications').del()
-    .then(function () {
-      return knex('userEmails').del()
-        .then(function () {
-            // Inserts seed entries
-            return knex('userEmails').insert([
-                {
-                    id: 'a0ae75a5-72fe-429b-b3a4-37701c48ff63',
-                    userId: 'd08a1f76-7c4a-4dd9-a377-83ffffa752f4',
-                    email: 'admin@reper.io',
-                    emailVerified: false,
-                    deleted: false
-                }
-            ]);
-        });
+    await knex('emailVerifications').del()
+    await knex('userEmails').del()
+    // Inserts seed entries
+    await knex('userEmails').insert([
+        {
+            id: 'a0ae75a5-72fe-429b-b3a4-37701c48ff63',
+            userId: 'd08a1f76-7c4a-4dd9-a377-83ffffa752f4',
+            email: 'admin@reper.io',
+            emailVerified: false,
+            deleted: false
+        }
+    ]);
+    await knex('users')
+        .where('id', '=', 'd08a1f76-7c4a-4dd9-a377-83ffffa752f4')
+        .update({
+            primaryEmailId: 'a0ae75a5-72fe-429b-b3a4-37701c48ff63',
+            primaryEmailAddress: 'admin@reper.io'
     });
 };

@@ -60,32 +60,33 @@ module.exports = [
                 return httpResponseService.badData(h);
             }
 
-            const userDetail = {
+            const userModel = {
                 firstName: payload.firstName,
                 lastName: payload.lastName,
                 password: payload.password,
-                primaryEmail: payload.primaryEmail,
-                primaryEmailVerified: false,
+                primaryEmailAddress: payload.primaryEmailAddress,
                 disabled: false,
                 deleted: false
             };
             
             await uow.beginTransaction();
 
-            const existingUser = await uow.usersRepository.getUserByEmail(request.payload.primaryEmail);
+            const existingUser = await uow.usersRepository.getUserByEmail(userModel.primaryEmailAddress);
             if (existingUser != null) {
                 return httpResponseService.conflict(h);
             }
 
-            const organization = await uow.organizationsRepository.createOrganization(payload.primaryEmail, true);
-            const user = await uow.usersRepository.createUser(userDetail, payload.organizationIds.concat(organization.id));
-            
-            //send verification email
-            await emailService.sendEmail(user.id, user.primaryEmail, uow, request);
+            const organization = await uow.organizationsRepository.createOrganization(userModel.primaryEmailAddress, true);
+            const user = await uow.usersRepository.createUser(userModel, payload.organizationIds.concat(organization.id));
+            const userEmail = await uow.userEmailsRepository.createUserEmail(user.id, user.primaryEmailAddress);
+            const updatedUser = await uow.usersRepository.editUser({primaryEmailId: userEmail.id}, user.id);
 
             await uow.commitTransaction();
 
-            return user;
+            //send verification email
+            await emailService.sendVerificationEmail(userEmail, uow, request);
+
+            return updatedUser;
         },
         options: {
             validate: {
@@ -94,7 +95,7 @@ module.exports = [
                     lastName: Joi.string().required(),
                     password: Joi.string().optional(),
                     confirmPassword: Joi.string().optional(),
-                    primaryEmail: Joi.string().required(),
+                    primaryEmailAddress: Joi.string().required(),
                     organizationIds: Joi.array()
                     .items(
                         Joi.string().guid()
@@ -119,8 +120,6 @@ module.exports = [
             const userDetail = {
                 firstName: payload.firstName,
                 lastName: payload.lastName,
-                primaryEmail: payload.primaryEmail,
-                primaryEmailVerified: existingUser.primaryEmail != payload.primaryEmail ? false : existingUser.primaryEmailVerified,
                 disabled: existingUser.disabled,
                 deleted: existingUser.deleted
             };
@@ -141,7 +140,6 @@ module.exports = [
                 payload: {
                     firstName: Joi.string().required(),
                     lastName: Joi.string().required(),
-                    primaryEmail: Joi.string().required(),
                     organizationIds: Joi.array()
                     .items(
                         Joi.string().guid()

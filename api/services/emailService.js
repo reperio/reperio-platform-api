@@ -1,15 +1,11 @@
 class EmailService {
-    async sendEmail(userId, userEmailAddress, uow, request) {
+    async sendVerificationEmail(userEmail, uow, request) {
         const messageHelper = await request.app.getNewMessageHelper();
-        let userEmail = await uow.userEmailsRepository.getUserEmail(userId, userEmailAddress);
-        if (!userEmail) {
-            userEmail = await uow.userEmailsRepository.createUserEmail(userId, userEmailAddress);
-        }
-        const emailVerification = await uow.emailVerificationsRepository.addEntry(userEmail.id);
+        const emailVerification = await uow.emailVerificationsRepository.addEntry(userEmail.id, userEmail.userId);
         const tokenUrl = `${request.server.app.config.webAppUrl}/#/emailVerification/${emailVerification.id}`
 
         const message = {
-            to: userEmailAddress,
+            to: userEmail.email,
             from: request.server.app.config.email.sender,
             type: 'email',
             subject: 'Email verification',

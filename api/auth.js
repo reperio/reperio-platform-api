@@ -23,6 +23,8 @@ module.exports = [
                     return httpResponseService.unauthorized(h);
                 }
 
+                user.password = null;
+                
                 const token = authService.getAuthToken(user, request.server.app.config.jsonSecret, request.server.app.config.jwtValidTimespan);
 
                 return httpResponseService.loginSuccess(h, token);
@@ -53,7 +55,7 @@ module.exports = [
             try {
                 const signupDetails = request.payload;
 
-                logger.debug(`New account signup, email=${signupDetails.primaryEmail}`);
+                logger.debug(`New account signup, email=${signupDetails.primaryEmailAddress}`);
 
                 //validate signup details
                 if (signupDetails.password !== signupDetails.confirmPassword) {
@@ -62,32 +64,37 @@ module.exports = [
 
                 await uow.beginTransaction();
 
-                const existingUser = await uow.usersRepository.getUserByEmail(request.payload.primaryEmail);
+                const existingUser = await uow.usersRepository.getUserByEmail(signupDetails.primaryEmailAddress);
                 if (existingUser != null) {
                     return httpResponseService.conflict(h);
                 }
 
                 //create org
-                const organization = await uow.organizationsRepository.createOrganization(signupDetails.primaryEmail, true);
+                const organization = await uow.organizationsRepository.createOrganization(signupDetails.primaryEmailAddress, true);
                 
                 const password = await authService.hashPassword(signupDetails.password);
 
                 const userModel = {
                     firstName: signupDetails.firstName,
+                    primaryEmailAddress: signupDetails.primaryEmailAddress,
                     lastName: signupDetails.lastName,
-                    primaryEmail: signupDetails.primaryEmail,
-                    password
+                    password,
+                    disabled: false,
+                    deleted: false
                 };
                 
                 const user = await uow.usersRepository.createUser(userModel, [organization.id]);
-                
-                //sign the user in
-                const token = authService.getAuthToken(user, request.server.app.config.jsonSecret, request.server.app.config.jwtValidTimespan);
+                const userEmail = await uow.userEmailsRepository.createUserEmail(user.id, signupDetails.primaryEmailAddress);
+                const updatedUser = await uow.usersRepository.editUser({primaryEmailId: userEmail.id}, user.id);
+                updatedUser.password = null;
 
-                //send verification email
-                await emailService.sendEmail(user.id, user.primaryEmail, uow, request);
+                //sign the user in
+                const token = authService.getAuthToken(updatedUser, request.server.app.config.jsonSecret, request.server.app.config.jwtValidTimespan);
 
                 await uow.commitTransaction();
+
+                //send verification email
+                await emailService.sendVerificationEmail(userEmail, uow, request);
 
                 return httpResponseService.loginSuccess(h, token);
             } catch (err) {
@@ -101,7 +108,7 @@ module.exports = [
                 payload: {
                     firstName: Joi.string().required(),
                     lastName: Joi.string().required(),
-                    primaryEmail: Joi.string().required(),
+                    primaryEmailAddress: Joi.string().required(),
                     password: Joi.string().required(),
                     confirmPassword: Joi.string().required()
                 }
@@ -139,9 +146,11 @@ module.exports = [
             const logger = request.server.app.logger;
             const payload = request.payload;
             const entry = await uow.emailVerificationsRepository.getEntry(payload.token);
-            if (entry) {
+            if (entry && !entry.triggeredAt) {
+                const now = moment.utc();
+                await uow.emailVerificationsRepository.trigger(payload.token, now.format());
                 logger.debug(`Email verification`);
-                if (moment().utc().diff(entry.createdAt, 'minutes') >= request.server.app.config.email.linkTimeout) {
+                if (now.diff(entry.createdAt, 'minutes') >= request.server.app.config.email.linkTimeout) {
                     logger.debug(`Link expired`);
                     return false;
                 }
@@ -151,9 +160,7 @@ module.exports = [
                     return true;
                 }
             }
-            else {
-                return false;
-            }
+            return false;
         },
         options: {
             auth: false,
