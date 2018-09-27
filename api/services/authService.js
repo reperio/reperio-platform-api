@@ -12,7 +12,7 @@ class AuthService {
         const tokenPayload = {
             currentUserId: user.id,
             userId: user.id,
-            userEmail: user.email
+            userEmail: user.primaryEmailAddress
         };
     
         const token = jwt.sign(tokenPayload, secret, {

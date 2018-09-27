@@ -15,14 +15,17 @@ class EmailVerification extends BaseModel {
             type: 'Object',
             properties: {
                 id: { type: 'string' },
+                userId: { type: 'string' },
                 userEmailId: { type: 'string' },
-                createdAt : { type: 'dateTime' }
+                createdAt: { type: 'dateTime' },
+                triggeredAt: { type: 'dateTime' }
             }
         };
     }
 
     static get relationMappings() {
         const UserEmail = require('./userEmail');
+        const User = require('./user');
 
         return {
             userEmail: {
@@ -31,6 +34,14 @@ class EmailVerification extends BaseModel {
                 join: {
                     from: 'emailVerifications.userEmailId',
                     to: 'userEmails.id'
+                }
+            },
+            user: {
+                relation: Model.HasOneRelation,
+                modelClass: User,
+                join: {
+                    from: 'emailVerifications.userId',
+                    to: 'users.id'
                 }
             }
         };
