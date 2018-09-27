@@ -17,14 +17,14 @@ module.exports = [
                 logger.debug(`Auth/Login - ${JSON.stringify(request.payload)}`);
                 const uow = await request.app.getNewUoW();
 
-                const user = await uow.usersRepository.getUserByEmail(request.payload.primaryEmail);
+                const user = await uow.usersRepository.getUserByEmail(request.payload.primaryEmailAddress);
 
                 if (!user || !authService.validatePassword(request.payload.password, user.password)) {
                     return httpResponseService.unauthorized(h);
                 }
 
                 user.password = null;
-                
+
                 const token = authService.getAuthToken(user, request.server.app.config.jsonSecret, request.server.app.config.jwtValidTimespan);
 
                 return httpResponseService.loginSuccess(h, token);
@@ -37,7 +37,7 @@ module.exports = [
             auth: false,
             validate: {
                 payload: {
-                    primaryEmail: Joi.string().required(),
+                    primaryEmailAddress: Joi.string().required(),
                     password: Joi.string().required()
                 }
             }
