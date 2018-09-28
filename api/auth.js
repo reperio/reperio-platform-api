@@ -170,5 +170,112 @@ module.exports = [
                 }
             }
         }
+    },{
+        method: 'POST',
+        path: '/auth/forgotPassword',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const emailService = new EmailService();
+            const logger = request.server.app.logger;
+            const payload = request.payload;
+
+            const existingUser = await uow.usersRepository.getUserByEmail(payload.primaryEmailAddress);
+            if (existingUser == null) {
+                return httpResponseService.badData(h);
+            }
+
+            const userEmail = await uow.userEmailsRepository.getUserEmail(existingUser.id, payload.primaryEmailAddress);
+
+            if (userEmail == null) {
+                return httpResponseService.badData(h);
+            }
+
+            logger.debug(`Sending reset password email to user: ${existingUser.id}`);
+
+            await emailService.sendForgotPasswordEmail(userEmail, uow, request);
+
+            return true;
+        },
+        options: {
+            auth: false,
+            validate: {
+                payload: {
+                    primaryEmailAddress: Joi.string().required()
+                }
+            }
+        }
+    },{
+        method: 'GET',
+        path: '/auth/resetPassword/{token}',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const entry = await uow.forgotPasswordsRepository.getEntry(request.params.token);
+            
+            if (entry && !entry.triggeredAt) {
+                const now = moment.utc();
+
+                if (now.diff(entry.createdAt, 'minutes') >= request.server.app.config.email.linkTimeout) {
+                    logger.debug(`Link expired`);
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+            return false;
+        },
+        options: {
+            auth: false,
+            validate: {
+                params: {
+                    token: Joi.string().guid().required(),
+                }
+            }
+        }
+    },{
+        method: 'POST',
+        path: '/auth/resetPassword',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const httpResponseService = new HttpResponseService();
+            const logger = request.server.app.logger;
+            const payload = request.payload;
+            const entry = await uow.forgotPasswordsRepository.getEntry(payload.token);
+            
+            if (entry && !entry.triggeredAt) {
+                const now = moment.utc();
+
+                logger.debug(`Forgot password`);
+
+                if (payload.password != payload.confirmPassword) {
+                    logger.debug(`Passwords don't match`);
+                    return httpResponseService.badData(h);
+                }
+
+                await uow.forgotPasswordsRepository.trigger(payload.token, now.format());
+
+                if (now.diff(entry.createdAt, 'minutes') >= request.server.app.config.email.linkTimeout) {
+                    logger.debug(`Link expired`);
+                    return false;
+                }
+                else {
+                    await uow.usersRepository.editUser({password: payload.password}, entry.userId);
+                    logger.debug(`Forgot password successful`);
+                    return true;
+                }
+            }
+            return false;
+        },
+        options: {
+            auth: false,
+            validate: {
+                payload: {
+                    token: Joi.string().guid().required(),
+                    password: Joi.string().required(),
+                    confirmPassword: Joi.string().required()
+                }
+            }
+        }
     }
 ];

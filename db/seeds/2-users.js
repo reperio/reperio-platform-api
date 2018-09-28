@@ -1,6 +1,7 @@
 exports.seed = async function (knex, Promise) {
     // Deletes ALL existing entries
     await knex('emailVerifications').del()
+    await knex('forgotPasswords').del()
     await knex('users')
         .update({
             primaryEmailId: null
