@@ -239,6 +239,7 @@ module.exports = [
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const httpResponseService = new HttpResponseService();
+            const authService = new AuthService();
             const logger = request.server.app.logger;
             const payload = request.payload;
             const entry = await uow.forgotPasswordsRepository.getEntry(payload.token);
@@ -260,7 +261,8 @@ module.exports = [
                     return false;
                 }
                 else {
-                    await uow.usersRepository.editUser({password: payload.password}, entry.userId);
+                    const password = await authService.hashPassword(payload.password);
+                    await uow.usersRepository.editUser({password}, entry.userId);
                     logger.debug(`Forgot password successful`);
                     return true;
                 }
