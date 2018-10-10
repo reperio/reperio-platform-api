@@ -12,7 +12,7 @@ class EmailService {
             contents: `Please <a href="${tokenUrl}">verify</a> your email address.`
         };
 
-        await messageHelper.processMessage(message);
+        return await messageHelper.processMessage(message);
     }
 
     async sendForgotPasswordEmail(userEmail, uow, request) {
@@ -28,7 +28,7 @@ class EmailService {
             contents: `We got a request to reset your password. Please use this <a href="${tokenUrl}">link</a> to reset it.`
         };
 
-        await messageHelper.processMessage(message);
+        return await messageHelper.processMessage(message);
     }
 }
 

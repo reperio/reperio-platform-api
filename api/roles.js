@@ -17,44 +17,43 @@ module.exports = [
     },
     {
         method: 'GET',
-        path: '/roles/{id}',
+        path: '/roles/{roleId}',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
+            const roleId = request.params.roleId;
+            logger.debug(`Fetching role by id: ${roleId}`);
 
-            logger.debug(`Fetching role by id`);
-            const id = request.params.id;
-
-            const role = await uow.rolesRepository.getRoleById(id);
+            const role = await uow.rolesRepository.getRoleById(roleId);
             
             return role;
         },
         options: {
             validate: {
                 params: {
-                    id: Joi.string().guid().required()
+                    roleId: Joi.string().guid().required()
                 }
             }
         }  
     },
     {
         method: 'GET',
-        path: '/roles/{id}/permissions',
+        path: '/roles/{roleId}/permissions',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
+            const roleId = request.params.roleId;
 
-            logger.debug(`Fetching permissions by role id`);
-            const id = request.params.id;
+            logger.debug(`Fetching permissions by role id: ${roleId}`);
 
-            const role = await uow.rolesRepository.getPermissionsByRoleId(id);
+            const role = await uow.rolesRepository.getPermissionsByRoleId(roleId);
             
             return role;
         },
         options: {
             validate: {
                 params: {
-                    id: Joi.string().guid().required()
+                    roleId: Joi.string().guid().required()
                 }
             }
         }  
@@ -95,18 +94,18 @@ module.exports = [
     },
     {
         method: 'PUT',
-        path: '/roles/{id}',
+        path: '/roles/{roleId}',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
 
             logger.debug(`Updating role`);
-            const id = request.params.id;
+            const roleId = request.params.roleId;
             const payload = request.payload;
             await uow.beginTransaction();
 
-            const role = await uow.rolesRepository.editRole(id, payload.name);
-            await uow.rolesRepository.updateRolePermissions(id, payload.permissionIds);
+            const role = await uow.rolesRepository.editRole(roleId, payload.name);
+            await uow.rolesRepository.updateRolePermissions(roleId, payload.permissionIds);
 
             await uow.commitTransaction();
             return role;
@@ -114,7 +113,7 @@ module.exports = [
         options: {
             validate: {
                 params: {
-                    id: Joi.string().guid(),
+                    roleId: Joi.string().guid(),
                 },
                 payload: {
                     name: Joi.string().required(),
@@ -128,22 +127,22 @@ module.exports = [
     },
     {
         method: 'DELETE',
-        path: '/roles/{id}',
+        path: '/roles/{roleId}',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const id = request.params.id;
+            const roleId = request.params.roleId;
 
-            logger.debug(`Deleting role with id: ${id}`);
+            logger.debug(`Deleting role with id: ${roleId}`);
 
-            const result = await uow.rolesRepository.deleteRole(id);
+            const result = await uow.rolesRepository.deleteRole(roleId);
             
             return result;
         },
         options: {
             validate: {
                 params: {
-                    id: Joi.string().uuid().required()
+                    roleId: Joi.string().uuid().required()
                 }
             }
         }  

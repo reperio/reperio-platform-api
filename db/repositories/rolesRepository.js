@@ -1,5 +1,3 @@
-const v4 = require('uuid/v4');
-
 class RolesRepository {
     constructor(uow) {
         this.uow = uow;
@@ -10,8 +8,7 @@ class RolesRepository {
             name,
             organizationId,
             applicationId,
-            deleted: false,
-            id: v4()
+            deleted: false
         };
 
         try {
@@ -79,11 +76,11 @@ class RolesRepository {
         }
     }
 
-    async editRole(id, name) {
+    async editRole(roleId, name) {
         try {
             return await this.uow._models.Role
                 .query(this.uow._transaction)
-                .where({id: id})
+                .where({id: roleId})
                 .patch({name})
                 .returning("*");
 
@@ -121,12 +118,12 @@ class RolesRepository {
         }
     }
 
-    async deleteRole(id) {
+    async deleteRole(roleId) {
         try {
             const q = this.uow._models.Role
                 .query(this.uow._transaction)
                 .patch({deleted: true})
-                .where('id', id);
+                .where('id', roleId);
 
             const result = await q;
 
