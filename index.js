@@ -1,4 +1,4 @@
-const ReperioServer = require('hapijs-starter');
+const ReperioServer = require('@reperio/hapijs-starter');
 const jwt = require('jsonwebtoken');
 const API = require('./api');
 const UnitOfWork = require('./db');
@@ -6,6 +6,7 @@ const Config = require('./config');
 const RecaptchaService = require('./api/services/recaptchaService');
 const {knex} = require('./db/connect');
 const MessageHelper = require('./helpers/messageHelper');
+const Limit = require('hapi-rate-limit');
 
 const start = async function () {
     try {
@@ -15,7 +16,8 @@ const start = async function () {
             cors: true,
             corsOrigins: ['*'],
             authEnabled: true,
-            authSecret: Config.jsonSecret});
+            authSecret: Config.jsonSecret
+        });
 
         const apiPluginPackage = {
             plugin: API,
@@ -25,6 +27,12 @@ const start = async function () {
             }
         };
 
+        const limitPluginPackage = {
+            plugin: Limit,
+            options: {enabled: Config.limitEnabled, pathLimit: Config.limitPath, userLimit: Config.limitUser}
+        };
+
+        await reperio_server.registerAdditionalPlugin(limitPluginPackage);
         await reperio_server.registerAdditionalPlugin(apiPluginPackage);
 
         knex.on('query', (query) => {
@@ -42,13 +50,13 @@ const start = async function () {
             type: 'onRequest',
             method: async (request, h) => {
                 request.app.uows = [];
-        
+
                 request.app.getNewUoW = async () => {
                     const uow = new UnitOfWork(reperio_server.app.logger);
                     request.app.uows.push(uow);
                     return uow;
                 };
-              
+            
                 request.app.getNewRecaptcha = async () => {
                     const recaptcha = new RecaptchaService('https://www.google.com/recaptcha/api/siteverify', reperio_server.app.logger);
                     return recaptcha;

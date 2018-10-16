@@ -22,9 +22,10 @@
   },
   "homepage": "https://github.com/reperio/platform-api#readme",
   "dependencies": {
+    "@reperio/hapijs-starter": "git+https://github.com/reperio/hapijs-starter.git#cache-addition",
     "@sendgrid/mail": "^6.3.1",
     "bcrypt": "^1.0.3",
-    "hapijs-starter": "^4.1.0",
+    "hapi-rate-limit": "^2.1.3",
     "joi": "^13.4.0",
     "jsonwebtoken": "^8.3.0",
     "knex": "^0.14.6",
