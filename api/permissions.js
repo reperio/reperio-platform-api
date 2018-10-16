@@ -17,22 +17,22 @@ module.exports = [
     },
     {
         method: 'GET',
-        path: '/permissions/{id}',
+        path: '/permissions/{permissionId}',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
+            const permissionId = request.params.permissionId;
 
-            logger.debug(`Fetching permission by id`);
-            const id = request.params.id;
+            logger.debug(`Fetching permission by permissionId: ${permissionId}`);
 
-            const permission = await uow.permissionsRepository.getPermissionById(id);
+            const permission = await uow.permissionsRepository.getPermissionById(permissionId);
 
             return permission;
         },
         options: {
             validate: {
                 params: {
-                    id: Joi.string().guid().required()
+                    permissionId: Joi.string().guid().required()
                 }
             }
         }  
@@ -43,15 +43,15 @@ module.exports = [
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-
-            logger.debug(`Editing permission`);
-            const id = request.params.permissionId;
+            const permissionId = request.params.permissionId;
             const payload = request.payload;
+
+            logger.debug(`Editing permission: ${permissionId}`);
 
             await uow.beginTransaction();
 
-            const permission = await uow.permissionsRepository.editPermission(id, payload.name, payload.displayName, payload.description, payload.applicationId, payload.isSystemAdminPermission);
-            await uow.permissionsRepository.managePermissionsUsedByRoles(payload.rolePermissions, id);
+            const permission = await uow.permissionsRepository.editPermission(permissionId, payload.name, payload.displayName, payload.description, payload.applicationId, payload.isSystemAdminPermission);
+            await uow.permissionsRepository.managePermissionsUsedByRoles(payload.rolePermissions, permissionId);
 
             await uow.commitTransaction();
 

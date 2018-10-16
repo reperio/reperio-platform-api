@@ -44,18 +44,18 @@ class OrganizationsRepository {
         }
     }
 
-    async getOrganizationById(id) {
+    async getOrganizationById(organizationId) {
         try {
             const q = this.uow._models.Organization
                 .query(this.uow._transaction)
-                .where('id', id)
+                .where('id', organizationId)
                 .eager('userOrganizations.user');
 
             const organization = await q;
 
             return organization[0];
         } catch (err) {
-            this.uow._logger.error(`Failed to fetch organization using id: ${id}`);
+            this.uow._logger.error(`Failed to fetch organization using id: ${organizationId}`);
             this.uow._logger.error(err);
             throw err;
         }

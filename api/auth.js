@@ -14,12 +14,13 @@ module.exports = [
             const httpResponseService = new HttpResponseService();
             
             try {
-                logger.debug(`Auth/Login - ${JSON.stringify(request.payload)}`);
+                const payload = request.payload;
+                logger.debug(`Login attempt for email: ${payload.primaryEmailAddress}`);
                 const uow = await request.app.getNewUoW();
 
-                const user = await uow.usersRepository.getUserByEmail(request.payload.primaryEmailAddress);
+                const user = await uow.usersRepository.getUserByEmail(payload.primaryEmailAddress);
 
-                if (!user || !authService.validatePassword(request.payload.password, user.password)) {
+                if (!user || !authService.validatePassword(payload.password, user.password)) {
                     return httpResponseService.unauthorized(h);
                 }
 
@@ -53,38 +54,38 @@ module.exports = [
             const httpResponseService = new HttpResponseService();
 
             try {
-                const signupDetails = request.payload;
+                const payload = request.payload;
 
-                logger.debug(`New account signup, email=${signupDetails.primaryEmailAddress}`);
+                logger.debug(`New account signup with email: ${payload.primaryEmailAddress}`);
 
                 //validate signup details
-                if (signupDetails.password !== signupDetails.confirmPassword) {
+                if (payload.password !== payload.confirmPassword) {
                     return httpResponseService.badData(h);
                 }
 
                 await uow.beginTransaction();
 
-                const existingUser = await uow.usersRepository.getUserByEmail(signupDetails.primaryEmailAddress);
+                const existingUser = await uow.usersRepository.getUserByEmail(payload.primaryEmailAddress);
                 if (existingUser != null) {
                     return httpResponseService.conflict(h);
                 }
 
                 //create org
-                const organization = await uow.organizationsRepository.createOrganization(signupDetails.primaryEmailAddress, true);
+                const organization = await uow.organizationsRepository.createOrganization(payload.primaryEmailAddress, true);
                 
-                const password = await authService.hashPassword(signupDetails.password);
+                const password = await authService.hashPassword(payload.password);
 
                 const userModel = {
-                    firstName: signupDetails.firstName,
-                    primaryEmailAddress: signupDetails.primaryEmailAddress,
-                    lastName: signupDetails.lastName,
+                    firstName: payload.firstName,
+                    primaryEmailAddress: payload.primaryEmailAddress,
+                    lastName: payload.lastName,
                     password,
                     disabled: false,
                     deleted: false
                 };
                 
                 const user = await uow.usersRepository.createUser(userModel, [organization.id]);
-                const userEmail = await uow.userEmailsRepository.createUserEmail(user.id, signupDetails.primaryEmailAddress);
+                const userEmail = await uow.userEmailsRepository.createUserEmail(user.id, payload.primaryEmailAddress);
                 const updatedUser = await uow.usersRepository.editUser({primaryEmailId: userEmail.id}, user.id);
                 updatedUser.password = null;
 
@@ -114,7 +115,45 @@ module.exports = [
                 }
             }
         }
-    },{
+    },
+    {
+        method: 'POST',
+        path: '/auth/sendVerificationEmail',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const emailService = new EmailService();
+            const httpResponseService = new HttpResponseService();
+            const payload = request.payload;
+
+            logger.debug(`Ssending verification email for user: ${payload.userId}`);
+            try {
+                await uow.beginTransaction();
+                const userEmail = await uow.userEmailsRepository.getUserEmail(payload.userId, payload.email);
+                if (userEmail == null) {
+                    return httpResponseService.badData(h);
+                }
+                //send verification email
+                const response = await emailService.sendVerificationEmail(userEmail, uow, request);
+                await uow.commitTransaction();
+
+                return response;
+            } catch (err) {
+                logger.error(err);
+                throw err;
+            }
+        },
+        options: {
+            auth: false,
+            validate: {
+                payload: {
+                    email: Joi.string().required(),
+                    userId: Joi.string().guid().required()
+                }
+            }
+        }
+    },
+    {
         method: 'POST',
         path: '/auth/recaptcha',
         handler: async (request, h) => {
@@ -176,6 +215,7 @@ module.exports = [
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const emailService = new EmailService();
+            const httpResponseService = new HttpResponseService();
             const logger = request.server.app.logger;
             const payload = request.payload;
 
@@ -183,6 +223,8 @@ module.exports = [
             if (existingUser == null) {
                 return httpResponseService.badData(h);
             }
+
+            logger.debug(`Password reset is requested from user: ${existingUser.id}`);
 
             const userEmail = await uow.userEmailsRepository.getUserEmail(existingUser.id, payload.primaryEmailAddress);
 
@@ -247,7 +289,7 @@ module.exports = [
             if (entry && !entry.triggeredAt) {
                 const now = moment.utc();
 
-                logger.debug(`Forgot password`);
+                logger.debug(`Forgot password for user: ${entry.userId}`);
 
                 if (payload.password != payload.confirmPassword) {
                     logger.debug(`Passwords don't match`);
