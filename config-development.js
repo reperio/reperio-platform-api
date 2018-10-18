@@ -12,6 +12,12 @@ module.exports = {
     trustProxy: process.env.LIMIT_TRUST_PROXY || false,
     headers: process.env.LIMIT_HEADERS || false,
     ipWhitelist: process.env.LIMIT_IP_WHITELIST || ["127.0.0.1"],
+    userCache: {
+        expiresIn: process.env.LIMIT_USER_CACHE_EXPIRES || 60000
+    },
+    userPathCache: {
+        expiresIn: process.env.LIMIT_USER_PATH_CACHE_EXPIRES || 60000
+    },
     email: {
         smtpHost: process.env.CORE_SMTP_HOST || 'localhost',
         smtpPort: process.env.CORE_SMTP_PORT || 25,
