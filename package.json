@@ -20,6 +20,9 @@
   "bugs": {
     "url": "https://github.com/reperio/platform-api/issues"
   },
+  "jest": {
+    "testEnvironment": "node"
+  },
   "homepage": "https://github.com/reperio/platform-api#readme",
   "dependencies": {
     "@reperio/hapijs-starter": "git+https://github.com/reperio/hapijs-starter.git#cache-addition",
