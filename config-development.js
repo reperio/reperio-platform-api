@@ -9,6 +9,7 @@ module.exports = {
     limitPath: process.env.LIMIT_PATH || 50,
     //number of total requests a user can make per period. Set to false to disable limiting requests per user.
     limitUser: process.env.LIMIT_USER || 300,
+    trustProxy: process.env.LIMIT_TRUST_PROXY || false,
     email: {
         smtpHost: process.env.CORE_SMTP_HOST || 'localhost',
         smtpPort: process.env.CORE_SMTP_PORT || 25,
