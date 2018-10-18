@@ -29,7 +29,7 @@ const start = async function () {
 
         const limitPluginPackage = {
             plugin: Limit,
-            options: {enabled: Config.limitEnabled, pathLimit: Config.limitPath, userLimit: Config.limitUser, trustProxy: Config.trustProxy, headers: Config.headers, ipWhitelist: Config.ipWhitelist, pathCache.expiresIn: Config.pathCache.expiresIn, userPathCache.expiresIn: Config.userPathCache.expiresIn}
+            options: {enabled: Config.limitEnabled, pathLimit: Config.limitPath, userLimit: Config.limitUser, trustProxy: Config.trustProxy, headers: Config.headers, ipWhitelist: Config.ipWhitelist, pathCache:{expiresIn: Config.pathCache.expiresIn}, userPathCache:{expiresIn: Config.userPathCache.expiresIn}}
         };
 
         await reperio_server.registerAdditionalPlugin(limitPluginPackage);
