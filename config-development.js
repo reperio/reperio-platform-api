@@ -11,6 +11,7 @@ module.exports = {
     limitUser: process.env.LIMIT_USER || 300,
     trustProxy: process.env.LIMIT_TRUST_PROXY || false,
     headers: process.env.LIMIT_HEADERS || false,
+    ipWhitelist: process.env.LIMIT_IP_WHITELIST || ["127.0.0.1"],
     email: {
         smtpHost: process.env.CORE_SMTP_HOST || 'localhost',
         smtpPort: process.env.CORE_SMTP_PORT || 25,
