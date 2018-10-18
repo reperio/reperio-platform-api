@@ -1,5 +1,3 @@
-const uuid4 = require("uuid/v4");
-
 class UsersRepository {
     constructor(uow) {
         this.uow = uow;
@@ -165,19 +163,19 @@ class UsersRepository {
         }
     }
 
-    async verifyUserEmail(id) {
+    async verifyUserEmail(userEmailId) {
         try {
             const q = this.uow._models.UserEmail
                 .query(this.uow._transaction)
                 .patch({emailVerified: true})
-                .where('id', id);
+                .where('id', userEmailId);
 
             const result = await q;
 
             return result;
         } catch (err) {
             this.uow._logger.error(err);
-            this.uow._logger.error(`Failed to verify email`);
+            this.uow._logger.error(`Failed to verify email: ${userEmailId}`);
             throw err;
         }
     }
@@ -222,7 +220,7 @@ class UsersRepository {
             return await q;
         } catch (err) {
             this.uow._logger.error(err);
-            this.uow._logger.error(`Failed to update user roles`);
+            this.uow._logger.error(`Failed to update user roles: ${userId}`);
             throw err;
         }
     }
@@ -240,41 +238,41 @@ class UsersRepository {
             return await q;
         } catch (err) {
             this.uow._logger.error(err);
-            this.uow._logger.error(`Failed to fetch user roles`);
+            this.uow._logger.error(`Failed to fetch user roles: ${userId}`);
             throw err;
         }
     }
 
-    async deleteUser(id) {
+    async deleteUser(userId) {
         try {
             const q = this.uow._models.User
                 .query(this.uow._transaction)
                 .patch({deleted: true})
-                .where('id', id);
+                .where('id', userId);
 
             const result = await q;
 
             return result;
         } catch (err) {
             this.uow._logger.error(err);
-            this.uow._logger.error(`Failed to delete user`);
+            this.uow._logger.error(`Failed to delete user: ${userId}`);
             throw err;
         }
     }
 
-    async disableUser(id) {
+    async disableUser(userId) {
         try {
             const q = this.uow._models.User
                 .query(this.uow._transaction)
                 .patch({disabled: true})
-                .where('id', id);
+                .where('id', userId);
 
             const result = await q;
 
             return result;
         } catch (err) {
             this.uow._logger.error(err);
-            this.uow._logger.error(`Failed to disable user`);
+            this.uow._logger.error(`Failed to disable user: ${userId}`);
             throw err;
         }
     }

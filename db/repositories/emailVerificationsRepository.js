@@ -26,34 +26,34 @@ class EmailVerificationsRepository {
         }
     }
 
-    async getEntry(id) {
+    async getEntry(emailVerificationId) {
         try {
             const q = this.uow._models.EmailVerification
                 .query(this.uow._transaction)
-                .where('id', id);
+                .where('id', emailVerificationId);
 
             const entry = await q;
 
             return entry[0];
         } catch (err) {
-            this.uow._logger.error(`Failed to fetch email verification using id: ${id}`);
+            this.uow._logger.error(`Failed to fetch email verification using id: ${emailVerificationId}`);
             this.uow._logger.error(err);
             throw err;
         }
     }
 
-    async trigger(id, now) {
+    async trigger(emailVerificationId, now) {
         try {
             const q = this.uow._models.EmailVerification
                 .query(this.uow._transaction)
                 .patch({triggeredAt: now})
-                .where('id', id);
+                .where('id', emailVerificationId);
 
             const entry = await q;
 
             return entry;
         } catch (err) {
-            this.uow._logger.error(`Failed to trigger email verification: ${id}`);
+            this.uow._logger.error(`Failed to trigger email verification: ${emailVerificationId}`);
             this.uow._logger.error(err);
             throw err;
         }

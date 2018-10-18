@@ -1,6 +1,7 @@
 const Joi = require('joi');
 const HttpResponseService = require('./services/httpResponseService');
 const EmailService = require('./services/emailService');
+const AuthService = require('./services/authService');
 
 module.exports = [
     {
@@ -51,6 +52,7 @@ module.exports = [
             const logger = request.server.app.logger;
             const httpResponseService = new HttpResponseService();
             const emailService = new EmailService();
+            const authService = new AuthService();
 
             logger.debug(`Creating user`);
             const payload = request.payload;
@@ -63,7 +65,7 @@ module.exports = [
             const userModel = {
                 firstName: payload.firstName,
                 lastName: payload.lastName,
-                password: payload.password,
+                password: await authService.hashPassword(payload.password),
                 primaryEmailAddress: payload.primaryEmailAddress,
                 disabled: false,
                 deleted: false
@@ -110,23 +112,26 @@ module.exports = [
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-
-            logger.debug(`Editing user`);
             const payload = request.payload;
+            const userId = request.params.userId;
+            logger.debug(`Editing user: ${userId}`);
             await uow.beginTransaction();
 
-            const existingUser = await uow.usersRepository.getUserById(request.params.userId);
+            const existingUser = await uow.usersRepository.getUserById(userId);
 
             const userDetail = {
                 firstName: payload.firstName,
                 lastName: payload.lastName,
                 disabled: existingUser.disabled,
-                deleted: existingUser.deleted
+                deleted: existingUser.deleted,
+                primaryEmailAddress: payload.primaryEmailAddress
             };
 
-            const user = await uow.usersRepository.editUser(userDetail, request.params.userId);
-            await uow.usersRepository.replaceUserOrganizationsByUserId(request.params.userId, payload.organizationIds);
-            await uow.usersRepository.replaceUserRoles(request.params.userId, payload.roleIds);
+            await uow.userEmailsRepository.editUserEmails(userId, payload.userEmails);
+
+            const user = await uow.usersRepository.editUser(userDetail, userId);
+            await uow.usersRepository.replaceUserOrganizationsByUserId(userId, payload.organizationIds);
+            await uow.usersRepository.replaceUserRoles(userId, payload.roleIds);
 
             await uow.commitTransaction();
             
@@ -147,7 +152,14 @@ module.exports = [
                     roleIds: Joi.array()
                     .items(
                         Joi.string().guid()
-                    ).optional()
+                    ).optional(),
+                    userEmails: Joi.array().items(
+                        Joi.object({
+                            email: Joi.string().email(),
+                            id: Joi.string().guid().optional()
+                        })
+                    ),
+                    primaryEmailAddress: Joi.string().required()
                 }
             }
         }
@@ -158,10 +170,9 @@ module.exports = [
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-
-            logger.debug(`Updating user roles`);
             const userId = request.params.userId;
             const roleIds = request.payload.roleIds;
+            logger.debug(`Updating user roles for user: ${userId}`);
 
             await uow.beginTransaction();
             const userRoles = await uow.usersRepository.updateRoles(userId, roleIds);
@@ -189,9 +200,9 @@ module.exports = [
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-
-            logger.debug(`Fetching user roles`);
             const userId = request.params.userId;
+            
+            logger.debug(`Fetching user roles for user: ${userId}`);
 
             const userRoles = await uow.usersRepository.getUserRoles(userId);
             
@@ -207,22 +218,22 @@ module.exports = [
     },
     {
         method: 'DELETE',
-        path: '/users/{id}',
+        path: '/users/{userId}',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const id = request.params.id;
+            const userId = request.params.userId;
 
-            logger.debug(`Deleting user with id: ${id}`);
+            logger.debug(`Deleting user with id: ${userId}`);
 
-            const result = await uow.usersRepository.deleteUser(id);
+            const result = await uow.usersRepository.deleteUser(userId);
             
             return result;
         },
         options: {
             validate: {
                 params: {
-                    id: Joi.string().uuid().required()
+                    userId: Joi.string().uuid().required()
                 }
             }
         }  

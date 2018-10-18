@@ -36,22 +36,22 @@ module.exports = [
     },
     {
         method: 'DELETE',
-        path: '/organizations/{id}',
+        path: '/organizations/{organizationId}',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const id = request.params.id;
+            const organizationId = request.params.organizationId;
 
-            logger.debug(`Deleting organization with id: ${id}`);
+            logger.debug(`Deleting organization with id: ${organizationId}`);
 
-            const result = await uow.organizationsRepository.deleteOrganization(id);
+            const result = await uow.organizationsRepository.deleteOrganization(organizationId);
             
             return result;
         },
         options: {
             validate: {
                 params: {
-                    id: Joi.string().uuid().required()
+                    organizationId: Joi.string().uuid().required()
                 }
             }
         }  
@@ -76,8 +76,9 @@ module.exports = [
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
+            const userId = request.params.userId;
 
-            logger.debug(`Fetching all organizations by user`);
+            logger.debug(`Fetching all organizations by user: ${userId}`);
 
             const organizations = await uow.organizationsRepository.getOrganizationsByUser(userId);
             
@@ -93,40 +94,41 @@ module.exports = [
     },
     {
         method: 'GET',
-        path: '/organizations/{id}',
+        path: '/organizations/{organizationId}',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
+            const organizationId = request.params.organizationId;
 
-            logger.debug(`Fetching organization by id`);
-            const id = request.params.id;
+            logger.debug(`Fetching organization by organizationId: ${organizationId}`);
 
-            const organization = await uow.organizationsRepository.getOrganizationById(id);
+            const organization = await uow.organizationsRepository.getOrganizationById(organizationId);
             
             return organization;
         },
         options: {
             validate: {
                 params: {
-                    id: Joi.string().guid().required()
+                    organizationId: Joi.string().guid().required()
                 }
             }
         }  
     },
     {
         method: 'PUT',
-        path: '/organizations/{id}',
+        path: '/organizations/{organizationId}',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-
-            logger.debug(`Updating organization`);
-            const id = request.params.id;
+            const organizationId = request.params.organizationId;
             const payload = request.payload;
+            
+            logger.debug(`Updating organization: ${organizationId}`);
+
             await uow.beginTransaction();
 
-            const organization = await uow.organizationsRepository.editOrganization(id, payload.name);
-            await uow.usersRepository.replaceUserOrganizationsByOrganizationId(id, payload.userIds);
+            const organization = await uow.organizationsRepository.editOrganization(organizationId, payload.name);
+            await uow.usersRepository.replaceUserOrganizationsByOrganizationId(organizationId, payload.userIds);
 
             await uow.commitTransaction();
             return organization;
@@ -134,7 +136,7 @@ module.exports = [
         options: {
             validate: {
                 params: {
-                    id: Joi.string().guid(),
+                    organizationId: Joi.string().guid(),
                 },
                 payload: {
                     name: Joi.string().required(),
