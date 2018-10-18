@@ -12,7 +12,7 @@ module.exports = {
     trustProxy: process.env.LIMIT_TRUST_PROXY || false,
     headers: process.env.LIMIT_HEADERS || false,
     ipWhitelist: process.env.LIMIT_IP_WHITELIST || ["127.0.0.1"],
-    userCache: {
+    pathCache: {
         expiresIn: process.env.LIMIT_USER_CACHE_EXPIRES || 60000
     },
     userPathCache: {
