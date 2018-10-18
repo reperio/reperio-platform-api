@@ -4,6 +4,11 @@ module.exports = {
     secret: '6LfjumIUAAAAAI33bLW6by3Ny3QOE50YxvW_05q3',
     localTimezone: 'America/New_York',
     webAppUrl: process.env.CORE_APP_URL || 'http://localhost:8080',
+    limitEnabled: process.env.LIMIT_ENABLED || true,
+    //number of total requests that can be made on a given path per period. Set to false to disable limiting requests per path.
+    limitPath: process.env.LIMIT_PATH || 50,
+    //number of total requests a user can make per period. Set to false to disable limiting requests per user.
+    limitUser: process.env.LIMIT_USER || 300,
     email: {
         smtpHost: process.env.CORE_SMTP_HOST || 'localhost',
         smtpPort: process.env.CORE_SMTP_PORT || 25,
