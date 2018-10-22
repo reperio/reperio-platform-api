@@ -1,8 +1,9 @@
 class EmailService {
-    async sendVerificationEmail(userEmail, uow, request) {
+    async sendVerificationEmail(userEmail, uow, request, meta) {
         const messageHelper = await request.app.getNewMessageHelper();
         const emailVerification = await uow.emailVerificationsRepository.addEntry(userEmail.id, userEmail.userId);
-        const tokenUrl = `${request.server.app.config.webAppUrl}/emailVerification/${emailVerification.id}`
+        meta.after.emailVerification = emailVerification;
+        const tokenUrl = `${request.server.app.config.webAppUrl}/emailVerification/${emailVerification.id}`;
 
         const message = {
             to: userEmail.email,
@@ -15,10 +16,11 @@ class EmailService {
         return await messageHelper.processMessage(message);
     }
 
-    async sendForgotPasswordEmail(userEmail, uow, request) {
+    async sendForgotPasswordEmail(userEmail, uow, request, meta) {
         const messageHelper = await request.app.getNewMessageHelper();
         const forgotPassword = await uow.forgotPasswordsRepository.addEntry(userEmail.id, userEmail.userId);
-        const tokenUrl = `${request.server.app.config.webAppUrl}/resetPassword/${forgotPassword.id}`
+        meta.after.forgotPassword = forgotPassword;
+        const tokenUrl = `${request.server.app.config.webAppUrl}/resetPassword/${forgotPassword.id}`;
 
         const message = {
             to: userEmail.email,

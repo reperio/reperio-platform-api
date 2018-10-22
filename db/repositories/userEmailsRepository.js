@@ -110,10 +110,23 @@ class UserEmailsRepository {
             const inserted = await this.uow._models.UserEmail
                 .query(this.uow._transaction)
                 .insertAndFetch(toBeInserted);
-            
-                return existingDeletedUserEmails.concat(inserted);
+
+            return existingDeletedUserEmails.concat(inserted);
         } catch (err) {
             this.uow._logger.error(`Failed to create userEmails for: ${userId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async getAllUserEmailsByUserId(userId) {
+        try {
+            const q = this.uow._models.UserEmail
+                .query(this.uow._transaction)
+                .where('userId', userId);
+            return await q;
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch user emails for user: ${userId}`);
             this.uow._logger.error(err);
             throw err;
         }

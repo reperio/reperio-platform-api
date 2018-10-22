@@ -78,6 +78,10 @@ class RolesRepository {
 
     async updateRolePermissions(roleId, permissionNames) {
         try {
+            const before = await this.uow._models.RolePermission
+                .query(this.uow._transaction)
+                .where({roleId});
+
             await this.uow._models.RolePermission
                 .query(this.uow._transaction)
                 .where({roleId})
@@ -90,10 +94,12 @@ class RolesRepository {
                 };
             });
 
-            return await this.uow._models.RolePermission
+            const after = await this.uow._models.RolePermission
                 .query(this.uow._transaction)
                 .insert(rolePermissions)
                 .returning("*");
+
+            return {before, after};
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to update role permissions`);

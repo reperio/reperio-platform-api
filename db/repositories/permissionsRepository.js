@@ -57,15 +57,21 @@ class PermissionsRepository {
 
     async managePermissionsUsedByRoles(rolePermissions, permissionName) {
         try {
+            const before = await this.uow._models.RolePermission
+                .query(this.uow._transaction)
+                .where({permissionId});
+
             await this.uow._models.RolePermission
                 .query(this.uow._transaction)
                 .where({permissionName})
                 .delete();
 
-            return await this.uow._models.RolePermission
+            const after = await this.uow._models.RolePermission
                 .query(this.uow._transaction)
                 .insert(rolePermissions)
                 .returning("*");
+
+            return {before, after};
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to update role permissions`);

@@ -19,18 +19,34 @@ module.exports = [
             }
         },
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Fetching user', requestMeta);
+
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
 
-            const userId = request.params.userId;
+            try {
 
-            logger.debug(`Fetching user ${userId}`);
+                const userId = request.params.userId;
+                requestMeta.otherDetails.userId = userId;
+                logger.debug(`Fetching user ${userId}`);
 
-            const user = await uow.usersRepository.getUserById(userId);
-            user.permissions = PermissionService.getUserPermissions(user);
-            user.password = null;
-            
-            return user;
+                const user = await uow.usersRepository.getUserById(userId);
+                user.permissions = PermissionService.getUserPermissions(user);
+                user.password = null;
+
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Fetched user', requestMeta);
+                
+                return user;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Failed to fetch user', requestMeta);
+                return h.response('server error').code(500);
+            }
         }
     },
     {
@@ -42,16 +58,31 @@ module.exports = [
             }
         },
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Fetching all users', requestMeta);
+
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
 
-            logger.debug(`Fetching all users`);
+            try {
+                logger.debug(`Fetching all users`);
 
-            const users = await uow.usersRepository.getAllUsers();
+                const users = await uow.usersRepository.getAllUsers();
 
-            users.forEach(x => x.password = null);
+                users.forEach(x => x.password = null);
 
-            return users;
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Fetched all users', requestMeta);
+
+                return users;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Failed to fetch users', requestMeta);
+                return h.response('server error').code(500);
+            }
         }
     },
     {
@@ -76,49 +107,78 @@ module.exports = [
             }
         },
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Creating user', requestMeta);
+
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
             const httpResponseService = new HttpResponseService();
             const emailService = new EmailService();
             const authService = new AuthService();
 
-            logger.debug(`Creating user`);
-            const payload = request.payload;
+            try {
+                logger.debug(`Creating user`);
+                const payload = request.payload;
+                requestMeta.otherDetails.payload = payload;
+                delete requestMeta.otherDetails.payload.password;
+                delete requestMeta.otherDetails.payload.confirmPassword;
 
-            //validate signup details
-            if (payload.password !== payload.confirmPassword) {
-                return httpResponseService.badData(h);
+                //validate signup details
+                if (payload.password !== payload.confirmPassword) {
+                    requestMeta.otherDetails.error = 'Passwords do not match';
+                    requestMeta.responseCode = 400;
+                    await activityLogger.warn('Failed to create user');
+                    return httpResponseService.badData(h);
+                }
+
+                const userModel = {
+                    firstName: payload.firstName,
+                    lastName: payload.lastName,
+                    password: await authService.hashPassword(payload.password),
+                    primaryEmailAddress: payload.primaryEmailAddress,
+                    disabled: false,
+                    deleted: false
+                };
+                
+                await uow.beginTransaction();
+
+                const existingUser = await uow.usersRepository.getUserByEmail(userModel.primaryEmailAddress);
+                if (existingUser != null) {
+                    requestMeta.otherDetails.error = 'User with given email already exists';
+                    requestMeta.responseCode = 409;
+                    await activityLogger.warn('Failed to create user');
+                    return httpResponseService.conflict(h);
+                }
+
+                const organization = await uow.organizationsRepository.createOrganization(userModel.primaryEmailAddress, true);
+                const user = await uow.usersRepository.createUser(userModel, payload.organizationIds.concat(organization.id));
+                const userEmail = await uow.userEmailsRepository.createUserEmail(user.id, user.primaryEmailAddress);
+                const updatedUser = await uow.usersRepository.editUser({primaryEmailId: userEmail.id}, user.id);
+                updatedUser.permissions = PermissionService.getUserPermissions(updatedUser);
+
+                await uow.commitTransaction();
+
+                //send verification email
+                await emailService.sendVerificationEmail(userEmail, uow, request, requestMeta);
+
+                requestMeta.after = {
+                    user: updatedUser,
+                    organization: organization,
+                    userEmail: userEmail
+                };
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Created user');
+
+                return updatedUser;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Failed to create user', requestMeta);
+                return h.response('server error').code(500);
             }
-
-            const userModel = {
-                firstName: payload.firstName,
-                lastName: payload.lastName,
-                password: await authService.hashPassword(payload.password),
-                primaryEmailAddress: payload.primaryEmailAddress,
-                disabled: false,
-                deleted: false
-            };
-            
-            await uow.beginTransaction();
-
-            const existingUser = await uow.usersRepository.getUserByEmail(userModel.primaryEmailAddress);
-            if (existingUser != null) {
-                return httpResponseService.conflict(h);
-            }
-
-            const organization = await uow.organizationsRepository.createOrganization(userModel.primaryEmailAddress, true);
-            const user = await uow.usersRepository.createUser(userModel, payload.organizationIds.concat(organization.id));
-            const userEmail = await uow.userEmailsRepository.createUserEmail(user.id, user.primaryEmailAddress);
-            const updatedUser = await uow.usersRepository.editUser({primaryEmailId: userEmail.id}, user.id);
-            updatedUser.permissions = PermissionService.getUserPermissions(updatedUser);
-
-            await uow.commitTransaction();
-
-            //send verification email
-            await emailService.sendVerificationEmail(userEmail, uow, request);
-
-            return updatedUser;
-        }
+    }
     },
     {
         method: 'PUT',
@@ -138,24 +198,44 @@ module.exports = [
             }
         },
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Updating user', requestMeta);
+            
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const payload = request.payload;
-            const userId = request.params.userId;
 
-            logger.debug(`Editing user: ${userId}`);
-            await uow.beginTransaction();
+            try {
+                const payload = request.payload;
+                const userId = request.params.userId;
 
-            const userDetail = {
-                firstName: payload.firstName,
-                lastName: payload.lastName
-            };
+                requestMeta.otherDetails.userId = userId;
+                requestMeta.otherDetails.payload = payload;
+                requestMeta.before = await uow.usersRepository.getUserById(userId);
+                delete requestMeta.before.password;
 
-            const user = await uow.usersRepository.editUser(userDetail, userId);
+                logger.debug(`Editing user: ${userId}`);
+                await uow.beginTransaction();
+                const userDetail = {
+                    firstName: payload.firstName,
+                    lastName: payload.lastName
+                };
+                const user = await uow.usersRepository.editUser(userDetail, userId);
+                await uow.commitTransaction();
 
-            await uow.commitTransaction();
-            
-            return user;
+                requestMeta.after = user;
+                delete requestMeta.after.password;
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Updated user', requestMeta);
+
+                return user;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Failed to update user', requestMeta);
+                return h.response('server error').code(500);
+            }
         }
     },
     {
@@ -180,27 +260,48 @@ module.exports = [
             }
         },
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Adding user emails', requestMeta);
+
             const uow = await request.app.getNewUoW();
             const emailService = new EmailService();
             const logger = request.server.app.logger;
-            const payload = request.payload;
-            const userId = request.params.userId;
-            logger.debug(`Editing user emails: ${userId}`);
-            await uow.beginTransaction();
 
-            const newOrReusedUserEmails = await uow.userEmailsRepository.addUserEmails(userId, payload.userEmails);
+            try {
+                const payload = request.payload;
+                const userId = request.params.userId;
+                requestMeta.otherDetails.userId = userId;
+                requestMeta.otherDetails.payload = payload;
 
-            await uow.commitTransaction();
+                logger.debug(`Editing user emails: ${userId}`);
+                await uow.beginTransaction();
 
-            if (newOrReusedUserEmails) {
-                const promises = newOrReusedUserEmails.map(async userEmail => {
-                    return await emailService.sendVerificationEmail(userEmail, uow, request)
-                });
+                requestMeta.before = await uow.userEmailsRepository.getAllUserEmailsByUserId(userId);
+                const newOrReusedUserEmails = await uow.userEmailsRepository.addUserEmails(userId, payload.userEmails);
+    
+                await uow.commitTransaction();
+    
+                if (newOrReusedUserEmails) {
+                    const promises = newOrReusedUserEmails.map(async userEmail => {
+                        return await emailService.sendVerificationEmail(userEmail, uow, request, requestMeta)
+                    });
+    
+                    Promise.all(promises);
+                }
 
-                Promise.all(promises);
+                requestMeta.after = await uow.userEmailsRepository.getAllUserEmailsByUserId(userId);
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Added user emails', requestMeta);
+
+                return true;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Failed to add user emails', requestMeta);
+                return h.response('server error').code(500);
             }
-            
-            return true;
         }
     },
     {
@@ -223,23 +324,47 @@ module.exports = [
             }
         },
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Deleting user emails', requestMeta);
+
             const uow = await request.app.getNewUoW();
+            const httpResponseService = new HttpResponseService();
             const logger = request.server.app.logger;
-            const userId = request.params.userId;
-            const userEmailIds = request.payload.userEmailIds;
-            logger.debug(`Editing user emails: ${userId}`);
-            await uow.beginTransaction();
 
-            const user = await uow.usersRepository.getUserById(userId);
-            if (userEmailIds.includes(user.primaryEmailId)) {
-                return httpResponseService.badData(h);
+            try {
+                const userId = request.params.userId;
+                const userEmailIds = request.payload.userEmailIds;
+                requestMeta.otherDetails.userId = userId;
+                requestMeta.otherDetails.payload = request.payload;
+
+                logger.debug(`Editing user emails: ${userId}`);
+                await uow.beginTransaction();
+
+                const user = await uow.usersRepository.getUserById(userId);
+                if (userEmailIds.includes(user.primaryEmailId)) {
+                    requestMeta.otherDetails.error = 'Cannot delete primary email';
+                    requestMeta.responseCode = 400;
+                    await activityLogger.warn('Failed to delete user emails', requestMeta);
+                    return httpResponseService.badData(h);
+                }
+
+                requestMeta.before = await uow.userEmailsRepository.getAllUserEmailsByUserId(userId);
+                await uow.userEmailsRepository.deleteUserEmails(userEmailIds, userId);
+                await uow.commitTransaction();
+                requestMeta.after = await uow.userEmailsRepository.getAllUserEmailsByUserId(userId);
+
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Deleted user emails', requestMeta);
+                
+                return true;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Failed to delete user emails', requestMeta);
+                return h.response('server error').code(500);
             }
-
-            await uow.userEmailsRepository.deleteUserEmails(userEmailIds, userId);
-
-            await uow.commitTransaction();
-            
-            return true;
         }
     },
     {
@@ -259,20 +384,41 @@ module.exports = [
             }
         },
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Setting user primary email', requestMeta);
+
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const userId = request.params.userId;
-            const primaryUserEmailId = request.payload.primaryUserEmailId;
-            logger.debug(`Updating primary email for: ${userId}`);
-            await uow.beginTransaction();
+            try {
+                const userId = request.params.userId;
+                const primaryUserEmailId = request.payload.primaryUserEmailId;
 
-            const userEmail = await uow.userEmailsRepository.getUserEmailById(primaryUserEmailId);
+                requestMeta.otherDetails.userId = userId;
+                requestMeta.otherDetails.payload = request.payload;
 
-            await uow.usersRepository.setPrimaryUserEmail(userId, userEmail);
+                logger.debug(`Updating primary email for: ${userId}`);
+                await uow.beginTransaction();
 
-            await uow.commitTransaction();
-            
-            return true;
+                const userEmail = await uow.userEmailsRepository.getUserEmailById(primaryUserEmailId);
+
+                requestMeta.before = await uow.usersRepository.getUserById(userId);
+                await uow.usersRepository.setPrimaryUserEmail(userId, userEmail);
+                requestMeta.after = await uow.usersRepository.getUserById(userId);
+
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Set user primary email', requestMeta);
+
+                await uow.commitTransaction();
+                
+                return true;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Failed to set user primary email', requestMeta);
+                return h.response('server error').code(500);
+            }
         }
     },
     {
@@ -295,18 +441,39 @@ module.exports = [
             }
         },
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Updating user organizations', requestMeta);
+
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const payload = request.payload;
-            const userId = request.params.userId;
-            logger.debug(`Editing user organizations: ${userId}`);
-            await uow.beginTransaction();
 
-            await uow.usersRepository.replaceUserOrganizationsByUserId(userId, payload.organizationIds);
+            try {
+                const payload = request.payload;
+                const userId = request.params.userId;
+                requestMeta.otherDetails.userId = userId;
+                requestMeta.otherDetails.payload = payload;
 
-            await uow.commitTransaction();
-            
-            return h.continue;
+                logger.debug(`Editing user organizations: ${userId}`);
+                await uow.beginTransaction();
+
+                const result = await uow.usersRepository.replaceUserOrganizationsByUserId(userId, payload.organizationIds);
+
+                await uow.commitTransaction();
+
+                requestMeta.before = result.before;
+                requestMeta.after = result.after;
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Updated user organizations', requestMeta);
+                
+                return h.continue;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Failed to update user organizations', requestMeta);
+                return h.response('server error').code(500);
+            }
         }
     },
     {
@@ -329,33 +496,70 @@ module.exports = [
             }
         },
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Updating user roles', requestMeta);
+
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const payload = request.payload;
-            const userId = request.params.userId;
-            logger.debug(`Editing user roles for user: ${userId}`);
-            await uow.beginTransaction();
 
-            await uow.usersRepository.replaceUserRoles(userId, payload.roleIds);
+            try {
+                const payload = request.payload;
+                const userId = request.params.userId;
+                requestMeta.otherDetails.userId = userId;
+                requestMeta.otherDetails.payload = payload;
+                logger.debug(`Editing user roles for user: ${userId}`);
+                await uow.beginTransaction();
 
-            await uow.commitTransaction();
-            
-            return h.continue;
+                const result = await uow.usersRepository.replaceUserRoles(userId, payload.roleIds);
+
+                await uow.commitTransaction();
+
+                requestMeta.before = result.before;
+                requestMeta.after = result.after;
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Updated user roles', requestMeta);
+                
+                return h.continue;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Failed to update user roles', requestMeta);
+                return h.response('server error').code(500);
+            }
         }
     },
     {
         method: 'GET',
         path: '/users/{userId}/roles',
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Fetch roles for user', requestMeta);
+
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const userId = request.params.userId;
-            
-            logger.debug(`Fetching user roles for user: ${userId}`);
 
-            const userRoles = await uow.usersRepository.getUserRoles(userId);
-            
-            return userRoles;
+            try {
+                const userId = request.params.userId;
+                requestMeta.otherDetails.userId = userId;
+                
+                logger.debug(`Fetching user roles for user: ${userId}`);
+
+                const userRoles = await uow.usersRepository.getUserRoles(userId);
+                
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Fetched roles for user', requestMeta);
+
+                return userRoles;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Failed to delete user', requestMeta);
+                return h.response('server error').code(500);
+            }
         },
         options: {
             validate: {
@@ -379,15 +583,34 @@ module.exports = [
             }
         },
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Deleting user by id', requestMeta);
+
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const userId = request.params.userId;
 
-            logger.debug(`Deleting user with id: ${userId}`);
+            try {
+                const userId = request.params.userId;
+                requestMeta.otherDetails.userId = userId;
+                requestMeta.before = await uow.usersRepository.getUserById(userId);
 
-            const result = await uow.usersRepository.deleteUser(userId);
-            
-            return result;
+                logger.debug(`Deleting user with id: ${userId}`);
+
+                const result = await uow.usersRepository.deleteUser(userId);
+
+                requestMeta.after = result;
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Deleted user', requestMeta);
+                
+                return result;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Failed to delete user', requestMeta);
+                return h.response('server error').code(500);
+            }
         }
     }
 ];

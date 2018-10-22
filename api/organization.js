@@ -20,21 +20,38 @@ module.exports = [
             }
         },
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Create organization', requestMeta);
+
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
             const payload = request.payload;
 
-            logger.debug(`Creating organization`);
-            await uow.beginTransaction();
+            try {
+                logger.debug(`Creating organization`);
+                requestMeta.otherDetails.payload = payload;
+                await uow.beginTransaction();
 
-            const organization = await uow.organizationsRepository.createOrganization(payload.name, payload.personal);
-            if (organization && payload.userIds.length > 0) {
-                await uow.usersRepository.replaceUserOrganizationsByOrganizationId(organization.id, payload.userIds);
+                const organization = await uow.organizationsRepository.createOrganization(payload.name, payload.personal);
+                requestMeta.after.organization = organization;
+                requestMeta.after.users = [];
+                if (organization && payload.userIds.length > 0) {
+                    const user = await uow.usersRepository.replaceUserOrganizationsByOrganizationId(organization.id, payload.userIds);
+                    requestMeta.after.users.push(user);
+                }
+
+                await uow.commitTransaction();
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Created organization', requestMeta);
+                return organization;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Create organization failed', requestMeta);
+                return h.response('server error').code(500);
             }
-
-            await uow.commitTransaction();
-            
-            return organization;
         }
     },
     {
@@ -51,15 +68,30 @@ module.exports = [
             }
         },
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Delete organization', requestMeta);
+
             const uow = await request.app.getNewUoW();
-            const logger = request.server.app.logger;
+            const logger = request.server.app.logger; 
             const organizationId = request.params.organizationId;
 
-            logger.debug(`Deleting organization with id: ${organizationId}`);
-
-            const result = await uow.organizationsRepository.deleteOrganization(organizationId);
-            
-            return result;
+            try {
+                logger.debug(`Deleting organization with id: ${organizationId}`);
+                requestMeta.otherDetails.organizationId = organizationId;
+                requestMeta.before = await uow.organizationsRepository.getOrganizationById(organizationId);
+                const result = await uow.organizationsRepository.deleteOrganization(organizationId);
+                requestMeta.after = result;
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Deleted organization', requestMeta);
+                return result;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Delete organization failed', requestMeta);
+                return h.response('server error').code(500);
+            }
         }
     },
     {
@@ -71,29 +103,53 @@ module.exports = [
             }
         },
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Fetch all organizations', requestMeta);
+
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-
-            logger.debug(`Fetching all organizations`);
-
-            const organizations = await uow.organizationsRepository.getAllOrganizations();
-            
-            return organizations;
+            try {
+                logger.debug(`Fetching all organizations`);
+                const organizations = await uow.organizationsRepository.getAllOrganizations();
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Fetched all organizations', requestMeta);
+                return organizations;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Fetch all organizations failed', requestMeta);
+                return h.response('server error').code(500);
+            }
         }
     },
     {
         method: 'GET',
         path: '/organizations/user/{userId}',
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Fetching all organizations for user', requestMeta);
+
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
             const userId = request.params.userId;
 
-            logger.debug(`Fetching all organizations by user: ${userId}`);
-
-            const organizations = await uow.organizationsRepository.getOrganizationsByUser(userId);
-            
-            return organizations;
+            try {
+                logger.debug(`Fetching all organizations by user: ${userId}`);
+                requestMeta.otherDetails.userId = userId;
+                const organizations = await uow.organizationsRepository.getOrganizationsByUser(userId);
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Fetched all organizations for user', requestMeta);
+                return organizations;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Fetch all organizations for user failed', requestMeta);
+                return h.response('server error').code(500);
+            }
         },
         options: {
             validate: {
@@ -117,15 +173,28 @@ module.exports = [
             }
         },
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Fetch organization by id', requestMeta);
+
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
             const organizationId = request.params.organizationId;
 
-            logger.debug(`Fetching organization by organizationId: ${organizationId}`);
-
-            const organization = await uow.organizationsRepository.getOrganizationById(organizationId);
-            
-            return organization;
+            try {
+                logger.debug(`Fetching organization by organizationId: ${organizationId}`);
+                requestMeta.otherDetails.organizationId = organizationId;
+                const organization = await uow.organizationsRepository.getOrganizationById(organizationId);
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Fetched organization by id', requestMeta);
+                return organization;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Fetch organization by id failed', requestMeta);
+                return h.response('server error').code(500);
+            }
         }
     },
     {
@@ -149,20 +218,37 @@ module.exports = [
             }
         },
         handler: async (request, h) => {
+            const activityLogger = request.server.app.activityLogger;
+            const requestMeta = request.app.getRequestDetails();
+            await activityLogger.info('Update organization', requestMeta);
+            
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
             const organizationId = request.params.organizationId;
             const payload = request.payload;
-            
-            logger.debug(`Updating organization: ${organizationId}`);
 
-            await uow.beginTransaction();
-
-            const organization = await uow.organizationsRepository.editOrganization(organizationId, payload.name);
-            await uow.usersRepository.replaceUserOrganizationsByOrganizationId(organizationId, payload.userIds);
-
-            await uow.commitTransaction();
-            return organization;
+            try {
+                logger.debug(`Updating organization: ${organizationId}`);
+                requestMeta.otherDetails.organizationId = organizationId;
+                requestMeta.otherDetails.payload = payload;
+                await uow.beginTransaction();
+                requestMeta.before.organization = await uow.organizationsRepository.getOrganizationById(organizationId);
+                const organization = await uow.organizationsRepository.editOrganization(organizationId, payload.name);
+                requestMeta.after.organization = organization;
+                const result = await uow.usersRepository.replaceUserOrganizationsByOrganizationId(organizationId, payload.userIds);
+                requestMeta.before.userOrganizations = result.before;
+                requestMeta.after.userOrganizations = result.after;
+                await uow.commitTransaction();
+                requestMeta.responseCode = 200;
+                await activityLogger.info('Updated organization', requestMeta);
+                return organization;
+            } catch (err) {
+                logger.error(err);
+                requestMeta.otherDetails.error = err;
+                requestMeta.responseCode = 500;
+                await activityLogger.error('Update organization failed', requestMeta);
+                return h.response('server error').code(500);
+            }
         }
     }
 ];

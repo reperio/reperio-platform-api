@@ -9,6 +9,7 @@ const MessageHelper = require('./helpers/messageHelper');
 const RedisHelper = require('./helpers/redisHelper');
 const Limit = require('hapi-rate-limit');
 const PermissionService = require('./api/services/permissionService');
+const os = require('os');
 
 const start = async function () {
     try {
@@ -53,6 +54,20 @@ const start = async function () {
             method: async (request, h) => {
                 request.app.uows = [];
 
+                request.app.getRequestDetails = () => {
+                    return {
+                        requestId: request.info.id,
+                        requestPath: request.url.path,
+                        requestMethod: request.url.method,
+                        userId: request.app.userId || null,
+                        before: {},
+                        after: {},
+                        otherDetails: {
+                            requestRemoteAddress: request.info.remoteAddress,
+                            hostname: os.hostname()
+                        }
+                    }
+                }
                 request.app.getNewUoW = async () => {
                     const uow = new UnitOfWork(reperio_server.app.logger);
                     request.app.uows.push(uow);
@@ -119,7 +134,33 @@ const start = async function () {
                     request.response.header("Authorization", `Bearer ${token}`);
                 }
     
+                if (request.path.includes('/api') && request.method.toUpperCase() != 'OPTIONS') {
+                    // verify activity log has been written to before replying with 200
+                    var queryOptions = {
+                        from:   new Date - 60 * 1000,
+                        until:  new Date,
+                        limit:  100,
+                        start:  0,
+                        order:  'desc',
+                        fields: ['requestId']
+                    };
+                    const loggedRequestIds = await new Promise ((resolve, reject) => {
+                        request.server.app.activityLogger.query(queryOptions, function (err, result) {
+                            if (err) {
+                                reject(err);
+                            }
+                            const loggedRequestIds = result.dailyRotateFile.map(x => x.requestId);
+                            resolve(loggedRequestIds);
+                        });
+                    });
+
+                    if (!loggedRequestIds.includes(request.info.id)) {
+                        request.server.app.logger.warn('Activity log failed to write to disk');
+                        return h.response(null).code(500);
+                    }
+                }
                 return h.continue;
+
             }
         });
 

@@ -48,6 +48,11 @@ class UsersRepository {
 
     async replaceUserOrganizationsByUserId(userId, organizationIds) {
         try {
+
+            const before = await this.uow._models.UserOrganization
+                .query(this.uow._transaction)
+                .where({userId});
+
             const insert = organizationIds
                 .map(organizationId => {
                     return {
@@ -61,11 +66,12 @@ class UsersRepository {
                 .where({userId})
                 .delete()
 
-            await this.uow._models.UserOrganization
+            const after = await this.uow._models.UserOrganization
                 .query(this.uow._transaction)
                 .insert(insert)
                 .returning("*");
 
+            return {before, after};
         } catch (err) {
             this.uow._logger.error(`Failed to update a users organizations with userId: ${userId}`);
             this.uow._logger.error(err);
@@ -83,16 +89,22 @@ class UsersRepository {
                     }
                 });
 
+            const before = await this.uow._models.UserOrganization
+            .query(this.uow._transaction)
+            .where({organizationId});
+
             await this.uow._models.UserOrganization
                 .query(this.uow._transaction)
                 .where({organizationId})
                 .delete()
 
-            await this.uow._models.UserOrganization
+
+            const after = await this.uow._models.UserOrganization
                 .query(this.uow._transaction)
                 .insert(insert)
                 .returning("*");
-
+            
+            return {before, after};
         } catch (err) {
             this.uow._logger.error(`Failed to update user organizations with orgId: ${organizationId}`);
             this.uow._logger.error(err);
@@ -102,6 +114,10 @@ class UsersRepository {
 
     async replaceUserRoles(userId, userRoles) {
         try {
+            const before = await this.uow._models.UserRole
+                .query(this.uow._transaction)
+                .where({userId});
+
             const insert = userRoles
                 .map(item => {
                     return {
@@ -115,11 +131,12 @@ class UsersRepository {
                 .where({userId})
                 .delete()
 
-            await this.uow._models.UserRole
+            const after = await this.uow._models.UserRole
                 .query(this.uow._transaction)
                 .insert(insert)
                 .returning("*");
 
+            return {before, after};
         } catch (err) {
             this.uow._logger.error(`Failed to update a users roles: ${userId}`);
             this.uow._logger.error(err);
