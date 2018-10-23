@@ -156,7 +156,7 @@ module.exports = [
                     userEmails: Joi.array().items(
                         Joi.object({
                             email: Joi.string().email(),
-                            id: Joi.string().guid().optional()
+                            id: Joi.string().guid().allow(null)
                         })
                     ),
                     primaryEmailAddress: Joi.string().required()
