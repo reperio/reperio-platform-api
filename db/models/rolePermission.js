@@ -21,7 +21,7 @@ class RolePermission extends BaseModel {
         const Permission = require('./permission');
 
         return {
-            roles: {
+            role: {
                 relation: Model.HasOneRelation,
                 modelClass: Role,
                 join: {

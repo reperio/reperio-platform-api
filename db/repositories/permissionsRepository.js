@@ -11,7 +11,7 @@ class PermissionsRepository {
             const q = this.uow._models.Permission
                 .query(this.uow._transaction)
                 .where('id', permissionId)
-                .eager('rolePermissions.roles');
+                .eager('rolePermissions.role');
 
             const permission = await q;
 
@@ -27,7 +27,7 @@ class PermissionsRepository {
         try {
             const q = this.uow._models.Permission
                 .query(this.uow._transaction)
-                .eager('rolePermissions.roles');
+                .eager('rolePermissions.role');
 
             const permissions = await q;
 
