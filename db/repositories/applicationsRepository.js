@@ -16,13 +16,9 @@ class ApplicationsRepository {
         };
 
         try {
-            const q = this.uow._models.Application
+            return await this.uow._models.Application
                 .query(this.uow._transaction)
                 .insertAndFetch(payload);
-
-            const app = await q;
-
-            return app;
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to create app`);
@@ -33,14 +29,10 @@ class ApplicationsRepository {
     async deleteApplication(id) {
 
         try {
-            const q = this.uow._models.Application
+            return await this.uow._models.Application
                 .query(this.uow._transaction)
                 .patch({deleted: true})
                 .where('id', id);
-
-            const app = await q;
-
-            return app;
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to delete app`);
@@ -50,13 +42,10 @@ class ApplicationsRepository {
 
     async getApplicationById(id) {
         try {
-            const q = this.uow._models.Application
+            return await this.uow._models.Application
                 .query(this.uow._transaction)
-                .where('id', id);
-
-            const app = await q;
-
-            return app[0];
+                .where('id', id)
+                .first();
         } catch (err) {
             this.uow._logger.error(`Failed to fetch application using id: ${id}`);
             this.uow._logger.error(err);
@@ -66,12 +55,8 @@ class ApplicationsRepository {
 
     async getAllApplications() {
         try {
-            const q = this.uow._models.Application
+            return await this.uow._models.Application
                 .query(this.uow._transaction);
-
-            const apps = await q;
-
-            return apps;
         } catch (err) {
             this.uow._logger.error(`Failed to fetch applications`);
             this.uow._logger.error(err);

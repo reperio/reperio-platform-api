@@ -33,13 +33,12 @@ class UsersRepository {
 
     async editUser(modifiedUser, userId) {
         try {
-            const user = await this.uow._models.User
+            return await this.uow._models.User
                 .query(this.uow._transaction)
                 .patch(modifiedUser)
                 .where('id', userId)
-                .returning("*");
-
-            return user[0];
+                .returning("*")
+                .first();
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to edit user: ${userId}`);
@@ -62,7 +61,7 @@ class UsersRepository {
                 .where({userId})
                 .delete()
 
-            const q = await this.uow._models.UserOrganization
+            await this.uow._models.UserOrganization
                 .query(this.uow._transaction)
                 .insert(insert)
                 .returning("*");
@@ -89,7 +88,7 @@ class UsersRepository {
                 .where({organizationId})
                 .delete()
 
-            const q = await this.uow._models.UserOrganization
+            await this.uow._models.UserOrganization
                 .query(this.uow._transaction)
                 .insert(insert)
                 .returning("*");
@@ -116,7 +115,7 @@ class UsersRepository {
                 .where({userId})
                 .delete()
 
-            const q = await this.uow._models.UserRole
+            await this.uow._models.UserRole
                 .query(this.uow._transaction)
                 .insert(insert)
                 .returning("*");
@@ -130,16 +129,13 @@ class UsersRepository {
 
     async getUserById(userId) {
         try {
-            const q = this.uow._models.User
+            return await this.uow._models.User
                 .query(this.uow._transaction)
                 .mergeEager('userOrganizations.organization')
                 .mergeEager('userRoles.role.rolePermissions.permission')
                 .mergeEager('userEmails')
-                .where('users.id', userId);
-
-            const user = await q;
-
-            return user[0];
+                .where('users.id', userId)
+                .first();
         } catch (err) {
             this.uow._logger.error(`Failed to fetch user using id: ${userId}`);
             this.uow._logger.error(err);
@@ -149,13 +145,9 @@ class UsersRepository {
 
     async getAllUsers() {
         try {
-            const q = this.uow._models.User
+            return await this.uow._models.User
                 .query(this.uow._transaction)
                 .eager('userOrganizations.organization');
-
-            const users = await q;
-
-            return users;
         } catch (err) {
             this.uow._logger.error(`Failed to fetch users`);
             this.uow._logger.error(err);
@@ -165,14 +157,10 @@ class UsersRepository {
 
     async verifyUserEmail(userEmailId) {
         try {
-            const q = this.uow._models.UserEmail
+            return await this.uow._models.UserEmail
                 .query(this.uow._transaction)
                 .patch({emailVerified: true})
                 .where('id', userEmailId);
-
-            const result = await q;
-
-            return result;
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to verify email: ${userEmailId}`);
@@ -182,16 +170,13 @@ class UsersRepository {
 
     async getUserByEmail(primaryEmailAddress) {
         try {
-            const q = this.uow._models.User
+            return await this.uow._models.User
                 .query(this.uow._transaction)
                 .mergeEager('userOrganizations.organization')
                 .mergeEager('userRoles.role.rolePermissions.permission')
                 .mergeEager('userEmails')
-                .where('primaryEmailAddress', primaryEmailAddress);
-
-            const user = await q;
-
-            return user[0];
+                .where('primaryEmailAddress', primaryEmailAddress)
+                .first();
         } catch (err) {
             this.uow._logger.error(`Failed to fetch user using email: ${primaryEmailAddress}`);
             this.uow._logger.error(err);
@@ -213,11 +198,9 @@ class UsersRepository {
                 };
             });
 
-            const q = this.uow._models.UserRole
+            return await this.uow._models.UserRole
                 .query(this.uow._transaction)
                 .insertAndFetch(userRoles);
-
-            return await q;
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to update user roles: ${userId}`);
@@ -231,11 +214,9 @@ class UsersRepository {
                 .query(this.uow._transaction)
                 .where('userId', userId);
 
-            const q = this.uow._models.Role
+            return await this.uow._models.Role
                 .query(this.uow._transaction)
                 .whereIn('id', userRoles.map((userRole) => {return userRole.roleId}));
-
-            return await q;
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to fetch user roles: ${userId}`);
@@ -245,14 +226,10 @@ class UsersRepository {
 
     async deleteUser(userId) {
         try {
-            const q = this.uow._models.User
+            return await this.uow._models.User
                 .query(this.uow._transaction)
                 .patch({deleted: true})
                 .where('id', userId);
-
-            const result = await q;
-
-            return result;
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to delete user: ${userId}`);
@@ -262,14 +239,10 @@ class UsersRepository {
 
     async disableUser(userId) {
         try {
-            const q = this.uow._models.User
+            return await this.uow._models.User
                 .query(this.uow._transaction)
                 .patch({disabled: true})
                 .where('id', userId);
-
-            const result = await q;
-
-            return result;
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to disable user: ${userId}`);

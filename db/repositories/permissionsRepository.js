@@ -8,14 +8,11 @@ class PermissionsRepository {
 
     async getPermissionById(permissionId) {
         try {
-            const q = this.uow._models.Permission
+            return await this.uow._models.Permission
                 .query(this.uow._transaction)
                 .where('id', permissionId)
-                .eager('rolePermissions.role');
-
-            const permission = await q;
-
-            return permission[0];
+                .eager('rolePermissions.role')
+                .first();
         } catch (err) {
             this.uow._logger.error(`Failed to fetch permission using id: ${permissionId}`);
             this.uow._logger.error(err);
@@ -25,13 +22,9 @@ class PermissionsRepository {
 
     async getAllPermissions() {
         try {
-            const q = this.uow._models.Permission
+            return await this.uow._models.Permission
                 .query(this.uow._transaction)
                 .eager('rolePermissions.role');
-
-            const permissions = await q;
-
-            return permissions;
         } catch (err) { 
             this.uow._logger.error(`Failed to fetch permissions`);
             this.uow._logger.error(err);
@@ -51,15 +44,12 @@ class PermissionsRepository {
         };
 
         try {
-            const q = this.uow._models.Permission
+            return await this.uow._models.Permission
                 .query(this.uow._transaction)
                 .where({id: id})
                 .patch(permission)
-                .returning("*");
-
-            const updatedPermission = await q;
-
-            return updatedPermission.length > 0 ? updatedPermission[0] : null;
+                .returning("*")
+                .first();
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to edit permission`);
@@ -74,12 +64,10 @@ class PermissionsRepository {
                 .where({permissionId})
                 .delete();
 
-            const q = await this.uow._models.RolePermission
+            return await this.uow._models.RolePermission
                 .query(this.uow._transaction)
                 .insert(rolePermissions)
                 .returning("*");
-
-            return q;
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to update role permissions`);
