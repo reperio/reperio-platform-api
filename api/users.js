@@ -111,6 +111,7 @@ module.exports = [
         path: '/users/{userId}',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
+            const emailService = new EmailService();
             const logger = request.server.app.logger;
             const payload = request.payload;
             const userId = request.params.userId;
@@ -118,16 +119,26 @@ module.exports = [
             await uow.beginTransaction();
 
             const existingUser = await uow.usersRepository.getUserById(userId);
+            const userEmail = await uow.userEmailsRepository.getUserEmailById(payload.primaryEmailId);
 
             const userDetail = {
                 firstName: payload.firstName,
                 lastName: payload.lastName,
                 disabled: existingUser.disabled,
                 deleted: existingUser.deleted,
-                primaryEmailAddress: payload.primaryEmailAddress
+                primaryEmailAddress: userEmail.emailVerified ? userEmail.email : existingUser.primaryEmailAddress,
+                primaryEmailId: userEmail.emailVerified ? payload.primaryEmailId : await uow.userEmailsRepository.getUserEmail(userId, existingUser.primaryEmailAddress).id
             };
 
-            await uow.userEmailsRepository.editUserEmails(userId, payload.userEmails);
+            const newUserEmails = await uow.userEmailsRepository.editUserEmails(userId, payload.userEmails, existingUser.primaryEmailId);
+
+            if (newUserEmails) {
+                const promises = newUserEmails.map(async userEmail => {
+                    return await emailService.sendVerificationEmail(userEmail, uow, request)
+                });
+
+                Promise.all(promises);
+            }
 
             const user = await uow.usersRepository.editUser(userDetail, userId);
             await uow.usersRepository.replaceUserOrganizationsByUserId(userId, payload.organizationIds);
@@ -159,7 +170,7 @@ module.exports = [
                             id: Joi.string().guid().allow(null)
                         })
                     ),
-                    primaryEmailAddress: Joi.string().required()
+                    primaryEmailId: Joi.string().guid().required()
                 }
             }
         }
