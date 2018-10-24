@@ -12,13 +12,9 @@ class RolesRepository {
         };
 
         try {
-            const q = this.uow._models.Role
+            return await this.uow._models.Role
                 .query(this.uow._transaction)
                 .insertAndFetch(payload);
-
-            const role = await q;
-
-            return role;
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to create role`);
@@ -28,14 +24,11 @@ class RolesRepository {
 
     async getRoleById(roleId) {
         try {
-            const q = this.uow._models.Role
+            return await this.uow._models.Role
                 .query(this.uow._transaction)
                 .eager('rolePermissions.permission')
-                .where('id', roleId);
-
-            const role = await q;
-
-            return role[0];
+                .where('id', roleId)
+                .first();
         } catch (err) {
             this.uow._logger.error(`Failed to fetch role using id: ${permissionId}`);
             this.uow._logger.error(err);
@@ -45,13 +38,9 @@ class RolesRepository {
 
     async getAllRoles() {
         try {
-            const q = this.uow._models.Role
+            return await this.uow._models.Role
                 .query(this.uow._transaction)
                 .eager('rolePermissions.permission');
-
-            const roles = await q;
-
-            return roles;
         } catch (err) {
             this.uow._logger.error(`Failed to fetch roles`);
             this.uow._logger.error(err);
@@ -61,14 +50,10 @@ class RolesRepository {
 
     async getAllActiveRoles() {
         try {
-            const q = this.uow._models.Role
+            return await this.uow._models.Role
                 .query(this.uow._transaction)
                 .eager('rolePermissions.permission')
                 .where('deleted', false);
-
-            const roles = await q;
-
-            return roles;
         } catch (err) {
             this.uow._logger.error(`Failed to fetch roles`);
             this.uow._logger.error(err);
@@ -82,8 +67,8 @@ class RolesRepository {
                 .query(this.uow._transaction)
                 .where({id: roleId})
                 .patch({name})
-                .returning("*");
-
+                .returning("*")
+                .first();
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to edit role`);
@@ -105,12 +90,10 @@ class RolesRepository {
                 };
             });
 
-            const q = this.uow._models.RolePermission
+            return await this.uow._models.RolePermission
                 .query(this.uow._transaction)
                 .insert(rolePermissions)
                 .returning("*");
-
-            return await q;
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to update role permissions`);
@@ -120,14 +103,10 @@ class RolesRepository {
 
     async deleteRole(roleId) {
         try {
-            const q = this.uow._models.Role
+            return await this.uow._models.Role
                 .query(this.uow._transaction)
                 .patch({deleted: true})
                 .where('id', roleId);
-
-            const result = await q;
-
-            return result;
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to delete role`);

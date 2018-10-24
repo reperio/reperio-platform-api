@@ -12,13 +12,9 @@ class ForgotPasswordsRepository {
            userId
         }
         try {
-            const q = this.uow._models.ForgotPassword
+            return await this.uow._models.ForgotPassword
                 .query(this.uow._transaction)
                 .insertAndFetch(payload);
-
-            const entry = await q;
-
-            return entry;
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to create forgot password`);
@@ -28,13 +24,10 @@ class ForgotPasswordsRepository {
 
     async getEntry(forgotPasswordId) {
         try {
-            const q = this.uow._models.ForgotPassword
+            return await this.uow._models.ForgotPassword
                 .query(this.uow._transaction)
-                .where('id', forgotPasswordId);
-
-            const entry = await q;
-
-            return entry[0];
+                .where('id', forgotPasswordId)
+                .first();
         } catch (err) {
             this.uow._logger.error(`Failed to fetch forgot password using id: ${forgotPasswordId}`);
             this.uow._logger.error(err);
@@ -44,14 +37,10 @@ class ForgotPasswordsRepository {
 
     async trigger(forgotPasswordId, now) {
         try {
-            const q = this.uow._models.ForgotPassword
+            return await this.uow._models.ForgotPassword
                 .query(this.uow._transaction)
                 .patch({triggeredAt: now})
                 .where('id', forgotPasswordId);
-
-            const entry = await q;
-
-            return entry;
         } catch (err) {
             this.uow._logger.error(`Failed to trigger forgot password: ${forgotPasswordId}`);
             this.uow._logger.error(err);

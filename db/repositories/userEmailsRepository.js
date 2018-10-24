@@ -11,6 +11,20 @@ class UserEmailsRepository {
            deleted: false
         }
         try {
+            const existingUserEmail = await this.uow._models.UserEmail
+                .query(this.uow._transaction)
+                .where('email', email)
+                .first();
+
+            if (existingUserEmail) {
+                return await this.uow._models.UserEmail
+                    .query(this.uow._transaction)
+                    .patch({deleted: false, userId, emailVerified: false})
+                    .where('id', existingUserEmail.id)
+                    .returning("*")
+                    .first();
+            }
+
             return await this.uow._models.UserEmail
                 .query(this.uow._transaction)
                 .insertAndFetch(payload);
@@ -23,13 +37,10 @@ class UserEmailsRepository {
 
     async getUserEmailById(userEmailId) {
         try {
-            const q = this.uow._models.UserEmail
+            return await this.uow._models.UserEmail
                 .query(this.uow._transaction)
-                .where('id', userEmailId);
-
-            const userEmail = await q;
-
-            return userEmail[0];
+                .where('id', userEmailId)
+                .first();
         } catch (err) {
             this.uow._logger.error(`Failed to fetch user email using id: ${userEmailId}`);
             this.uow._logger.error(err);
@@ -39,14 +50,11 @@ class UserEmailsRepository {
 
     async getUserEmail(userId, email) {
         try {
-            const q = this.uow._models.UserEmail
+            return await this.uow._models.UserEmail
                 .query(this.uow._transaction)
                 .where('userId', userId)
-                .andWhere('email', email);
-
-            const userEmail = await q;
-
-            return userEmail[0];
+                .andWhere('email', email)
+                .first();
         } catch (err) {
             this.uow._logger.error(`Failed to fetch user email using userId and email: ${userId}`);
             this.uow._logger.error(err);
