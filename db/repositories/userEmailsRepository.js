@@ -21,7 +21,7 @@ class UserEmailsRepository {
         }
     }
 
-    async getUserEmail(userEmailId) {
+    async getUserEmailById(userEmailId) {
         try {
             const q = this.uow._models.UserEmail
                 .query(this.uow._transaction)
@@ -54,7 +54,7 @@ class UserEmailsRepository {
         }
     }
 
-    async editUserEmails(userId, userEmails) {
+    async editUserEmails(userId, userEmails, primaryEmailId) {
         try {
             const existingUserEmails = await this.uow._models.UserEmail
                 .query(this.uow._transaction)
@@ -64,7 +64,7 @@ class UserEmailsRepository {
             const newUserEmailIds = userEmails.map(y=> y.id);
             const newUserEmails = userEmails.map(y=> y.email);
 
-            const deletedIds = existingUserEmails.filter(x => !newUserEmailIds.includes(x.id)).map(x=> x.id);
+            const deletedIds = existingUserEmails.filter(x => !newUserEmailIds.includes(x.id) && x.id != primaryEmailId).map(x=> x.id);
 
             const inserted = userEmails.filter(x => !x.id && !existingEmails.includes(x.email)).map(x=> {
                 return {
@@ -87,10 +87,10 @@ class UserEmailsRepository {
                 .patch({deleted: false, emailVerified: false})
                 .whereIn("id", updatedIds);
 
-            await this.uow._models.UserEmail
+            return await this.uow._models.UserEmail
                 .query(this.uow._transaction)
-                .insert(inserted)
-                .returning("*");
+                .insertAndFetch(inserted);
+
         } catch (err) {
             this.uow._logger.error(`Failed to edit a users emails with userId: ${userId}`);
             this.uow._logger.error(err);
