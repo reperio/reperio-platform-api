@@ -115,6 +115,7 @@ module.exports = [
             const logger = request.server.app.logger;
             const payload = request.payload;
             const userId = request.params.userId;
+
             logger.debug(`Editing user: ${userId}`);
             await uow.beginTransaction();
 
@@ -130,10 +131,10 @@ module.exports = [
                 primaryEmailId: userEmail.emailVerified ? payload.primaryEmailId : await uow.userEmailsRepository.getUserEmail(userId, existingUser.primaryEmailAddress).id
             };
 
-            const newUserEmails = await uow.userEmailsRepository.editUserEmails(userId, payload.userEmails, existingUser.primaryEmailId);
+            const newOrReusedUserEmails = await uow.userEmailsRepository.editUserEmails(userId, payload.userEmails, existingUser.primaryEmailId);
 
-            if (newUserEmails) {
-                const promises = newUserEmails.map(async userEmail => {
+            if (newOrReusedUserEmails) {
+                const promises = newOrReusedUserEmails.map(async userEmail => {
                     return await emailService.sendVerificationEmail(userEmail, uow, request)
                 });
 
