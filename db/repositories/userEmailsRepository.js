@@ -64,41 +64,55 @@ class UserEmailsRepository {
 
     async editUserEmails(userId, userEmails, primaryEmailId) {
         try {
+            const submittedEmails = userEmails.map(x => x.email);
+
+            //Update deleted userEmail records that share the same email
+            const existingDeletedUserEmails = await this.uow._models.UserEmail
+                .query(this.uow._transaction)
+                .patch({userId, deleted: false})
+                .whereIn('email', submittedEmails)
+                .andWhere("deleted", true)
+                .returning("*");
+
             const existingUserEmails = await this.uow._models.UserEmail
                 .query(this.uow._transaction)
+                .mergeEager('user')
                 .where({userId});
-        
-            const existingEmails = existingUserEmails.map(x=> x.email);
-            const newUserEmailIds = userEmails.map(y=> y.id);
-            const newUserEmails = userEmails.map(y=> y.email);
 
-            const deletedIds = existingUserEmails.filter(x => !newUserEmailIds.includes(x.id) && x.id != primaryEmailId).map(x=> x.id);
+            //Determine what userEmails are to be inserted by filtering out userEmails with ids and emails that have been reused
+            const toBeInserted = userEmails
+                .filter(a => !a.id && !existingUserEmails
+                    .map(x=> x.email).includes(a.email))
+                .filter(b => !existingDeletedUserEmails
+                    .map(c=> c.email).includes(b.email))
+                        .map(d=> {
+                            return {
+                                email: d.email,
+                                userId,
+                                emailVerified: false,
+                                deleted: false
+                            }
+                        });
 
-            const inserted = userEmails.filter(x => !x.id && !existingEmails.includes(x.email)).map(x=> {
-                return {
-                    email: x.email,
-                    userId,
-                    emailVerified: false,
-                    deleted: false
-                }
-            });
+            const inserted = await this.uow._models.UserEmail
+                .query(this.uow._transaction)
+                .insertAndFetch(toBeInserted);
 
-            const updatedIds = existingUserEmails.filter(x=> newUserEmails.includes(x.email) && x.deleted).map(x=> x.id);
+            //Determine userEmails that have been deleted, filters out the primary email
+            const deleted = existingUserEmails
+                .filter(x => !userEmails
+                    .map(y=> y.id).includes(x.id) && x.id != primaryEmailId)
+                .filter(b => !existingDeletedUserEmails
+                    .map(c=> c.email).includes(b.email))
+                .map(x=> x.id);
 
             await this.uow._models.UserEmail
                 .query(this.uow._transaction)
                 .patch({deleted: true})
-                .whereIn("id", deletedIds);
+                .whereIn("id", deleted)
+                .returning("*");
 
-            await this.uow._models.UserEmail
-                .query(this.uow._transaction)
-                .patch({deleted: false, emailVerified: false})
-                .whereIn("id", updatedIds);
-
-            return await this.uow._models.UserEmail
-                .query(this.uow._transaction)
-                .insertAndFetch(inserted);
-
+            return existingDeletedUserEmails.concat(inserted);
         } catch (err) {
             this.uow._logger.error(`Failed to edit a users emails with userId: ${userId}`);
             this.uow._logger.error(err);
