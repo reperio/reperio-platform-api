@@ -11,7 +11,7 @@ class RolePermission extends BaseModel {
             type: 'Object',
             properties: {
                 roleId: { type: 'string' },
-                permissionId: { type: 'string' }
+                permissionName: { type: 'string' }
             }
         };
     }
@@ -33,8 +33,8 @@ class RolePermission extends BaseModel {
                 relation: Model.HasOneRelation,
                 modelClass: Permission,
                 join: {
-                    from: 'rolePermissions.permissionId',
-                    to: 'permissions.id'
+                    from: 'rolePermissions.permissionName',
+                    to: 'permissions.name'
                 }
             }
         };

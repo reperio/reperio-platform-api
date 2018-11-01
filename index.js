@@ -7,6 +7,7 @@ const RecaptchaService = require('./api/services/recaptchaService');
 const {knex} = require('./db/connect');
 const MessageHelper = require('./helpers/messageHelper');
 const Limit = require('hapi-rate-limit');
+const PermissionService = require('./api/services/permissionService');
 
 const start = async function () {
     try {
@@ -75,6 +76,21 @@ const start = async function () {
             method: async (request, h) => {
                 if (request.auth.isAuthenticated) {
                     request.app.currentUserId = request.auth.credentials.currentUserId;
+                    request.app.userPermissions = request.auth.credentials.userPermissions;
+                    const permissionService = new PermissionService();
+
+                    let requiredPermissions = null;
+                    if (request.route.settings.plugins.requiredPermissions) {
+                        requiredPermissions = typeof request.route.settings.plugins.requiredPermissions === "function"
+                            ? request.route.settings.plugins.requiredPermissions(request)
+                            : request.route.settings.plugins.requiredPermissions;
+                    }
+
+                    if (requiredPermissions && request.auth.credentials.userPermissions && !permissionService.userHasRequiredPermissions(request.auth.credentials.userPermissions, requiredPermissions)) {
+                        const response = h.response('unauthorized');
+                        response.statusCode = 401;
+                        return response.takeover();
+                    }
                 }
     
                 return h.continue;
@@ -85,10 +101,10 @@ const start = async function () {
             type: "onPreResponse",
             method: async (request, h) => {
     
-                if (request.app.currentUserId != null && request.response.header != null) {
-
+                if (request.app.currentUserId != null && request.app.userPermissions != null && request.response.header != null) {
                     const tokenPayload = {
-                        currentUserId: request.app.currentUserId
+                        currentUserId: request.app.currentUserId,
+                        userPermissions: request.app.userPermissions
                     };
                 
                     const token = jwt.sign(tokenPayload, Config.jsonSecret, {

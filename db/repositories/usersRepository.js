@@ -249,6 +249,19 @@ class UsersRepository {
             throw err;
         }
     }
+
+    async setPrimaryUserEmail(userId, userEmail) {
+        try {
+            return await this.uow._models.User
+                .query(this.uow._transaction)
+                .patch({primaryEmailAddress: userEmail.email, primaryEmailId: userEmail.id})
+                .where('id', userId);
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to set primary email for user: ${userId}`);
+            throw err;
+        }
+    }
 }
 
 module.exports = UsersRepository;

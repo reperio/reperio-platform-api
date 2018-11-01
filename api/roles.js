@@ -4,6 +4,11 @@ module.exports = [
     {
         method: 'GET',
         path: '/roles',
+        config: {
+            plugins: {
+                requiredPermissions: ['ViewRoles']
+            }
+        },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
@@ -18,6 +23,16 @@ module.exports = [
     {
         method: 'GET',
         path: '/roles/{roleId}',
+        config: {
+            plugins: {
+                requiredPermissions: ['ViewRoles']
+            },
+            validate: {
+                params: {
+                    roleId: Joi.string().guid().required()
+                }
+            }
+        },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
@@ -27,14 +42,7 @@ module.exports = [
             const role = await uow.rolesRepository.getRoleById(roleId);
             
             return role;
-        },
-        options: {
-            validate: {
-                params: {
-                    roleId: Joi.string().guid().required()
-                }
-            }
-        }  
+        }
     },
     {
         method: 'GET',
@@ -61,6 +69,22 @@ module.exports = [
     {
         method: 'POST',
         path: '/roles',
+        config: {
+            plugins: {
+                requiredPermissions: ['ViewRoles', 'CreateRoles']
+            },
+            validate: {
+                payload: {
+                    name: Joi.string().required(),
+                    organizationId: Joi.string().guid().required(),
+                    applicationId: Joi.string().guid().allow(null),
+                    permissions: Joi.array()
+                        .items(
+                            Joi.string().guid()
+                        ).min(1).required()
+                }
+            }
+        },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
@@ -72,29 +96,33 @@ module.exports = [
 
             const role = await uow.rolesRepository.createRole(payload.name, payload.organizationId, payload.applicationId);
 
-            await uow.rolesRepository.updateRolePermissions(role.id, payload.permissionIds);
+            await uow.rolesRepository.updateRolePermissions(role.id, payload.permissions);
 
             await uow.commitTransaction();
 
             return role;
-        },
-        options: {
-            validate: {
-                payload: {
-                    name: Joi.string().required(),
-                    organizationId: Joi.string().guid().required(),
-                    applicationId: Joi.string().guid().allow(null),
-                    permissionIds: Joi.array()
-                        .items(
-                            Joi.string().guid()
-                        ).min(1).required()
-                }
-            }
-        }  
+        }
     },
     {
         method: 'PUT',
         path: '/roles/{roleId}',
+        config: {
+            plugins: {
+                requiredPermissions: ['ViewRoles', 'UpdateRoles']
+            },
+            validate: {
+                params: {
+                    roleId: Joi.string().guid(),
+                },
+                payload: {
+                    name: Joi.string().required(),
+                    permissions: Joi.array()
+                        .items(
+                            Joi.string()
+                        ).min(1).required()
+                }
+            }
+        },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
@@ -105,29 +133,25 @@ module.exports = [
             await uow.beginTransaction();
 
             const role = await uow.rolesRepository.editRole(roleId, payload.name);
-            await uow.rolesRepository.updateRolePermissions(roleId, payload.permissionIds);
+            await uow.rolesRepository.updateRolePermissions(roleId, payload.permissions);
 
             await uow.commitTransaction();
             return role;
-        },
-        options: {
-            validate: {
-                params: {
-                    roleId: Joi.string().guid(),
-                },
-                payload: {
-                    name: Joi.string().required(),
-                    permissionIds: Joi.array()
-                        .items(
-                            Joi.string()
-                        ).min(1).required()
-                }
-            }
-        }  
+        }
     },
     {
         method: 'DELETE',
         path: '/roles/{roleId}',
+        config: {
+            plugins: {
+                requiredPermissions: ['ViewRoles', 'DeleteRoles']
+            },
+            validate: {
+                params: {
+                    roleId: Joi.string().uuid().required()
+                }
+            }
+        },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
@@ -138,14 +162,6 @@ module.exports = [
             const result = await uow.rolesRepository.deleteRole(roleId);
             
             return result;
-        },
-        options: {
-            validate: {
-                params: {
-                    roleId: Joi.string().uuid().required()
-                }
-            }
-        }  
+        }
     }
-
 ];

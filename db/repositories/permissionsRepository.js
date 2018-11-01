@@ -1,4 +1,3 @@
-const v4 = require('uuid/v4');
 const moment = require('moment');
 
 class PermissionsRepository {
@@ -6,15 +5,15 @@ class PermissionsRepository {
         this.uow = uow;
     }
 
-    async getPermissionById(permissionId) {
+    async getPermissionByName(name) {
         try {
             return await this.uow._models.Permission
                 .query(this.uow._transaction)
-                .where('id', permissionId)
+                .where('name', name)
                 .eager('rolePermissions.role')
                 .first();
         } catch (err) {
-            this.uow._logger.error(`Failed to fetch permission using id: ${permissionId}`);
+            this.uow._logger.error(`Failed to fetch permission: ${name}`);
             this.uow._logger.error(err);
             throw err;
         }
@@ -32,9 +31,8 @@ class PermissionsRepository {
         }
     }
 
-    async editPermission(id, name, displayName, description, applicationId, isSystemAdminPermission) {
+    async editPermission(name, displayName, description, applicationId, isSystemAdminPermission) {
         const permission = {
-            name,
             description,
             deleted: false,
             lastEditedDate: moment.utc().format(),
@@ -46,7 +44,7 @@ class PermissionsRepository {
         try {
             return await this.uow._models.Permission
                 .query(this.uow._transaction)
-                .where({id: id})
+                .where({name})
                 .patch(permission)
                 .returning("*")
                 .first();
@@ -57,11 +55,11 @@ class PermissionsRepository {
         }
     }
 
-    async managePermissionsUsedByRoles(rolePermissions, permissionId) {
+    async managePermissionsUsedByRoles(rolePermissions, permissionName) {
         try {
             await this.uow._models.RolePermission
                 .query(this.uow._transaction)
-                .where({permissionId})
+                .where({permissionName})
                 .delete();
 
             return await this.uow._models.RolePermission

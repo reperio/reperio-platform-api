@@ -30,7 +30,7 @@ class RolesRepository {
                 .where('id', roleId)
                 .first();
         } catch (err) {
-            this.uow._logger.error(`Failed to fetch role using id: ${permissionId}`);
+            this.uow._logger.error(`Failed to fetch role using id: ${roleId}`);
             this.uow._logger.error(err);
             throw err;
         }
@@ -76,16 +76,16 @@ class RolesRepository {
         }
     }
 
-    async updateRolePermissions(roleId, permissionIds) {
+    async updateRolePermissions(roleId, permissionNames) {
         try {
             await this.uow._models.RolePermission
                 .query(this.uow._transaction)
                 .where({roleId})
                 .delete();
 
-            const rolePermissions = permissionIds.map((id) => {
+            const rolePermissions = permissionNames.map((permissionName) => {
                 return {
-                    permissionId: id,
+                    permissionName,
                     roleId
                 };
             });
