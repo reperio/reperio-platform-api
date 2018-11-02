@@ -5,6 +5,7 @@ const chai = require("chai");
 const sinon = require("sinon");
 const sinonChai = require("sinon-chai");
 const expect = chai.expect;
+const os = require('os');
 
 chai.use(sinonChai);
 
@@ -21,6 +22,22 @@ describe('accounts api', () => {
         server.ext({
             type: 'onRequest',
             method: async (request, h) => {
+
+                request.app.getRequestDetails = () => {
+                    return {
+                        requestId: request.info.id,
+                        requestPath: request.url.path,
+                        requestMethod: request.url.method,
+                        userId: request.app.userId || null,
+                        before: {},
+                        after: {},
+                        otherDetails: {
+                            requestRemoteAddress: request.info.remoteAddress,
+                            hostname: os.hostname()
+                        }
+                    }
+                };
+
                 request.app.getNewUoW = async () => {
                     return {
                         accountsRepository: accountsRepository
@@ -37,6 +54,13 @@ describe('accounts api', () => {
             warn: (msg) => {return;},
             error: (msg, ex) => {return;},
         }
+
+        server.app.activityLogger = {
+            debug: (msg) => {return;},
+            info: (msg) => {return;},
+            warn: (msg) => {return;},
+            error: (msg, ex) => {return;}
+        };
     });
 
     describe('/billingAccounts/all', () =>{

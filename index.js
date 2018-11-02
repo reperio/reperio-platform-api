@@ -67,7 +67,8 @@ const start = async function () {
                             hostname: os.hostname()
                         }
                     }
-                }
+                };
+                
                 request.app.getNewUoW = async () => {
                     const uow = new UnitOfWork(reperio_server.app.logger);
                     request.app.uows.push(uow);
