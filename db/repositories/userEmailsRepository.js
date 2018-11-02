@@ -62,11 +62,24 @@ class UserEmailsRepository {
         }
     }
 
-    async editUserEmails(userId, userEmails, primaryEmailId) {
+    async deleteUserEmails(userEmailIds, userId) {
+        try {
+            await this.uow._models.UserEmail
+                .query(this.uow._transaction)
+                .patch({deleted: true})
+                .whereIn('id', userEmailIds);
+
+        } catch (err) {
+            this.uow._logger.error(`Failed to delete userEmails for: ${userId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async addUserEmails(userId, userEmails) {
         try {
             const submittedEmails = userEmails.map(x => x.email);
 
-            //Update deleted userEmail records that share the same email
             const existingDeletedUserEmails = await this.uow._models.UserEmail
                 .query(this.uow._transaction)
                 .patch({userId, deleted: false})
@@ -97,24 +110,10 @@ class UserEmailsRepository {
             const inserted = await this.uow._models.UserEmail
                 .query(this.uow._transaction)
                 .insertAndFetch(toBeInserted);
-
-            //Determine userEmails that have been deleted, filters out the primary email
-            const deleted = existingUserEmails
-                .filter(x => !userEmails
-                    .map(y=> y.id).includes(x.id) && x.id != primaryEmailId)
-                .filter(b => !existingDeletedUserEmails
-                    .map(c=> c.email).includes(b.email))
-                .map(x=> x.id);
-
-            await this.uow._models.UserEmail
-                .query(this.uow._transaction)
-                .patch({deleted: true})
-                .whereIn("id", deleted)
-                .returning("*");
-
-            return existingDeletedUserEmails.concat(inserted);
+            
+                return existingDeletedUserEmails.concat(inserted);
         } catch (err) {
-            this.uow._logger.error(`Failed to edit a users emails with userId: ${userId}`);
+            this.uow._logger.error(`Failed to create userEmails for: ${userId}`);
             this.uow._logger.error(err);
             throw err;
         }

@@ -8,7 +8,7 @@ exports.seed = async function (knex, Promise) {
         {
             id: 'a0ae75a5-72fe-429b-b3a4-37701c48ff63',
             userId: 'd08a1f76-7c4a-4dd9-a377-83ffffa752f4',
-            email: 'admin@reper.io',
+            email: 'support@reper.io',
             emailVerified: true,
             deleted: false
         }
@@ -17,6 +17,6 @@ exports.seed = async function (knex, Promise) {
         .where('id', '=', 'd08a1f76-7c4a-4dd9-a377-83ffffa752f4')
         .update({
             primaryEmailId: 'a0ae75a5-72fe-429b-b3a4-37701c48ff63',
-            primaryEmailAddress: 'admin@reper.io'
+            primaryEmailAddress: 'support@reper.io'
     });
 };

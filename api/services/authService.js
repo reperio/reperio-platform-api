@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const PermissionService = require('./permissionService');
 
 class AuthService {
     async validatePassword(password, hash) {
@@ -9,10 +10,12 @@ class AuthService {
     }
     
     getAuthToken(user, secret, jwtValidTimespan) {
+        const permissionService = new PermissionService();
         const tokenPayload = {
             currentUserId: user.id,
             userId: user.id,
-            userEmail: user.primaryEmailAddress
+            userEmail: user.primaryEmailAddress,
+            userPermissions: permissionService.getUserPermissions(user)
         };
     
         const token = jwt.sign(tokenPayload, secret, {

@@ -4,6 +4,11 @@ module.exports = [
     {
         method: 'GET',
         path: '/permissions',
+        config: {
+            plugins: {
+                requiredPermissions: ['ViewPermissions']
+            }
+        },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
@@ -17,41 +22,44 @@ module.exports = [
     },
     {
         method: 'GET',
-        path: '/permissions/{permissionId}',
+        path: '/permissions/{name}',
+        config: {
+            plugins: {
+                requiredPermissions: ['ViewPermissions']
+            },
+            validate: {
+                params: {
+                    name: Joi.string().required()
+                }
+            }
+        },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const permissionId = request.params.permissionId;
+            const name = request.params.name;
 
-            logger.debug(`Fetching permission by permissionId: ${permissionId}`);
+            logger.debug(`Fetching permission: ${name}`);
 
-            const permission = await uow.permissionsRepository.getPermissionById(permissionId);
+            const permission = await uow.permissionsRepository.getPermissionByName(name);
 
             return permission;
-        },
-        options: {
-            validate: {
-                params: {
-                    permissionId: Joi.string().guid().required()
-                }
-            }
-        }  
+        } 
     },
     {
         method: 'PUT',
-        path: '/permissions/{permissionId}',
+        path: '/permissions/{name}',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const permissionId = request.params.permissionId;
+            const name = request.params.name;
             const payload = request.payload;
 
-            logger.debug(`Editing permission: ${permissionId}`);
+            logger.debug(`Editing permission: ${name}`);
 
             await uow.beginTransaction();
 
-            const permission = await uow.permissionsRepository.editPermission(permissionId, payload.name, payload.displayName, payload.description, payload.applicationId, payload.isSystemAdminPermission);
-            await uow.permissionsRepository.managePermissionsUsedByRoles(payload.rolePermissions, permissionId);
+            const permission = await uow.permissionsRepository.editPermission(name, payload.displayName, payload.description, payload.applicationId, payload.isSystemAdminPermission);
+            await uow.permissionsRepository.managePermissionsUsedByRoles(payload.rolePermissions, name);
 
             await uow.commitTransaction();
 
@@ -60,10 +68,9 @@ module.exports = [
         options: {
             validate: {
                 params: {
-                    permissionId: Joi.string().guid()
+                    name: Joi.string()
                 },
                 payload: {
-                    name: Joi.string().required(),
                     description: Joi.string().required(),
                     displayName: Joi.string().required(),
                     applicationId: Joi.string().guid().optional(),
@@ -72,7 +79,7 @@ module.exports = [
                         .items(
                             Joi.object({
                                 roleId :Joi.string().guid(),
-                                permissionId: Joi.string().guid()
+                                permissionName: Joi.string()
                             })
                         )
                         .required()

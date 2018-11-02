@@ -4,6 +4,21 @@ module.exports = [
     {
         method: 'POST',
         path: '/organizations',
+        config: {
+            plugins: {
+                requiredPermissions: ['ViewOrganizations', 'CreateOrganizations']
+            },
+            validate: {
+                payload: {
+                    name: Joi.string().required(),
+                    userIds: Joi.array()
+                        .items(
+                            Joi.string()
+                        ).required(),
+                    personal: Joi.bool().required()
+                }
+            }
+        },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
@@ -20,23 +35,21 @@ module.exports = [
             await uow.commitTransaction();
             
             return organization;
-        },
-        options: {
-            validate: {
-                payload: {
-                    name: Joi.string().required(),
-                    userIds: Joi.array()
-                        .items(
-                            Joi.string()
-                        ).required(),
-                    personal: Joi.bool().required()
-                }
-            }
-        }  
+        }
     },
     {
         method: 'DELETE',
         path: '/organizations/{organizationId}',
+        config: {
+            plugins: {
+                requiredPermissions: ['ViewOrganizations', 'DeleteOrganizations']
+            },
+            validate: {
+                params: {
+                    organizationId: Joi.string().uuid().required()
+                }
+            }
+        },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
@@ -47,18 +60,16 @@ module.exports = [
             const result = await uow.organizationsRepository.deleteOrganization(organizationId);
             
             return result;
-        },
-        options: {
-            validate: {
-                params: {
-                    organizationId: Joi.string().uuid().required()
-                }
-            }
-        }  
+        }
     },
     {
         method: 'GET',
         path: '/organizations',
+        config: {
+            plugins: {
+                requiredPermissions: ['ViewOrganizations']
+            }
+        },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
@@ -95,6 +106,16 @@ module.exports = [
     {
         method: 'GET',
         path: '/organizations/{organizationId}',
+        config: {
+            plugins: {
+                requiredPermissions: ['ViewOrganizations']
+            },
+            validate: {
+                params: {
+                    organizationId: Joi.string().uuid().required()
+                }
+            }
+        },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
@@ -105,18 +126,28 @@ module.exports = [
             const organization = await uow.organizationsRepository.getOrganizationById(organizationId);
             
             return organization;
-        },
-        options: {
-            validate: {
-                params: {
-                    organizationId: Joi.string().guid().required()
-                }
-            }
-        }  
+        }
     },
     {
         method: 'PUT',
         path: '/organizations/{organizationId}',
+        config: {
+            plugins: {
+                requiredPermissions: ['ViewOrganizations', 'UpdateOrganizations']
+            },
+            validate: {
+                params: {
+                    organizationId: Joi.string().guid(),
+                },
+                payload: {
+                    name: Joi.string().required(),
+                    userIds: Joi.array()
+                        .items(
+                            Joi.string()
+                        ).required()
+                }
+            }
+        },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
@@ -132,20 +163,6 @@ module.exports = [
 
             await uow.commitTransaction();
             return organization;
-        },
-        options: {
-            validate: {
-                params: {
-                    organizationId: Joi.string().guid(),
-                },
-                payload: {
-                    name: Joi.string().required(),
-                    userIds: Joi.array()
-                        .items(
-                            Joi.string()
-                        ).required()
-                }
-            }
-        }  
+        }
     }
 ];
