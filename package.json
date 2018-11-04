@@ -5,11 +5,8 @@
   "licsense": "MPL2",
   "main": "index.js",
   "scripts": {
-    "test": "jest --coverage",
-    "build": "tsc --pretty",
-    "tsc-watch": "tsc --pretty -w",
-    "dev": "concurrently -k -r -s first \"npm run tsc-watch\" \"nodemon dist/index.js\"",
-    "start": "npm run-script build && node index.js"
+    "test": "jest --coverage --verbose",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
