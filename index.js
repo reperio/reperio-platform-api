@@ -134,9 +134,10 @@ const start = async function () {
                     request.response.header('Access-Control-Expose-Headers', 'Authorization');
                     request.response.header("Authorization", `Bearer ${token}`);
                 }
-    
-                if (request.path.includes('/api') && request.method.toUpperCase() != 'OPTIONS') {
-                    // verify activity log has been written to before replying with 200
+                
+                // verify activity log has been written to before replying with 200
+                if (request.response.isBoom == undefined && !request.response.isBoom && request.path.includes('/api') && request.method.toUpperCase() != 'OPTIONS') {
+                    reperio_server.app.logger.debug('checking activity log');
                     var queryOptions = {
                         from:   new Date - 60 * 1000,
                         until:  new Date,
