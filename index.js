@@ -135,32 +135,6 @@ const start = async function () {
                     request.response.header("Authorization", `Bearer ${token}`);
                 }
                 
-                // verify activity log has been written to before replying with 200
-                if (request.response.isBoom == undefined && !request.response.isBoom && request.path.includes('/api') && request.method.toUpperCase() != 'OPTIONS') {
-                    reperio_server.app.logger.debug('checking activity log');
-                    var queryOptions = {
-                        from:   new Date - 60 * 1000,
-                        until:  new Date,
-                        limit:  100,
-                        start:  0,
-                        order:  'desc',
-                        fields: ['requestId']
-                    };
-                    const loggedRequestIds = await new Promise ((resolve, reject) => {
-                        request.server.app.activityLogger.query(queryOptions, function (err, result) {
-                            if (err) {
-                                reject(err);
-                            }
-                            const loggedRequestIds = result.dailyRotateFile.map(x => x.requestId);
-                            resolve(loggedRequestIds);
-                        });
-                    });
-
-                    if (!loggedRequestIds.includes(request.info.id)) {
-                        request.server.app.logger.warn('Activity log failed to write to disk');
-                        return h.response(null).code(500);
-                    }
-                }
                 return h.continue;
 
             }
