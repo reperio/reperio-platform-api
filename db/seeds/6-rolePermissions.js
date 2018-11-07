@@ -78,6 +78,10 @@ exports.seed = async function (knex, Promise) {
         {
             roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
             permissionName: 'UpdateBasicUserInfo'
+        },
+        {
+            roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+            permissionName: 'ResendVerificationEmails'
         }
     ]);
 };

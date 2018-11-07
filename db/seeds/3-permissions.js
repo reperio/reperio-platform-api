@@ -174,6 +174,15 @@ exports.seed = async function (knex, Promise) {
             createdDate: moment().utc().format(),
             lastEditedDate: moment().utc().format(),
             deleted: false
+        },
+        {
+            name: 'ResendVerificationEmails',
+            displayName: 'Resend Verification Emails',
+            description: 'Allows for resending verification emails to user emails',
+            isSystemAdminPermission: false,
+            createdDate: moment().utc().format(),
+            lastEditedDate: moment().utc().format(),
+            deleted: false
         }
     ]);
 };

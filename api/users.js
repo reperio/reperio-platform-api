@@ -2,6 +2,7 @@ const Joi = require('joi');
 const HttpResponseService = require('./services/httpResponseService');
 const EmailService = require('./services/emailService');
 const AuthService = require('./services/authService');
+const PermissionService = require('./services/permissionService');
 
 module.exports = [
     {
@@ -26,6 +27,7 @@ module.exports = [
             logger.debug(`Fetching user ${userId}`);
 
             const user = await uow.usersRepository.getUserById(userId);
+            user.permissions = PermissionService.getUserPermissions(user);
             user.password = null;
             
             return user;
@@ -108,6 +110,7 @@ module.exports = [
             const user = await uow.usersRepository.createUser(userModel, payload.organizationIds.concat(organization.id));
             const userEmail = await uow.userEmailsRepository.createUserEmail(user.id, user.primaryEmailAddress);
             const updatedUser = await uow.usersRepository.editUser({primaryEmailId: userEmail.id}, user.id);
+            updatedUser.permissions = PermissionService.getUserPermissions(updatedUser);
 
             await uow.commitTransaction();
 
