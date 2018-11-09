@@ -20,7 +20,7 @@ module.exports = [
 
                 const user = await uow.usersRepository.getUserByEmail(payload.primaryEmailAddress);
 
-                if (!user || !authService.validatePassword(payload.password, user.password)) {
+                if (!user || !(await authService.validatePassword(payload.password, user.password))) {
                     return httpResponseService.unauthorized(h);
                 }
 
