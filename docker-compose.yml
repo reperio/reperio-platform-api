@@ -10,6 +10,15 @@ services:
     volumes:
       - data-volume:/usr/local/pgsql/data
     build: ./docker-database/
+  redis:
+    image: redis:4.0.11
+    restart: always
+    ports:
+      - "6379:6379"
+    container_name: "reperio-redis"
+    volumes:
+      - redis-data:/data
 
 volumes:
     data-volume:
+    redis-data:
