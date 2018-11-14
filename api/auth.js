@@ -4,6 +4,8 @@ const HttpResponseService = require('./services/httpResponseService');
 const EmailService = require('./services/emailService');
 const moment = require('moment');
 
+const uuid4 = require("uuid/v4");
+
 module.exports = [
     {
         method: 'POST',
@@ -42,6 +44,40 @@ module.exports = [
                     password: Joi.string().required()
                 }
             }
+        }
+    },
+    {
+        method: 'POST',
+        path: '/auth/otp',
+        handler: async (request, h) => {
+            const {otp} = request.payload;
+            const redisHelper = await request.app.getNewRedisHelper();
+            const httpResponseService = new HttpResponseService();
+            const token = await redisHelper.getJWTForOTP(otp);
+
+            if (token == null) {
+                return httpResponseService.unauthorized(h);
+            } else {
+                return httpResponseService.loginSuccess(h, token);
+            }
+        },
+        options: {
+            auth: false,
+            validate: {
+                payload: {
+                    otp: Joi.string().required()
+                }
+            }
+        }
+    },
+    {
+        method: 'POST',
+        path: '/auth/otp/generate',
+        handler: async (request, h) => {
+            const otp = uuid4();
+            const redisHelper = await request.app.getNewRedisHelper();
+            await redisHelper.addOTP(otp, request.auth.token);
+            return {otp};
         }
     },{
         method: 'POST',
