@@ -80,7 +80,7 @@ module.exports = [
                     applicationId: Joi.string().guid().allow(null),
                     permissions: Joi.array()
                         .items(
-                            Joi.string().guid()
+                            Joi.string()
                         ).min(1).required()
                 }
             }
