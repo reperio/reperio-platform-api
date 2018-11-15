@@ -11,5 +11,6 @@ module.exports = {
         experimentalObjectRestSpread: true,
       },
       sourceType: 'module',
+      ecmaVersion: 2017
     }
   };
