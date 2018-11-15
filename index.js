@@ -77,7 +77,6 @@ const start = async function () {
                 if (request.auth.isAuthenticated) {
                     request.app.currentUserId = request.auth.credentials.currentUserId;
                     request.app.userPermissions = request.auth.credentials.userPermissions;
-                    const permissionService = new PermissionService();
 
                     let requiredPermissions = null;
                     if (request.route.settings.plugins.requiredPermissions) {
@@ -86,7 +85,7 @@ const start = async function () {
                             : request.route.settings.plugins.requiredPermissions;
                     }
 
-                    if (requiredPermissions && request.auth.credentials.userPermissions && !permissionService.userHasRequiredPermissions(request.auth.credentials.userPermissions, requiredPermissions)) {
+                    if (requiredPermissions && request.auth.credentials.userPermissions && !PermissionService.userHasRequiredPermissions(request.auth.credentials.userPermissions, requiredPermissions)) {
                         const response = h.response('unauthorized');
                         response.statusCode = 401;
                         return response.takeover();

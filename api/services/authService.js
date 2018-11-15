@@ -10,12 +10,11 @@ class AuthService {
     }
     
     getAuthToken(user, secret, jwtValidTimespan) {
-        const permissionService = new PermissionService();
         const tokenPayload = {
             currentUserId: user.id,
             userId: user.id,
             userEmail: user.primaryEmailAddress,
-            userPermissions: permissionService.getUserPermissions(user)
+            userPermissions: PermissionService.getUserPermissions(user)
         };
     
         const token = jwt.sign(tokenPayload, secret, {
