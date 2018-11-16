@@ -29,5 +29,6 @@ module.exports = {
         rejectUnauthorizedTLS: process.env.CORE_SMTP_REJECT_UNAUTHORIZED_TLS || true,
         barUrl: process.env.CORE_BAR_URL || '',
         linkTimeout: process.env.CORE_LINK_TIMEOUT || 10
-    }
+    },
+    redisOtpExpirationSeconds: process.env.REDIS_OTP_EXPIRATION_SECONDS || 60
 };

@@ -6,6 +6,7 @@ const Config = require('./config');
 const RecaptchaService = require('./api/services/recaptchaService');
 const {knex} = require('./db/connect');
 const MessageHelper = require('./helpers/messageHelper');
+const RedisHelper = require('./helpers/redisHelper');
 const Limit = require('hapi-rate-limit');
 const PermissionService = require('./api/services/permissionService');
 
@@ -65,6 +66,10 @@ const start = async function () {
 
                 request.app.getNewMessageHelper = async () => {
                     return new MessageHelper(reperio_server.app.logger, Config);
+                };
+
+                request.app.getNewRedisHelper = async () => {
+                    return new RedisHelper(reperio_server.app.logger, Config);
                 };
 
                 return h.continue;
