@@ -124,6 +124,7 @@ module.exports = [
             logger.debug(`Fetching organization by organizationId: ${organizationId}`);
 
             const organization = await uow.organizationsRepository.getOrganizationById(organizationId);
+            organization.userOrganizations.forEach(userOrganization => userOrganization.user.password = null)
             
             return organization;
         }
