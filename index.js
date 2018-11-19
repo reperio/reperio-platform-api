@@ -49,8 +49,23 @@ const start = async function () {
         reperio_server.app.config = Config;
 
         await reperio_server.registerExtension({
-            type: 'onRequest',
+            type: 'onPreHandler',
             method: async (request, h) => {
+                await request.server.app.activityLogger.info('new request', {
+                    request: {
+                        id: request.info.id,
+                        params: request.params,
+                        query: request.query,
+                        payload: request.payload,
+                        path: request.url.path,
+                        method: request.url.method,
+                        remoteAddress: request.info.remoteAddress
+                    },
+                    user: {
+                        id: request.app.currentUserId || null
+                    }
+                });
+                
                 request.app.uows = [];
 
                 request.app.getNewUoW = async () => {
@@ -104,7 +119,16 @@ const start = async function () {
         await reperio_server.registerExtension({
             type: "onPreResponse",
             method: async (request, h) => {
-    
+                const meta = {
+                    request: {
+                        id: request.info.id
+                    }
+                };
+                if (h.response.statusCode >= 400 && h.response.statusCode < 500) {
+                    meta.response = h.response.payload;
+                }
+                await request.server.app.activityLogger.info('request finished', meta);
+
                 if (request.app.currentUserId != null && request.app.userPermissions != null && request.response.header != null) {
                     const tokenPayload = {
                         currentUserId: request.app.currentUserId,
