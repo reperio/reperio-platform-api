@@ -1,7 +1,8 @@
 const Joi = require('joi');
-const AuthService = require('./services/authService');
-const HttpResponseService = require('./services/httpResponseService');
-const EmailService = require('./services/emailService');
+const authService = require('./services/authService');
+const httpResponseService = require('./services/httpResponseService');
+const emailService = require('./services/emailService');
+const recaptchaService = require('./services/recaptchaService');
 const moment = require('moment');
 
 const uuid4 = require("uuid/v4");
@@ -19,8 +20,6 @@ module.exports = [
         path: '/auth/login',
         handler: async (request, h) => {
             const logger = request.server.app.logger;
-            const authService = new AuthService();
-            const httpResponseService = new HttpResponseService();
             
             try {
                 const payload = request.payload;
@@ -92,9 +91,6 @@ module.exports = [
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const authService = new AuthService();
-            const emailService = new EmailService();
-            const httpResponseService = new HttpResponseService();
 
             try {
                 const payload = request.payload;
@@ -165,8 +161,6 @@ module.exports = [
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const emailService = new EmailService();
-            const httpResponseService = new HttpResponseService();
             const payload = request.payload;
 
             logger.debug(`Ssending verification email for user: ${payload.userId}`);
@@ -200,12 +194,11 @@ module.exports = [
         method: 'POST',
         path: '/auth/recaptcha',
         handler: async (request, h) => {
-            const recaptcha = await request.app.getNewRecaptcha();
             const logger = request.server.app.logger;
             const payload = request.payload;
 
             try {
-                const response = await recaptcha.siteVerify(request.server.app.config.secret, payload.response, request.info.remoteAddress);
+                const response = await recaptchaService.siteVerify(request.server.app.config.secret, payload.response, request.info.remoteAddress);
                 return response;
             } catch (err) {
                 logger.error(err);
@@ -257,8 +250,6 @@ module.exports = [
         path: '/auth/forgotPassword',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
-            const emailService = new EmailService();
-            const httpResponseService = new HttpResponseService();
             const logger = request.server.app.logger;
             const payload = request.payload;
 
@@ -323,8 +314,6 @@ module.exports = [
         path: '/auth/resetPassword',
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
-            const httpResponseService = new HttpResponseService();
-            const authService = new AuthService();
             const logger = request.server.app.logger;
             const payload = request.payload;
             const entry = await uow.forgotPasswordsRepository.getEntry(payload.token);

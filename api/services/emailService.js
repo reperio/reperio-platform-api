@@ -32,4 +32,6 @@ class EmailService {
     }
 }
 
-module.exports = EmailService;
+const emailService = new EmailService();
+
+module.exports = emailService;

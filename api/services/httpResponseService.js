@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-class AuthService {
+class HttpResponseService {
     unauthorized(h) {
         const response = h.response('unauthorized');
         response.statusCode = 401;
@@ -29,4 +29,6 @@ class AuthService {
     }
 }
 
-module.exports = AuthService;
+const httpResponseService = new HttpResponseService();
+
+module.exports = httpResponseService;

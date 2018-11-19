@@ -1,4 +1,4 @@
-module.exports = {
+class PermissionService {
     getUserPermissions(user) {
         const userPermissions = user.userRoles != null && user.userRoles.length > 0 ? [...new Set(
             user.userRoles
@@ -7,8 +7,13 @@ module.exports = {
         )] : [];
     
         return userPermissions;
-    },
+    }
+    
     userHasRequiredPermissions(userPermissions, routePermissions) {
         return routePermissions.every(val => userPermissions.includes(val));
     }
 }
+
+const permissionService = new PermissionService();
+
+module.exports = permissionService;
