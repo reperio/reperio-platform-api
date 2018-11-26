@@ -1,8 +1,8 @@
 module.exports = {
-    jsonSecret: '496d7e4d-eb86-4706-843b-5ede72fad0e8',
-    jwtValidTimespan: '12h',
-    secret: '6LfjumIUAAAAAI33bLW6by3Ny3QOE50YxvW_05q3',
-    localTimezone: 'America/New_York',
+    jsonSecret: process.env.CORE_JSON_SECRET || '496d7e4d-eb86-4706-843b-5ede72fad0e8',
+    jwtValidTimespan: process.env.CORE_JWT_TIMESPAN || '12h',
+    secret: process.env.CORE_SECRET || '6LfjumIUAAAAAI33bLW6by3Ny3QOE50YxvW_05q3',
+    localTimezone: process.env.CORE_TIMEZONE || 'America/New_York',
     webAppUrl: process.env.CORE_APP_URL || 'http://localhost:8080',
     limitEnabled: process.env.LIMIT_ENABLED || true,
     //number of total requests that can be made on a given path per period. Set to false to disable limiting requests per path.
