@@ -8,6 +8,13 @@ const uuid4 = require("uuid/v4");
 
 module.exports = [
     {
+        method: 'GET',
+        path: '/auth',
+        handler: async (request, h) => {
+            return "";
+        }
+    },
+    {
         method: 'POST',
         path: '/auth/login',
         handler: async (request, h) => {
