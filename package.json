@@ -46,7 +46,6 @@
     "concurrently": "^3.6.0",
     "coveralls": "^3.0.2",
     "jest": "^22.4.4",
-    "nodemon": "^1.17.5",
     "sinon": "^6.0.1",
     "sinon-chai": "^3.2.0"
   }
