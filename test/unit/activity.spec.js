@@ -5,7 +5,7 @@ const expect = chai.expect;
 
 const { extensions, registerExtensions } = require('../../extensions');
 const mockUoW = require('./mockUoW');
-const { createTestServer, authHeader } = require('./testServer');
+const { createTestServer, adminAuthHeader } = require('./testServer');
 
 chai.use(sinonChai);
 
@@ -72,7 +72,7 @@ describe('Activity logging', () => {
             url: '/api/users',
             method: 'GET',
             headers: {
-                'Authorization': authHeader
+                'Authorization': adminAuthHeader
             }
         };
         await server.server.inject(options);
@@ -89,7 +89,7 @@ describe('Activity logging', () => {
             url: '/api/users',
             method: 'GET',
             headers: {
-                'Authorization': authHeader
+                'Authorization': adminAuthHeader
             }
         };
         await server.server.inject(usersOptions);
@@ -109,7 +109,7 @@ describe('Activity logging', () => {
             url: '/api/users',
             method: 'GET',
             headers: {
-                'Authorization': authHeader
+                'Authorization': adminAuthHeader
             }
         };
         await server.server.inject(options);
@@ -133,7 +133,7 @@ describe('Activity logging', () => {
                 primaryEmailAddress: 'fakeEmail@reper.io'
             },
             headers: {
-                'Authorization': authHeader
+                'Authorization': adminAuthHeader
             }
         };
         await server.server.inject(options);
@@ -161,7 +161,7 @@ describe('Activity logging', () => {
                 organizationIds: []
             },
             headers: {
-                'Authorization': authHeader
+                'Authorization': adminAuthHeader
             }
         };
         const response = await server.server.inject(options);
