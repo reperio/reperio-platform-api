@@ -1,8 +1,8 @@
 const Joi = require('joi');
-const HttpResponseService = require('./services/httpResponseService');
-const EmailService = require('./services/emailService');
-const AuthService = require('./services/authService');
-const PermissionService = require('./services/permissionService');
+const httpResponseService = require('./services/httpResponseService');
+const emailService = require('./services/emailService');
+const authService = require('./services/authService');
+const permissionService = require('./services/permissionService');
 
 module.exports = [
     {
@@ -27,7 +27,7 @@ module.exports = [
             logger.debug(`Fetching user ${userId}`);
 
             const user = await uow.usersRepository.getUserById(userId);
-            user.permissions = PermissionService.getUserPermissions(user);
+            user.permissions = permissionService.getUserPermissions(user);
             user.password = null;
             
             return user;
@@ -78,9 +78,6 @@ module.exports = [
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const httpResponseService = new HttpResponseService();
-            const emailService = new EmailService();
-            const authService = new AuthService();
 
             logger.debug(`Creating user`);
             const payload = request.payload;
@@ -110,7 +107,7 @@ module.exports = [
             const user = await uow.usersRepository.createUser(userModel, payload.organizationIds.concat(organization.id));
             const userEmail = await uow.userEmailsRepository.createUserEmail(user.id, user.primaryEmailAddress);
             const updatedUser = await uow.usersRepository.editUser({primaryEmailId: userEmail.id}, user.id);
-            updatedUser.permissions = PermissionService.getUserPermissions(updatedUser);
+            updatedUser.permissions = permissionService.getUserPermissions(updatedUser);
 
             await uow.commitTransaction();
 
@@ -181,7 +178,6 @@ module.exports = [
         },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
-            const emailService = new EmailService();
             const logger = request.server.app.logger;
             const payload = request.payload;
             const userId = request.params.userId;

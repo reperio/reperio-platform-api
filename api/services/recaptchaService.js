@@ -1,15 +1,10 @@
 const request = require('request-promise-native');
 
 class RecaptchaService {
-
-    constructor (url, logger) {
-        this.url = url;
-        this.logger = logger;
-    }
-
     async siteVerify(secret, response, remoteip) {
+        const url = 'https://www.google.com/recaptcha/api/siteverify';
         const options = {
-            uri: `${this.url}?secret=${secret}&response=${response}&remoteip=${remoteip}`,
+            uri: `${url}?secret=${secret}&response=${response}&remoteip=${remoteip}`,
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
@@ -25,4 +20,6 @@ class RecaptchaService {
     }
 }
 
-module.exports = RecaptchaService;
+const recaptchaService = new RecaptchaService();
+
+module.exports = recaptchaService;
