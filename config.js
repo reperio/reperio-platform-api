@@ -30,5 +30,12 @@ module.exports = {
         barUrl: process.env.CORE_BAR_URL || '',
         linkTimeout: process.env.CORE_LINK_TIMEOUT || 10
     },
-    redisOtpExpirationSeconds: process.env.REDIS_OTP_EXPIRATION_SECONDS || 60
+    redisOtpExpirationSeconds: process.env.REDIS_OTP_EXPIRATION_SECONDS || 60,
+    db: {
+        host: process.env.CORE_DB_HOST || 'localhost',
+        port: process.env.CORE_DB_PORT || '5432',
+        user: process.env.CORE_DB_USER || 'reperio',
+        password: process.env.CORE_DB_PASSWORD || 'reperio',
+        database: process.env.CORE_DB_DATABASE || 'reperio_platform_dev'
+    }
 };
