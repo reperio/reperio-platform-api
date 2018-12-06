@@ -5,4 +5,17 @@ cache:
   directories:
     - node_modules
 after_success:
-    - './node_modules/.bin/jest && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls'
+    - 'cat ./coverage/lcov.info | ./node_modules/.bin/coveralls'
+sudo: required
+services:
+    - docker
+before_script: 
+    # Let's stop postgresql
+    - sudo service postgresql stop
+    # wait for postgresql to shutdown
+    - while sudo lsof -Pi :5432 -sTCP:LISTEN -t; do sleep 1; done
+    # Let's stop redis
+    - sudo service redis-server stop
+    # wait for redis to shutdown
+    - while sudo lsof -Pi :6379 -sTCP:LISTEN -t; do sleep 1; done
+    - yarn run rebuild-db

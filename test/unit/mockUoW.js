@@ -23,12 +23,54 @@ module.exports = {
         trigger: async () => { }
     },
     organizationsRepository: {
-        createOrganization: async () => { return '7e4d496d-843b-0647-eb86-fad0e85ede72'; },
-        deleteOrganization: async () => { },
-        getOrganizationById: async () => { },
-        getOrganizationsByUser: async () => { },
-        getAllOrganizations: async () => { },
-        editOrganization: async () => { }
+        createOrganization: async (name, personal) => { 
+            return {
+                id: '7e4d496d-843b-0647-eb86-fad0e85ede72',
+                name: name,
+                personal: personal,
+                deleted: false
+            }; 
+        },
+        deleteOrganization: async () => { 
+            return true;
+        },
+        getOrganizationById: async () => { 
+            return {
+                id: '7e4d496d-843b-0647-eb86-fad0e85ede72',
+                name: 'test',
+                personal: true,
+                deleted: false,
+                userOrganizations: [{
+                    user: {
+                        password: 'super secret password'
+                    }
+                }]
+            }
+        },
+        getOrganizationsByUser: async () => {
+            return [{
+                id: '7e4d496d-843b-0647-eb86-fad0e85ede72',
+                name: 'test',
+                personal: true,
+                deleted: false
+            }];
+        },
+        getAllOrganizations: async () => {
+            return [{
+                id: '7e4d496d-843b-0647-eb86-fad0e85ede72',
+                name: 'test',
+                personal: true,
+                deleted: false
+            }];
+         },
+        editOrganization: async () => {
+            return {
+                id: '7e4d496d-843b-0647-eb86-fad0e85ede72',
+                name: 'test',
+                personal: true,
+                deleted: false
+            };
+        }
     },
     permissionsRepository: {
         getPermissionById: async () => { },

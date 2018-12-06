@@ -27,8 +27,7 @@ class OrganizationsRepository {
         try {
             return await this.uow._models.Organization
                 .query(this.uow._transaction)
-                .patch({deleted: true})
-                .where('id', id);
+                .patchAndFetchById(id, {deleted: true});
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to delete organization`);
@@ -80,9 +79,7 @@ class OrganizationsRepository {
         try {
             return await this.uow._models.Organization
                 .query(this.uow._transaction)
-                .where({id: id})
-                .patch({name})
-                .returning("*");
+                .patchAndFetchById(id, {name});
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to edit organization`);

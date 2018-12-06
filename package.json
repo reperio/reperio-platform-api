@@ -5,7 +5,7 @@
   "licsense": "MPL2",
   "main": "index.js",
   "scripts": {
-    "test": "jest --coverage --verbose",
+    "test": "CORE_DB_DATABASE='reperio_platform_test' jest --coverage --verbose --forceExit",
     "start": "node index.js",
     "rebuild-db": "./docker-database/rebuild-db.sh"
   },

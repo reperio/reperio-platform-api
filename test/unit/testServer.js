@@ -2,7 +2,8 @@ const {registerAPIPlugin} = require('../../extensions');
 const Server = require('@reperio/hapijs-starter');
 
 const jsonSecret = '496d7e4d-eb86-4706-843b-5ede72fad0e8';
-const authHeader = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXJyZW50VXNlcklkIjoiZDA4YTFmNzYtN2M0YS00ZGQ5LWEzNzctODNmZmZmYTc1MmY0IiwidXNlcklkIjoiZDA4YTFmNzYtN2M0YS00ZGQ5LWEzNzctODNmZmZmYTc1MmY0IiwidXNlckVtYWlsIjoic3VwcG9ydEByZXBlci5pbyIsInVzZXJQZXJtaXNzaW9ucyI6WyJWaWV3VXNlcnMiLCJDcmVhdGVVc2VycyIsIkRlbGV0ZVVzZXJzIiwiTWFuYWdlVXNlck9yZ2FuaXphdGlvbnMiLCJNYW5hZ2VVc2VyUm9sZXMiLCJBZGRFbWFpbCIsIlNldFByaW1hcnlFbWFpbCIsIkRlbGV0ZUVtYWlsIiwiVmlld1JvbGVzIiwiQ3JlYXRlUm9sZXMiLCJVcGRhdGVSb2xlcyIsIkRlbGV0ZVJvbGVzIiwiVmlld09yZ2FuaXphdGlvbnMiLCJDcmVhdGVPcmdhbml6YXRpb25zIiwiVXBkYXRlT3JnYW5pemF0aW9ucyIsIkRlbGV0ZU9yZ2FuaXphdGlvbnMiLCJWaWV3UGVybWlzc2lvbnMiLCJVcGRhdGVQZXJtaXNzaW9ucyIsIlVwZGF0ZUJhc2ljVXNlckluZm8iLCJSZXNlbmRWZXJpZmljYXRpb25FbWFpbHMiXSwiaWF0IjoxNTQzMjUyNjQwLCJleHAiOjMzMTAwODUyNjQwfQ.fCOaMqGoe4butY4J4KbWrni4v9oJFNy7fGo0S4Fworc';
+const adminAuthHeader = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXJyZW50VXNlcklkIjoiZDA4YTFmNzYtN2M0YS00ZGQ5LWEzNzctODNmZmZmYTc1MmY0IiwidXNlcklkIjoiZDA4YTFmNzYtN2M0YS00ZGQ5LWEzNzctODNmZmZmYTc1MmY0IiwidXNlckVtYWlsIjoic3VwcG9ydEByZXBlci5pbyIsInVzZXJQZXJtaXNzaW9ucyI6WyJWaWV3VXNlcnMiLCJDcmVhdGVVc2VycyIsIkRlbGV0ZVVzZXJzIiwiTWFuYWdlVXNlck9yZ2FuaXphdGlvbnMiLCJNYW5hZ2VVc2VyUm9sZXMiLCJBZGRFbWFpbCIsIlNldFByaW1hcnlFbWFpbCIsIkRlbGV0ZUVtYWlsIiwiVmlld1JvbGVzIiwiQ3JlYXRlUm9sZXMiLCJVcGRhdGVSb2xlcyIsIkRlbGV0ZVJvbGVzIiwiVmlld09yZ2FuaXphdGlvbnMiLCJDcmVhdGVPcmdhbml6YXRpb25zIiwiVXBkYXRlT3JnYW5pemF0aW9ucyIsIkRlbGV0ZU9yZ2FuaXphdGlvbnMiLCJWaWV3UGVybWlzc2lvbnMiLCJVcGRhdGVQZXJtaXNzaW9ucyIsIlVwZGF0ZUJhc2ljVXNlckluZm8iLCJSZXNlbmRWZXJpZmljYXRpb25FbWFpbHMiXSwiaWF0IjoxNTQzMjUyNjQwLCJleHAiOjMzMTAwODUyNjQwfQ.fCOaMqGoe4butY4J4KbWrni4v9oJFNy7fGo0S4Fworc';
+const noPermissionsAuthHeader = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXJyZW50VXNlcklkIjoiNjBhNTE0MjUtODI3Zi00YjExLThhMTAtMDE0Y2I1MDU5NWUzIiwidXNlclBlcm1pc3Npb25zIjpbXSwiaWF0IjoxNTQzODg4MDc4LCJleHAiOjE1NDM5MzEyNzh9.jAkF9LqP2z5XmFADwKyyqyGny_mACc5igDFXckUY53c';
 
 const createTestServer = async function() {
     const server = new Server({
@@ -11,7 +12,8 @@ const createTestServer = async function() {
         corsOrigins: ['*'],
         authEnabled: true,
         authSecret: jsonSecret,
-        testMode: true
+        testMode: true,
+        logDefaultConsoleTransport: false
     });
     
     await registerAPIPlugin(server);
@@ -49,4 +51,4 @@ const createTestServer = async function() {
     return server;
 };
 
-module.exports = {createTestServer, authHeader};
+module.exports = {createTestServer, adminAuthHeader, noPermissionsAuthHeader};
