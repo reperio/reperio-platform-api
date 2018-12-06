@@ -6,3 +6,9 @@ cache:
     - node_modules
 after_success:
     - './node_modules/.bin/jest && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls'
+sudo: required
+services:
+    - docker
+before_script: 
+    - docker-compose pull
+    - docker-compose up -d
