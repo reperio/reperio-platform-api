@@ -79,13 +79,145 @@ module.exports = {
         managePermissionsUsedByRoles: async () => { }
     },
     rolesRepository: {
-        createRole: async () => { },
-        getRoleById: async () => { },
-        getAllRoles: async () => { },
-        getAllActiveRoles: async () => { },
-        editRole: async () => { },
+        createRole: async () => { 
+            return {
+                id: 'e37c87b4-b92e-11e8-96f8-529269fb1450',
+                name: 'Core Super Admin',
+                deleted: false,
+                organizationId: '966f4157-934c-45e7-9f44-b1e5fd8b79a7',
+                applicationId: null
+            };
+        },
+        getRoleById: async () => { 
+            return {
+                id: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                name: 'Core Super Admin',
+                deleted: false,
+                organizationId: '966f4157-934c-45e7-9f44-b1e5fd8b79a7',
+                applicationId: null
+            };
+        },
+        getAllRoles: async () => {
+            return [{
+                id: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                name: 'Core Super Admin',
+                deleted: false,
+                organizationId: '966f4157-934c-45e7-9f44-b1e5fd8b79a7',
+                applicationId: null
+            }];
+        },
+        getAllActiveRoles: async () => {
+            return [{
+                id: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                name: 'Core Super Admin',
+                deleted: false,
+                organizationId: '966f4157-934c-45e7-9f44-b1e5fd8b79a7',
+                applicationId: null
+            }];
+        },
+        editRole: async () => { 
+            return {
+                id: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                name: 'Core Super Admin',
+                deleted: false,
+                organizationId: '966f4157-934c-45e7-9f44-b1e5fd8b79a7',
+                applicationId: null
+            };
+        },
         updateRolePermissions: async () => { },
-        deleteRole: async () => { }
+        deleteRole: async () => { 
+            return {
+                id: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                name: 'Core Super Admin',
+                deleted: true,
+                organizationId: '966f4157-934c-45e7-9f44-b1e5fd8b79a7',
+                applicationId: null
+            };
+        },
+        getPermissionsByRoleId: async () => {
+            return [
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'ViewUsers'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'CreateUsers'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'DeleteUsers'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'ManageUserOrganizations'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'ManageUserRoles'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'AddEmail'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'SetPrimaryEmail'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'DeleteEmail'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'ViewRoles'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'CreateRoles'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'UpdateRoles'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'DeleteRoles'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'ViewOrganizations'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'CreateOrganizations'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'UpdateOrganizations'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'DeleteOrganizations'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'ViewPermissions'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'UpdatePermissions'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'UpdateBasicUserInfo'
+                },
+                {
+                    roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+                    permissionName: 'ResendVerificationEmails'
+                }
+            ];
+        }
     },
     userEmailsRepository: {
         createUserEmail: async () => { return '7e4d496d-843b-0647-eb86-fad0e85ede73'; },
