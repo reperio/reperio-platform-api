@@ -89,10 +89,45 @@ module.exports = {
         }
     },
     permissionsRepository: {
-        getPermissionById: async () => { },
-        getAllPermissions: async () => { },
-        editPermission: async () => { },
-        managePermissionsUsedByRoles: async () => { }
+        getPermissionByName: async () => {
+            return {
+                name: 'TestPermission',
+                displayName: 'Test Permission',
+                description: 'This is a test permission',
+                deleted: false,
+                isSystemAdminPermission: false,
+                createdDate: null,
+                lastEditedDate: null,
+                applicationId: null
+            };
+        },
+        getAllPermissions: async () => {
+            return [{
+                name: 'TestPermission',
+                displayName: 'Test Permission',
+                description: 'This is a test permission',
+                deleted: false,
+                isSystemAdminPermission: false,
+                createdDate: null,
+                lastEditedDate: null,
+                applicationId: null
+            }];
+         },
+        editPermission: async () => {
+            return {
+                name: 'TestPermission',
+                displayName: 'Test Permission',
+                description: 'This is a test permission',
+                deleted: false,
+                isSystemAdminPermission: false,
+                createdDate: null,
+                lastEditedDate: null,
+                applicationId: null
+            };
+         },
+        managePermissionsUsedByRoles: async () => { 
+            return true;
+        }
     },
     rolesRepository: {
         createRole: async () => { 
