@@ -49,8 +49,8 @@ class PermissionsRepository {
                 .returning("*")
                 .first();
         } catch (err) {
-            this.uow._logger.error(err);
             this.uow._logger.error(`Failed to edit permission`);
+            this.uow._logger.error(err);
             throw err;
         }
     }
