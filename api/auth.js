@@ -58,7 +58,6 @@ module.exports = [
         handler: async (request, h) => {
             const {otp} = request.payload;
             const redisHelper = await request.app.getNewRedisHelper();
-            const httpResponseService = new HttpResponseService();
             const token = await redisHelper.getJWTForOTP(otp);
 
             if (token == null) {
@@ -171,10 +170,10 @@ module.exports = [
                     return httpResponseService.badData(h);
                 }
                 //send verification email
-                const response = await emailService.sendVerificationEmail(userEmail, uow, request);
+                await emailService.sendVerificationEmail(userEmail, uow, request);
                 await uow.commitTransaction();
 
-                return response;
+                return true;
             } catch (err) {
                 logger.error(err);
                 throw err;
