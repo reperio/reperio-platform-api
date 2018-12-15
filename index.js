@@ -15,7 +15,15 @@ const start = async function () {
             cors: true,
             corsOrigins: ['*'],
             authEnabled: true,
-            authSecret: Config.jsonSecret
+            authSecret: Config.jsonSecret,
+            cache: [
+                {
+                    engine: require('catbox-redis'),
+                    host: Config.redis.host,
+                    port: Config.redis.port,
+                    partition: 'cache'
+                }
+            ]
         });
 
         reperio_server.app.config = Config;
