@@ -13,13 +13,29 @@ module.exports = {
         getAllApplications: async () => { }
     },
     emailVerificationsRepository: {
-        addEntry: async () => { return '7e4d496d-843b-0647-eb86-fad0e85ede74'; },
-        getEntry: async () => { },
+        addEntry: async () => { return {id: '7e4d496d-843b-0647-eb86-fad0e85ede74'}; },
+        getEntry: async () => { 
+            return {
+                id: '7e4d496d-843b-0647-eb86-fad0e85ede74',
+                userId: '',
+                userEmailId: '',
+                createdAt: '2018-12-13 18:03:19.787000',
+                triggeredAt: null
+            }
+        },
         trigger: async () => { }
     },
-    forgotPasswordRepository: {
-        addEntry: async () => { },
-        getEntry: async () => { },
+    forgotPasswordsRepository: {
+        addEntry: async () => { return {id: '7e4d496d-843b-0647-eb86-fad0e85ede74'}; },
+        getEntry: async () => { 
+            return {
+                id: '7e4d496d-843b-0647-eb86-fad0e85ede74',
+                userId: '',
+                userEmailId: '',
+                createdAt: '2018-12-13 18:03:19.787000',
+                triggeredAt: null
+            }
+        },
         trigger: async () => { }
     },
     organizationsRepository: {
@@ -221,7 +237,15 @@ module.exports = {
     },
     userEmailsRepository: {
         createUserEmail: async () => { return '7e4d496d-843b-0647-eb86-fad0e85ede73'; },
-        getUserEmail: async () => { },
+        getUserEmail: async () => { 
+            return {
+                id: '7e4d496d-843b-0647-eb86-fad0e85ede73',
+                userId: '123xyz',
+                emailVerified: false,
+                email: 'test@test.com',
+                deleted: false
+            }
+        },
         getAllUserEmails: async () => { },
         editUserEmails: async () => { }
     },
