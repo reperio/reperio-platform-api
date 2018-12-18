@@ -1,13 +1,6 @@
 const chai = require("chai");
 const expect = chai.expect;
 
-const sharedLogger = require('./sharedLogger');
-const UoW = require('../../db');
-
-const knexConfig = require('../../db/knexfile');
-const Knex = require('knex');
-const knex = Knex(knexConfig);
-
 const sharedDatabase = require('./sharedDatabase');
 
 // taken from seed files
@@ -15,14 +8,22 @@ const seededOrgId = '966f4157-934c-45e7-9f44-b1e5fd8b79a7';
 const seededUserId = 'd08a1f76-7c4a-4dd9-a377-83ffffa752f4';
 
 describe('Organizations Repository', () => {
-    const uow = new UoW(sharedLogger);
+    let uow = null;
+    let databaseName = null;
 
     beforeAll(async () => {
-        await sharedDatabase.setUpTest(knex, knexConfig);
+        // create test database and uow
+        const {testUoW, testDatabaseName} = await sharedDatabase.createTestDatabase();
+        uow = testUoW;
+        databaseName = testDatabaseName;
     });
 
     afterAll(async () => {
-        await sharedDatabase.tearDownTest(knex, knexConfig);
+        // close uow database connection
+        await uow._knex.destroy();
+
+        // drop test database
+        await sharedDatabase.dropTestDatabase(databaseName);
     });
 
     describe('getAllOrganizations()', () => {

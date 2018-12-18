@@ -105,8 +105,7 @@ class RolesRepository {
         try {
             return await this.uow._models.Role
                 .query(this.uow._transaction)
-                .patch({deleted: true})
-                .where('id', roleId);
+                .patchAndFetchById(roleId, {deleted: true});
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to delete role`);
