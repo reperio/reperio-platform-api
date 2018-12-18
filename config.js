@@ -41,5 +41,9 @@ module.exports = {
     redis: {
         host: process.env.CORE_REDIS_HOST || '127.0.0.1',
         port: process.env.CORE_REDIS_PORT || 6379
+    },
+    logObfuscation: {
+        properties: process.env.CORE_LOG_OBFUSCATION_PROPERTIES || ['password', 'confirmPassword', 'secretKey'],
+        mask: process.env.CORE_LOG_OBFUSCATION_MASK || '**********'
     }
 };

@@ -9,6 +9,20 @@ const os = require('os');
 const Limit = require('hapi-rate-limit');
 const API = require('./api');
 
+const filterProperties = async (oldObj, propertiesToObfuscate, replacementText) => {
+    const obj = {...oldObj};
+    for(const key in obj) {
+        if (propertiesToObfuscate.includes(key)) {
+            obj[key] = replacementText;
+        } else if (Array.isArray(obj[key])) {
+            obj[key] = await Promise.all(obj[key].map(entry => filterProperties(entry, propertiesToObfuscate, replacementText)));
+        } else if (typeof obj[key] === 'object') {
+            obj[key] = await filterProperties(obj[key], propertiesToObfuscate, replacementText);
+        }
+    }
+    return obj;
+};
+
 const extensions = {
     onPostAuth: { 
         type: 'onPostAuth', 
@@ -37,7 +51,7 @@ const extensions = {
     onPreHandlerActivityLogging: {
         type: 'onPreHandler',
         method: async (request, h) => {
-            await request.server.app.activityLogger.info('new request', {
+            const meta = {
                 request: {
                     id: request.info.id,
                     params: request.params,
@@ -49,7 +63,10 @@ const extensions = {
                 },
                 userId: request.app.currentUserId || null,
                 hostname: os.hostname()
-            });
+            };
+
+            const filteredMeta = await filterProperties(meta, Config.logObfuscation.properties, Config.logObfuscation.mask);
+            await request.server.app.activityLogger.info('new request', filteredMeta);
 
             return h.continue;
         }
@@ -92,7 +109,9 @@ const extensions = {
             if (request.response.statusCode >= 400 && request.response.statusCode < 500) {
                 meta.response = request.response.source;
             }
-            await request.server.app.activityLogger.info('finished request', meta);
+
+            const filteredMeta = await filterProperties(meta, Config.logObfuscation.properties, Config.logObfuscation.mask);
+            await request.server.app.activityLogger.info('finished request', filteredMeta);
 
             return h.continue;
         }
@@ -148,4 +167,4 @@ const registerRateLimitPlugin = async (server) => {
     await server.registerAdditionalPlugin(limitPluginPackage);
 };
 
-module.exports = { extensions, registerExtensions, registerAPIPlugin, registerRateLimitPlugin };
+module.exports = { extensions, registerExtensions, registerAPIPlugin, registerRateLimitPlugin, filterProperties };
