@@ -1,5 +1,8 @@
 const chai = require("chai");
 const expect = chai.expect;
+const sinon = require('sinon');
+const sinonChai = require('sinon-chai');
+chai.use(sinonChai);
 
 const sharedDatabase = require('./sharedDatabase');
 
@@ -10,6 +13,7 @@ const seededOrganizationId = '966f4157-934c-45e7-9f44-b1e5fd8b79a7';
 describe('Roles Repository', () => {
     let uow = null;
     let databaseName = null;
+    let sandbox;
 
     beforeAll(async () => {
         // create test database and uow
@@ -26,12 +30,35 @@ describe('Roles Repository', () => {
         await sharedDatabase.dropTestDatabase(databaseName);
     });
 
+    beforeEach(() => {
+        sandbox = sinon.createSandbox();
+    });
+
+     afterEach(() => {
+        sandbox.restore();
+    })
+
     describe('getAllRoles()', () => {
         it('returns array with 2 seeded roles', async () => {
             const roles = await uow.rolesRepository.getAllRoles();
             
             expect(Array.isArray(roles)).to.be.equal(true);
             expect(roles.length).to.be.equal(2);
+        });
+
+        it('should log an error on an exception for getAllRoles', async (done) => {
+            const e = new Error('test error');
+            sandbox.stub(uow._models.Role, 'query').throws(e);
+            let stub = sandbox.stub(uow._logger, 'error').returns(true);
+
+            try{
+                await uow.rolesRepository.getAllRoles();
+                done(new Error('Exception not thrown'))
+            } catch(e) {
+                expect(stub).to.have.been.calledWith('Failed to fetch roles');
+                expect(stub).to.have.been.calledWith(e);
+                done();
+            }
         });
     });
 
@@ -42,6 +69,21 @@ describe('Roles Repository', () => {
             expect(Array.isArray(roles)).to.be.equal(true);
             expect(roles.length).to.be.equal(1);
         });
+
+        it('should log an error on an exception for getAllActiveRoles', async (done) => {
+            const e = new Error('test error');
+            sandbox.stub(uow._models.Role, 'query').throws(e);
+            let stub = sandbox.stub(uow._logger, 'error').returns(true);
+
+            try{
+                await uow.rolesRepository.getAllActiveRoles();
+                done(new Error('Exception not thrown'))
+            } catch(e) {
+                expect(stub).to.have.been.calledWith('Failed to fetch roles');
+                expect(stub).to.have.been.calledWith(e);
+                done();
+            }
+        });
     });
 
     describe('getRoleById()', () => {
@@ -51,6 +93,21 @@ describe('Roles Repository', () => {
             expect(typeof role).to.be.equal('object');
             expect(role.id).to.be.equal(seededRoleId);
             expect(role.name).to.be.equal('Core Super Admin');
+        });
+
+        it('should log an error on an exception for getRoleById', async (done) => {
+            const e = new Error('test error');
+            sandbox.stub(uow._models.Role, 'query').throws(e);
+            let stub = sandbox.stub(uow._logger, 'error').returns(true);
+
+            try{
+                await uow.rolesRepository.getRoleById(seededRoleId);
+                done(new Error('Exception not thrown'))
+            } catch(e) {
+                expect(stub).to.have.been.calledWith(`Failed to fetch role using id: ${seededRoleId}`);
+                expect(stub).to.have.been.calledWith(e);
+                done();
+            }
         });
     });
 
@@ -64,6 +121,23 @@ describe('Roles Repository', () => {
             expect(newRole.name).to.be.equal(newRoleName);
             expect(newRole.organizationId).to.be.equal(seededOrganizationId);
             expect(newRole.applicationId).to.be.equal(null);
+        });
+
+        it('should log an error on an exception for createRole', async (done) => {
+            const e = new Error('test error');
+            sandbox.stub(uow._models.Role, 'query').throws(e);
+            let stub = sandbox.stub(uow._logger, 'error').returns(true);
+
+            const newRoleName = 'Test Role';
+
+            try{
+                await uow.rolesRepository.createRole(newRoleName, seededOrganizationId, null);
+                done(new Error('Exception not thrown'))
+            } catch(e) {
+                expect(stub).to.have.been.calledWith('Failed to create role');
+                expect(stub).to.have.been.calledWith(e);
+                done();
+            }
         });
     });
 
@@ -80,6 +154,25 @@ describe('Roles Repository', () => {
             expect(editedRole.organizationId).to.be.equal(orginalRole.organizationId);
             expect(editedRole.applicationId).to.be.equal(orginalRole.applicationId);
             expect(editedRole.deleted).to.be.equal(orginalRole.deleted);
+        });
+
+        it('should log an error on an exception for editRole', async (done) => {
+            const editedRoleName = 'right name';
+            const orginalRole = await uow.rolesRepository.createRole('wrong name', seededOrganizationId, null);
+            expect(orginalRole.id).not.to.be.equal(undefined);
+
+            const e = new Error('test error');
+            sandbox.stub(uow._models.Role, 'query').throws(e);
+            let stub = sandbox.stub(uow._logger, 'error').returns(true);
+
+            try{
+                await uow.rolesRepository.editRole(orginalRole.id, editedRoleName);
+                done(new Error('Exception not thrown'))
+            } catch(e) {
+                expect(stub).to.have.been.calledWith('Failed to edit role');
+                expect(stub).to.have.been.calledWith(e);
+                done();
+            }
         });
     });
 
@@ -113,6 +206,29 @@ describe('Roles Repository', () => {
             expect(newRoleWithNewPermissions.rolePermissions.length).to.be.equal(1);
             expect(newRoleWithNewPermissions.rolePermissions[0].permission.name).to.be.equal('ViewRoles');
         });
+
+        it('should log an error on an exception for updateRolePermissions', async (done) => {
+            const newRoleName = 'Permissions Test 3';
+            const newRole = await uow.rolesRepository.createRole(newRoleName, seededOrganizationId, null);
+            await uow.rolesRepository.updateRolePermissions(newRole.id, ['ViewUsers', 'CreateUsers', 'DeleteUsers']);
+
+            const newRoleWithPermissions = await uow.rolesRepository.getRoleById(newRole.id);
+            expect(Array.isArray(newRoleWithPermissions.rolePermissions)).to.be.equal(true);
+            expect(newRoleWithPermissions.rolePermissions.length).to.be.equal(3);
+
+            const e = new Error('test error');
+            sandbox.stub(uow._models.RolePermission, 'query').throws(e);
+            let stub = sandbox.stub(uow._logger, 'error').returns(true);
+
+            try{
+                await uow.rolesRepository.updateRolePermissions(newRole.id, ['ViewRoles']);
+                done(new Error('Exception not thrown'))
+            } catch(e) {
+                expect(stub).to.have.been.calledWith('Failed to update role permissions');
+                expect(stub).to.have.been.calledWith(e);
+                done();
+            }
+        });
     });
 
     describe('deleteRole()', () => {
@@ -122,6 +238,24 @@ describe('Roles Repository', () => {
 
             const deletedRole = await uow.rolesRepository.deleteRole(newRole.id);
             expect(deletedRole.deleted).to.be.equal(true);
+        });
+
+        it('should log an error on an exception for deleteRole', async (done) => {
+            const newRole = await uow.rolesRepository.createRole('Deleted Role', seededOrganizationId, null);
+            expect(newRole.deleted).to.be.equal(false);
+            
+            const e = new Error('test error');
+            sandbox.stub(uow._models.Role, 'query').throws(e);
+            let stub = sandbox.stub(uow._logger, 'error').returns(true);
+
+            try{
+                await uow.rolesRepository.deleteRole(newRole.id);
+                done(new Error('Exception not thrown'))
+            } catch(e) {
+                expect(stub).to.have.been.calledWith('Failed to delete role');
+                expect(stub).to.have.been.calledWith(e);
+                done();
+            }
         });
     });
 });
