@@ -37,5 +37,9 @@ module.exports = {
         user: process.env.CORE_DB_USER || 'reperio',
         password: process.env.CORE_DB_PASSWORD || 'reperio',
         database: process.env.CORE_DB_DATABASE || 'reperio_platform_dev'
+    },
+    redis: {
+        host: process.env.CORE_REDIS_HOST || '127.0.0.1',
+        port: process.env.CORE_REDIS_PORT || 6379
     }
 };
