@@ -9,18 +9,18 @@ const os = require('os');
 const Limit = require('hapi-rate-limit');
 const API = require('./api');
 
-const filterProperties = async (obj, propertiesToObfuscate, replacementText) => {
+const filterProperties = async (oldObj, propertiesToObfuscate, replacementText) => {
+    const obj = {...oldObj};
     for(const key in obj) {
         if (propertiesToObfuscate.includes(key)) {
             obj[key] = replacementText;
         } else if (Array.isArray(obj[key])) {
-            for (const entry in obj[key]) {
-                await filterProperties(entry, propertiesToObfuscate, replacementText);
-            }
+            obj[key] = await Promise.all(obj[key].map(entry => filterProperties(entry, propertiesToObfuscate, replacementText)));
         } else if (typeof obj[key] === 'object') {
-            await filterProperties(obj[key], propertiesToObfuscate, replacementText);
+            obj[key] = await filterProperties(obj[key], propertiesToObfuscate, replacementText);
         }
     }
+    return obj;
 };
 
 const extensions = {
@@ -65,8 +65,8 @@ const extensions = {
                 hostname: os.hostname()
             };
 
-            await filterProperties(meta, Config.logObfuscation.properties, Config.logObfuscation.mask);
-            await request.server.app.activityLogger.info('new request', meta);
+            const filteredMeta = await filterProperties(meta, Config.logObfuscation.properties, Config.logObfuscation.mask);
+            await request.server.app.activityLogger.info('new request', filteredMeta);
 
             return h.continue;
         }
@@ -110,8 +110,8 @@ const extensions = {
                 meta.response = request.response.source;
             }
 
-            await filterProperties(meta, Config.logObfuscation.properties, Config.logObfuscation.mask);
-            await request.server.app.activityLogger.info('finished request', meta);
+            const filteredMeta = await filterProperties(meta, Config.logObfuscation.properties, Config.logObfuscation.mask);
+            await request.server.app.activityLogger.info('finished request', filteredMeta);
 
             return h.continue;
         }

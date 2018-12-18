@@ -213,8 +213,8 @@ describe('Activity logging', () => {
             };
             const mask = '*****';
 
-            await filterProperties(obj, ['password'], mask);
-            expect(obj.password).to.be.equal(mask);
+            const filteredObj = await filterProperties(obj, ['password'], mask);
+            expect(filteredObj.password).to.be.equal(mask);
         });
 
         it('masks property in nested object', async () => {
@@ -226,8 +226,8 @@ describe('Activity logging', () => {
             };
             const mask = '*****';
 
-            await filterProperties(obj, ['password'], mask);
-            expect(obj.nestedProperty.password).to.be.equal(mask);
+            const filteredObj = await filterProperties(obj, ['password'], mask);
+            expect(filteredObj.nestedProperty.password).to.be.equal(mask);
         });
 
         it('masks properties inside array', async () => {
@@ -245,9 +245,9 @@ describe('Activity logging', () => {
 
             const mask = '*****';
 
-            await filterProperties(arr, ['password'], mask);
-            expect(arr[0].password).to.be.equal(mask);
-            expect(arr[1].nestedProperty.password).to.be.equal(mask);
+            const filteredArr = await filterProperties(arr, ['password'], mask);
+            expect(filteredArr[0].password).to.be.equal(mask);
+            expect(filteredArr[1].nestedProperty.password).to.be.equal(mask);
         });
     });
 });
