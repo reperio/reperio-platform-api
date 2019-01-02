@@ -63,6 +63,24 @@ class OrganizationsRepository {
         }
     }
 
+    async getOrganizationByOrganizationInformation(organization) {
+        try {
+            return await this.uow._models.Organization
+                .query(this.uow._transaction)
+                .join('organizationAddresses as organizationAddresses', 'organizationAddresses.organizationId', 'organizations.id')
+                .where('organizations.name', organization.name)
+                .andWhere('organizationAddresses.streetAddress', organization.streetAddress)
+                .andWhere('organizationAddresses.suiteNumber', organization.suiteNumber)
+                .andWhere('organizationAddresses.city', organization.city)
+                .andWhere('organizationAddresses.state', organization.state)
+                .andWhere('organizationAddresses.zip', organization.zip);
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch organizations by userId: ${userId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
     async getAllOrganizations() {
         try {
             return await this.uow._models.Organization
