@@ -91,6 +91,7 @@ module.exports = [
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
+            const payload = request.payload;
             let errors = [];
 
             //send a confirmation email by default
@@ -112,7 +113,9 @@ module.exports = [
                 };
 
                 let phones = payload.phones;
+                logger.debug(phones);
                 let organizations = payload.organizations;
+                logger.debug(organizations);
 
                 //begin the transaction
                 await uow.beginTransaction();
@@ -120,25 +123,24 @@ module.exports = [
                 //if a user already has the submitted email, add it to errors and don't create it
                 const existingUser = await uow.usersRepository.getUserByEmail(userModel.primaryEmailAddress);
                 if (existingUser != null) {
-                    let err = {
-                        message: `A user with email ${existingUser.primaryEmailAddress} already exists and was not created`
-                    };
+                    let err = `A user with email ${existingUser.primaryEmailAddress} already exists and was not created`
                     errors.push(err);
+                    logger.debug(err);
                 }
 
                 //if an organization matching the new organization information, add it to errors and don't create it
                 let dbOrganizationIds = [];
                 for(let organization of organizations){
-                    const organizationExists = await uow.organizationsRepository.getOrganizationByOrganizationInformation(organization);
-                    if(organizationExists == null){
+                    const existingOrganization = await uow.organizationsRepository.getOrganizationByOrganizationInformation(organization);
+                    if(existingOrganization.length === 0){
+                        logger.debug(`Creating the organization ${organization.name}`);
                         const dbOrganization = await uow.organizationsRepository.createOrganization(organization);
                         dbOrganizationIds.push(dbOrganization.id);
                     }
                     else{
-                        let err = {
-                            message: `The organization ${organization.name} already exists and was not created`
-                        };
+                        let err =  `The organization ${organization.name} already exists and was not created`
                         errors.push(err);
+                        logger.debug(err);
                     }
                 }
 
@@ -159,7 +161,7 @@ module.exports = [
 
                 //create userPhones based on the new user and phone information
                 for(let phone of phones){
-                    await uow.userPhonesRepository.createUserPhone(user.id, phone.number, phone.phoneType);
+                    await uow.userPhonesRepository.createUserPhone(user.id, phone.phoneNumber, phone.phoneType);
                 }
 
                 //create userEmail based on the email and new user information
@@ -172,8 +174,6 @@ module.exports = [
                 //send verification email based on sendConfirmationEmail boolean
                 if(sendConfirmationEmail) {
                     logger.debug(`User verification is requested for user: ${user.id}`);
-
-                    const userEmail = await uow.userEmailsRepository.getUserEmail(user.id, payload.primaryEmailAddress);
 
                     if (userEmail == null) {
                         return httpResponseService.badData(h);
@@ -220,7 +220,7 @@ module.exports = [
                         Joi.object({
                             name: Joi.string().required(),
                             streetAddress: Joi.string().required(),
-                            suiteNumber: Joi.string().required(),
+                            suiteNumber: Joi.number().required(),
                             city: Joi.string().required(),
                             state: Joi.string().required(),
                             zip: Joi.string().required()

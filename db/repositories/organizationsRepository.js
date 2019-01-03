@@ -23,6 +23,40 @@ class OrganizationsRepository {
         }
     }
 
+    async createOrganization(organization) {
+        const organizationModel = {
+            name: organization.name,
+            personal: true,
+            deleted: false
+        };
+        try {
+            const newOrganization = await this.uow._models.Organization
+                .query(this.uow._transaction)
+                .insertAndFetch(organizationModel);
+
+            const organizationAddressModel = {
+                organizationId: newOrganization.id,
+                streetAddress: organization.streetAddress,
+                suiteNumber: organization.suiteNumber,
+                city: organization.city,
+                state: organization.state,
+                zip: organization.zip,
+                deleted: false
+            };
+
+            await this.uow._models.OrganizationAddress
+                .query(this.uow._transaction)
+                .insert(organizationAddressModel)
+                .returning("*");
+
+            return newOrganization
+        } catch (err) {
+            this.uow._logger.error(`Failed to create organization: ${name}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
     async deleteOrganization(id) {
         try {
             return await this.uow._models.Organization
@@ -68,12 +102,13 @@ class OrganizationsRepository {
             return await this.uow._models.Organization
                 .query(this.uow._transaction)
                 .join('organizationAddresses as organizationAddresses', 'organizationAddresses.organizationId', 'organizations.id')
-                .where('organizations.name', organization.name)
-                .andWhere('organizationAddresses.streetAddress', organization.streetAddress)
-                .andWhere('organizationAddresses.suiteNumber', organization.suiteNumber)
-                .andWhere('organizationAddresses.city', organization.city)
-                .andWhere('organizationAddresses.state', organization.state)
-                .andWhere('organizationAddresses.zip', organization.zip);
+                .where('organizations.name', '=', organization.name)
+                .andWhere('organizationAddresses.streetAddress', '=', organization.streetAddress)
+                .andWhere('organizationAddresses.suiteNumber', '=', organization.suiteNumber)
+                .andWhere('organizationAddresses.city', '=', organization.city)
+                .andWhere('organizationAddresses.state', '=', organization.state)
+                .andWhere('organizationAddresses.zip', '=', organization.zip);
+
         } catch (err) {
             this.uow._logger.error(`Failed to fetch organizations by userId: ${userId}`);
             this.uow._logger.error(err);
