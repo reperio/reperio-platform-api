@@ -34,11 +34,11 @@ describe('Users API', () => {
         server = null;
     });
 
-    describe('GET /users/{emailAddress}/emailExists', () => {
+    describe('GET /users/exists', () => {
 
         it('returns 200 with false', async () => {
             const options = {
-                url: '/api/users/wrongEmailAddress@mail.com/emailExists',
+                url: '/api/users/exists?emailAddress=wrongEmailAddress@mail.com',
                 method: 'GET'
             };
 
@@ -49,13 +49,23 @@ describe('Users API', () => {
 
         it('returns 200 with true', async () => {
             const options = {
-                url: '/api/users/support@reper.io/emailExists',
+                url: '/api/users/exists?emailAddress=support@reper.io',
                 method: 'GET'
             };
 
             const response = await server.server.inject(options);
             expect(response.statusCode).to.be.equal(200);
             expect(response.payload).to.be.equal('true');
+        });
+
+        it('returns 400 since the query param is not an email', async () => {
+            const options = {
+                url: '/api/users/exists?emailAddress=notValidAddress',
+                method: 'GET'
+            };
+
+            const response = await server.server.inject(options);
+            expect(response.statusCode).to.be.equal(400);
         });
     });
 });
