@@ -107,9 +107,7 @@ module.exports = [
                 };
 
                 let phones = payload.phones;
-                logger.debug(phones);
                 let organizations = payload.organizations;
-                logger.debug(organizations);
 
                 //begin the transaction
                 await uow.beginTransaction();
@@ -120,7 +118,7 @@ module.exports = [
                     await uow.rollbackTransaction();
                     let err = `A user with email ${existingUser.primaryEmailAddress} already exists and was not created`
                     errors.push(err);
-                    logger.debug(err);
+                    logger.error(err);
 
                     return httpResponseService.conflict(h);
                 }
@@ -139,7 +137,7 @@ module.exports = [
                             await uow.rollbackTransaction();
                             let err = `The organization ${organization.name} already exists and was not created`
                             errors.push(err);
-                            logger.debug(err);
+                            logger.error(err);
 
                             return httpResponseService.conflict(h);
                         }
@@ -205,7 +203,7 @@ module.exports = [
             auth: false,
             validate: {
                 payload: {
-                    primaryEmailAddress: Joi.string().required(),
+                    primaryEmailAddress: Joi.string().email().required(),
                     firstName: Joi.string().required(),
                     lastName: Joi.string().required(),
                     phones: Joi.array()
@@ -219,7 +217,7 @@ module.exports = [
                         Joi.object({
                             name: Joi.string().required(),
                             streetAddress: Joi.string().required(),
-                            suiteNumber: Joi.number().required(),
+                            suiteNumber: Joi.string().required(),
                             city: Joi.string().required(),
                             state: Joi.string().required(),
                             zip: Joi.string().required()

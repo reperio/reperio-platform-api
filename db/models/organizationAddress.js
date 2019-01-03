@@ -16,7 +16,7 @@ class OrganizationAddress extends BaseModel {
                 city: { type: 'string' },
                 state: { type: 'string' },
                 zip: { type: 'string' },
-                deleted: { type: 'boolean' },
+                deleted: { type: 'boolean' }
             }
         };
     }
