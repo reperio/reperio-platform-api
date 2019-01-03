@@ -63,6 +63,14 @@ module.exports = {
                 }]
             }
         },
+        getOrganizationByOrganizationInformation: async () => {
+            return [{
+                id: '7e4d496d-843b-0647-eb86-fad0e85ede72',
+                name: 'test',
+                personal: true,
+                deleted: false
+            }];
+        },
         getOrganizationsByUser: async () => {
             return [{
                 id: '7e4d496d-843b-0647-eb86-fad0e85ede72',
@@ -930,5 +938,8 @@ module.exports = {
         getUserRoles: async () => { return {}; },
         deleteUser: async () => { return {}; },
         disableUser: async () => { return {}; }
+    },
+    userPhonesRepository: {
+        createUserPhone: async () => { return {}; },
     }
 }
