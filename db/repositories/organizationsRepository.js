@@ -51,7 +51,7 @@ class OrganizationsRepository {
 
             return newOrganization
         } catch (err) {
-            this.uow._logger.error(`Failed to create organization: ${name}`);
+            this.uow._logger.error(`Failed to create organization: ${organization.name}`);
             this.uow._logger.error(err);
             throw err;
         }
