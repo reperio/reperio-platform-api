@@ -35,11 +35,11 @@ module.exports = [
     },
     {
         method: 'GET',
-        path: '/users/{emailAddress}/emailExists',
+        path: '/users/exists',
         config: {
             auth: false,
             validate: {
-                params: {
+                query: {
                     emailAddress: Joi.string().email(),
                 }
             }
@@ -48,21 +48,16 @@ module.exports = [
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
 
-            const emailAddress = request.params.emailAddress;
+            const emailAddress = request.query.emailAddress;
 
             logger.debug(`Getting User by primary email address`);
             logger.debug(`using email address: ${emailAddress}`);
 
-            let re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-            const isValidAddress = re.test(String(emailAddress).toLowerCase());
+            const user = await uow.usersRepository.getUserByEmail(emailAddress);
 
-            if(isValidAddress) {
-                const user = await uow.usersRepository.getUserByEmail(emailAddress);
-
-                if (user != null) {
-                    logger.debug(`A user exists that has that primary email address`);
-                    return true;
-                }
+            if (user != null) {
+                logger.debug(`A user exists that has that primary email address`);
+                return true;
             }
 
             logger.debug(`A user does not exists that has that primary email address or it is not a valid email address`);
