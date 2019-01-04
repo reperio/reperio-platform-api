@@ -23,7 +23,7 @@ class OrganizationsRepository {
         }
     }
 
-    async createOrganization(organization) {
+    async createOrganizationWithAddress(organization) {
         const organizationModel = {
             name: organization.name,
             personal: true,
@@ -32,7 +32,8 @@ class OrganizationsRepository {
         try {
             const newOrganization = await this.uow._models.Organization
                 .query(this.uow._transaction)
-                .insertAndFetch(organizationModel);
+                .insert(organizationModel)
+                .returning("*");
 
             const organizationAddressModel = {
                 organizationId: newOrganization.id,
@@ -107,10 +108,11 @@ class OrganizationsRepository {
                 .andWhere('organizationAddresses.suiteNumber', '=', organization.suiteNumber)
                 .andWhere('organizationAddresses.city', '=', organization.city)
                 .andWhere('organizationAddresses.state', '=', organization.state)
-                .andWhere('organizationAddresses.zip', '=', organization.zip);
+                .andWhere('organizationAddresses.zip', '=', organization.zip)
+                .first();
 
         } catch (err) {
-            this.uow._logger.error(`Failed to fetch organizations by userId: ${userId}`);
+            this.uow._logger.error(`Failed to fetch organizations by organization name: ${organization.name} and address ${organization.streetAddress}, ${organization.suiteNumber}, ${organization.city}, ${organization.state}, ${organization.zip}`);
             this.uow._logger.error(err);
             throw err;
         }

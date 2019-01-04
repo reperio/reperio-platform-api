@@ -108,9 +108,9 @@ describe('Applications API', () => {
                 );
 
             const mockGetOrganizationByOrganizationInformation = sandbox.stub(mockUoW.organizationsRepository, 'getOrganizationByOrganizationInformation')
-                .returns([]);
+                .returns(null);
 
-            const mockCreateOrganization = sandbox.stub(mockUoW.organizationsRepository, 'createOrganization')
+            const mockCreateOrganizationWithAddress = sandbox.stub(mockUoW.organizationsRepository, 'createOrganizationWithAddress')
                 .returns(
                     [
                         {
@@ -165,7 +165,7 @@ describe('Applications API', () => {
             expect(response.statusCode).to.be.equal(200);
             expect(mockGetUserByEmail.getCall(0)).to.not.be.null;
             expect(mockGetOrganizationByOrganizationInformation.getCall(0)).to.not.be.null;
-            expect(mockCreateOrganization.getCall(0)).to.not.be.null;
+            expect(mockCreateOrganizationWithAddress.getCall(0)).to.not.be.null;
             expect(mockCreateUser.getCall(0)).to.not.be.null;
             expect(mockCreatePhone.getCall(0)).to.not.be.null;
             expect(mockCreateUserEmail.getCall(0)).to.not.be.null;
@@ -214,9 +214,9 @@ describe('Applications API', () => {
                 );
 
             const mockGetOrganizationByOrganizationInformation = sandbox.stub(mockUoW.organizationsRepository, 'getOrganizationByOrganizationInformation')
-                .returns([]);
+                .returns(null);
 
-            const mockCreateOrganization = sandbox.stub(mockUoW.organizationsRepository, 'createOrganization')
+            const mockCreateOrganizationWithAddress = sandbox.stub(mockUoW.organizationsRepository, 'createOrganizationWithAddress')
                 .returns(
                     [
                         {
@@ -271,7 +271,7 @@ describe('Applications API', () => {
             expect(response.statusCode).to.be.equal(409);
             expect(mockGetUserByEmail.getCall(0)).to.not.be.null;
             expect(mockGetOrganizationByOrganizationInformation.getCall(0)).to.be.null;
-            expect(mockCreateOrganization.getCall(0)).to.be.null;
+            expect(mockCreateOrganizationWithAddress.getCall(0)).to.be.null;
             expect(mockCreateUser.getCall(0)).to.be.null;
             expect(mockCreatePhone.getCall(0)).to.be.null;
             expect(mockCreateUserEmail.getCall(0)).to.be.null;
@@ -313,14 +313,12 @@ describe('Applications API', () => {
 
             const mockGetOrganizationByOrganizationInformation = sandbox.stub(mockUoW.organizationsRepository, 'getOrganizationByOrganizationInformation')
                 .returns(
-                    [
-                        {
-                            name: "Existing Organization"
-                        }
-                    ]
+                    {
+                        name: "Existing Organization"
+                    }
                 );
 
-            const mockCreateOrganization = sandbox.stub(mockUoW.organizationsRepository, 'createOrganization')
+            const mockCreateOrganizationWithAddress = sandbox.stub(mockUoW.organizationsRepository, 'createOrganizationWithAddress')
                 .returns(
                     [
                         {
@@ -375,7 +373,7 @@ describe('Applications API', () => {
             expect(response.statusCode).to.be.equal(409);
             expect(mockGetUserByEmail.getCall(0)).to.not.be.null;
             expect(mockGetOrganizationByOrganizationInformation.getCall(0)).to.not.be.null;
-            expect(mockCreateOrganization.getCall(0)).to.be.null;
+            expect(mockCreateOrganizationWithAddress.getCall(0)).to.be.null;
             expect(mockCreateUser.getCall(0)).to.be.null;
             expect(mockCreatePhone.getCall(0)).to.be.null;
             expect(mockCreateUserEmail.getCall(0)).to.be.null;
@@ -416,9 +414,9 @@ describe('Applications API', () => {
                 );
 
             const mockGetOrganizationByOrganizationInformation = sandbox.stub(mockUoW.organizationsRepository, 'getOrganizationByOrganizationInformation')
-                .returns([]);
+                .returns(null);
 
-            const mockCreateOrganization = sandbox.stub(mockUoW.organizationsRepository, 'createOrganization')
+            const mockCreateOrganizationWithAddress = sandbox.stub(mockUoW.organizationsRepository, 'createOrganizationWithAddress')
                 .returns(
                     [
                         {
@@ -481,8 +479,8 @@ describe('Applications API', () => {
             expect(response.statusCode).to.be.equal(200);
             expect(mockGetUserByEmail.getCall(0)).to.not.be.null;
             expect(mockGetOrganizationByOrganizationInformation.getCall(0)).to.not.be.null;
-            expect(mockCreateOrganization.getCall(0)).to.not.be.null;
-            expect(mockCreateOrganization.getCall(1)).to.not.be.null;
+            expect(mockCreateOrganizationWithAddress.getCall(0)).to.not.be.null;
+            expect(mockCreateOrganizationWithAddress.getCall(1)).to.not.be.null;
             expect(mockCreateUser.getCall(0)).to.not.be.null;
             expect(mockCreatePhone.getCall(0)).to.not.be.null;
             expect(mockCreateUserEmail.getCall(0)).to.not.be.null;
@@ -523,9 +521,9 @@ describe('Applications API', () => {
                 );
 
             const mockGetOrganizationByOrganizationInformation = sandbox.stub(mockUoW.organizationsRepository, 'getOrganizationByOrganizationInformation')
-                .returns([]);
+                .returns(null);
 
-            const mockCreateOrganization = sandbox.stub(mockUoW.organizationsRepository, 'createOrganization')
+            const mockCreateOrganizationWithAddress = sandbox.stub(mockUoW.organizationsRepository, 'createOrganizationWithAddress')
                 .returns(
                     [
                         {
@@ -592,8 +590,8 @@ describe('Applications API', () => {
             expect(response.statusCode).to.be.equal(200);
             expect(mockGetUserByEmail.getCall(0)).to.not.be.null;
             expect(mockGetOrganizationByOrganizationInformation.getCall(0)).to.not.be.null;
-            expect(mockCreateOrganization.getCall(0)).to.not.be.null;
-            expect(mockCreateOrganization.getCall(1)).to.not.be.null;
+            expect(mockCreateOrganizationWithAddress.getCall(0)).to.not.be.null;
+            expect(mockCreateOrganizationWithAddress.getCall(1)).to.not.be.null;
             expect(mockCreateUser.getCall(0)).to.not.be.null;
             expect(mockCreatePhone.getCall(0)).to.not.be.null;
             expect(mockCreatePhone.getCall(1)).to.not.be.null;

@@ -10,6 +10,7 @@ exports.seed = async function (knex, Promise) {
         .update({
             userId: null
     });
+    await knex('userPhones').del();
     await knex('users').del();
     await knex('userEmails').del();
     await knex('users').insert([
