@@ -128,9 +128,9 @@ module.exports = [
                     let dbOrganizationIds = [];
                     for (let organization of organizations) {
                         const existingOrganization = await uow.organizationsRepository.getOrganizationByOrganizationInformation(organization);
-                        if (existingOrganization.length <= 0) {
+                        if (existingOrganization == null) {
                             logger.debug(`Creating the organization ${organization.name}`);
-                            const dbOrganization = await uow.organizationsRepository.createOrganization(organization);
+                            const dbOrganization = await uow.organizationsRepository.createOrganizationWithAddress(organization);
                             dbOrganizationIds.push(dbOrganization.id);
                         }
                         else {
