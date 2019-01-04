@@ -48,9 +48,19 @@ describe('Applications API', () => {
 
     // POST /applications/{applicationId}/userSignup
     describe('POST api/applications/{applicationId}/userSignup', () => {
+        let sandbox;
+        beforeAll(() => {
+            sandbox = sinon.sandbox.create();
+        });
+
+        afterEach(() => {
+            sandbox.restore();
+            sandbox.reset();
+        });
+
         it ('returns 400 with invalid payload', async () => {
             const options = {
-                url: 'api/applications/123456/userSignup',
+                url: '/api/applications/123456/userSignup',
                 method: 'POST',
                 payload: {
                     firstName:"admin",
@@ -66,14 +76,15 @@ describe('Applications API', () => {
             const mockCreateUser = jest.spyOn(mockUoW.usersRepository, "createUser");
             const mockEditUser = jest.spyOn(mockUoW.usersRepository, "editUser");
             const mockCreateUserEmail = jest.spyOn(mockUoW.userEmailsRepository, "createUserEmail");
-            const mockGetOrganizationByOrganizationInformation = jest.spyOn(mockUoW.organizationsRepository, "getOrganizationByOrganizationInformation");
+            const mockGetOrganizationByOrganizationInformation = sandbox.stub(mockUoW.organizationsRepository, 'getOrganizationByOrganizationInformation')
+                .returns([]);
             const mockCreateOrganizations = jest.spyOn(mockUoW.organizationsRepository, "createOrganization");
             const mockCreatePhones = jest.spyOn(mockUoW.userPhonesRepository, "createUserPhone");
             const mockProcessMessage = jest.spyOn(mockHelper.messageHelper, "processMessage");
 
             try {
                 const options = {
-                    url: 'api/applications/d08a1f76-7c4a-4dd9-a377-83ffffa752f4/userSignup',
+                    url: '/api/applications/d08a1f76-7c4a-4dd9-a377-83ffffa752f4/userSignup',
                     method: 'POST',
                     payload: {
                         primaryEmailAddress: "andrewrobb@sevenhillstechnology.com",
@@ -89,14 +100,13 @@ describe('Applications API', () => {
                             {
                                 name: "1234567890",
                                 streetAddress: "123 street",
-                                suiteNumber: 1,
+                                suiteNumber: "1",
                                 city: "city",
                                 state: "state",
                                 zip: "12345"
                             }
                         ],
-                        sendConfirmationEmail: false,
-                        confirmationRedirectLink: "https://it.reper.io/surveys/"
+                        sendConfirmationEmail: false
                     }
                 };
 
@@ -105,7 +115,7 @@ describe('Applications API', () => {
                 expect(mockCreateUser.mock.calls.length).to.be.equal(1);
                 expect(mockEditUser.mock.calls.length).to.be.equal(1);
                 expect(mockCreateUserEmail.mock.calls.length).to.be.equal(1);
-                expect(mockGetOrganizationByOrganizationInformation.mock.calls.length).to.be.equal(1);
+                expect(mockGetOrganizationByOrganizationInformation.getCall(0)).to.not.be.null;
                 expect(mockCreateOrganizations.mock.calls.length).to.be.equal(1);
                 expect(mockCreatePhones.mock.calls.length).to.be.equal(1);
                 expect(mockProcessMessage.mock.calls.length).to.be.equal(1);
@@ -113,7 +123,6 @@ describe('Applications API', () => {
                 mockCreateUser.mockRestore();
                 mockEditUser.mockRestore();
                 mockCreateUserEmail.mockRestore();
-                mockGetOrganizationByOrganizationInformation.mockRestore();
                 mockCreateOrganizations.mockRestore();
                 mockCreatePhones.mockRestore();
                 mockProcessMessage.mockRestore();
