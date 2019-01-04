@@ -128,7 +128,7 @@ module.exports = [
                     let dbOrganizationIds = [];
                     for (let organization of organizations) {
                         const existingOrganization = await uow.organizationsRepository.getOrganizationByOrganizationInformation(organization);
-                        if (existingOrganization.length === 0) {
+                        if (existingOrganization.length <= 0) {
                             logger.debug(`Creating the organization ${organization.name}`);
                             const dbOrganization = await uow.organizationsRepository.createOrganization(organization);
                             dbOrganizationIds.push(dbOrganization.id);
@@ -160,20 +160,6 @@ module.exports = [
 
                     //send verification email based on sendConfirmationEmail boolean
                     if (payload.sendConfirmationEmail) {
-                        logger.debug(`User verification is requested for user: ${user.id}`);
-
-                        if (userEmail == null) {
-                            await uow.rollbackTransaction();
-                            let err = `The user email ${userEmail.email} was not created properly`;
-                            errors.push(err);
-
-                            let errorResponse = {
-                                success: false,
-                                errors: errors
-                            };
-                            return errorResponse;
-                        }
-
                         logger.debug(`Sending user verification email to user: ${user.id}`);
 
                         await emailService.sendForgotPasswordEmail(userEmail, uow, request);
