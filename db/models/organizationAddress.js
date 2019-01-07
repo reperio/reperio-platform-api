@@ -16,7 +16,7 @@ class OrganizationAddress extends BaseModel {
             properties: {
                 organizationId: { type: 'string' },
                 streetAddress: { type: 'string' },
-                suiteNumber: { type: 'integer' },
+                suiteNumber: { type: 'string' },
                 city: { type: 'string' },
                 state: { type: 'string' },
                 zip: { type: 'string' },
