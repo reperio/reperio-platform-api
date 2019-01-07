@@ -1,5 +1,6 @@
 const Model = require('objection').Model;
 const Knex = require('knex');
+const uuid = require('uuid/v4');
 
 const defaultConfig = require('../../db/knexfile');
 const UoW = require('../../db');
@@ -53,7 +54,7 @@ class SharedDatabase {
     }
 
     static getRandomDatabaseName() {
-        return `reperio_platform_test_${Math.floor((Math.random() * 100) + 1)}`;
+        return `reperio_platform_test_${uuid()}`;
     }
 }
 
