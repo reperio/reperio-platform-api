@@ -17,6 +17,7 @@ class UserPhone extends BaseModel {
                 userId: { type: 'string' },
                 numberVerified: { type: 'boolean' },
                 number: { type: 'string' },
+                phoneType: { type: 'string' },
                 deleted: { type: 'boolean' }
             }
         };
