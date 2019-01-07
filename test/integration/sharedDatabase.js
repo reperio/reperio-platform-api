@@ -54,7 +54,9 @@ class SharedDatabase {
     }
 
     static getRandomDatabaseName() {
-        return `reperio_platform_test_${uuid()}`;
+        const id = uuid()
+        const stringId = id.toString().replace(/-/g, '');
+        return `reperio_platform_test_${stringId}`;
     }
 }
 

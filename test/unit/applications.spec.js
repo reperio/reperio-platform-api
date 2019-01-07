@@ -50,7 +50,7 @@ describe('Applications API', () => {
     describe('POST api/applications/{applicationId}/userSignup', () => {
         let sandbox;
         beforeAll(() => {
-            sandbox = sinon.sandbox.create();
+            sandbox = sinon.createSandbox();
         });
 
         afterEach(() => {
