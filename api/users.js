@@ -35,6 +35,37 @@ module.exports = [
     },
     {
         method: 'GET',
+        path: '/users/exists',
+        config: {
+            auth: false,
+            validate: {
+                query: {
+                    emailAddress: Joi.string().email(),
+                }
+            }
+        },
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+
+            const emailAddress = request.query.emailAddress;
+
+            logger.debug(`Getting User by primary email address`);
+            logger.debug(`using email address: ${emailAddress}`);
+
+            const user = await uow.usersRepository.getUserByEmail(emailAddress);
+
+            if (user != null) {
+                logger.debug(`A user exists that has that primary email address`);
+                return true;
+            }
+
+            logger.debug(`A user does not exists that has that primary email address or it is not a valid email address`);
+            return false;
+        }
+    },
+    {
+        method: 'GET',
         path: '/users',
         config: {
             plugins: {
