@@ -45,6 +45,23 @@ describe('Organizations Repository', () => {
         });
     });
 
+    describe('getOrganizationByOrganizationInformation()', () => {
+        it('returns seeded organization', async () => {
+            const seedOrganizationInfo = {
+                name: "Test Organization",
+                streetAddress: "123 street",
+                suiteNumber: "SUITE 123",
+                city: "city",
+                state: "state",
+                zip: "12345"
+            };
+            const organization = await uow.organizationsRepository.getOrganizationByOrganizationInformation(seedOrganizationInfo);
+
+            expect(typeof organization).to.be.equal('object');
+            expect(organization.id).to.be.equal(seededOrgId);
+        });
+    });
+
     describe('getOrganizationsByUser()', () => {
         it('returns array with seeded organization', async () => {
             const organizations = await uow.organizationsRepository.getOrganizationsByUser(seededUserId);
@@ -74,6 +91,26 @@ describe('Organizations Repository', () => {
             expect(insertedOrg).not.to.be.equal(undefined);
             expect(insertedOrg.id).not.to.be.equal(undefined);
             expect(insertedOrg.name).to.be.equal(orgName);
+            expect(insertedOrg.deleted).to.be.equal(false);
+            expect(insertedOrg.personal).to.be.equal(true);
+        });
+    });
+
+    describe('createOrganizationWithAddress()', () => {
+        it('creates new organization based on Organization object', async () => {
+            const organization = {
+                name: "New Organization 1",
+                streetAddress: "123 street",
+                suiteNumber: "1",
+                city: "city",
+                state: "state",
+                zip: "12345"
+            };
+            const insertedOrg = await uow.organizationsRepository.createOrganizationWithAddress(organization);
+
+            expect(insertedOrg).not.to.be.equal(undefined);
+            expect(insertedOrg.id).not.to.be.equal(undefined);
+            expect(insertedOrg.name).to.be.equal(organization.name);
             expect(insertedOrg.deleted).to.be.equal(false);
             expect(insertedOrg.personal).to.be.equal(true);
         });
