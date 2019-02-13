@@ -26,7 +26,7 @@ module.exports = {
         sender: process.env.CORE_EMAIL_SENDER || 'do-not-reply@reper.io',
         sendGridApiKey: process.env.CORE_SENDGRID_API_KEY || '',
         method: process.env.CORE_EMAIL_METHOD || 'smtp', // must be either 'smtp' or 'sendgrid',
-        rejectUnauthorizedTLS: process.env.CORE_SMTP_REJECT_UNAUTHORIZED_TLS || true,
+        rejectUnauthorizedTLS: process.env.CORE_SMTP_REJECT_UNAUTHORIZED_TLS || false,
         barUrl: process.env.CORE_BAR_URL || '',
         linkTimeout: process.env.CORE_LINK_TIMEOUT || 10
     },
