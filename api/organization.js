@@ -1,13 +1,11 @@
 const Joi = require('joi');
+const httpResponseService = require('./services/httpResponseService');
 
 module.exports = [
     {
         method: 'POST',
         path: '/organizations',
         config: {
-            plugins: {
-                requiredPermissions: ['ViewOrganizations', 'CreateOrganizations']
-            },
             validate: {
                 payload: {
                     name: Joi.string().required(),
@@ -15,7 +13,14 @@ module.exports = [
                         .items(
                             Joi.string()
                         ).required(),
-                    personal: Joi.bool().required()
+                    personal: Joi.bool().required(),
+                    address: Joi.object({
+                        'streetAddress': Joi.string().required(),
+                        'suiteNumber': Joi.string().required(),
+                        'city': Joi.string().required(),
+                        'state': Joi.string().required(),
+                        'zip': Joi.string().required()
+                    }).optional()
                 }
             }
         },
@@ -27,14 +32,35 @@ module.exports = [
             logger.debug(`Creating organization`);
             await uow.beginTransaction();
 
-            const organization = await uow.organizationsRepository.createOrganization(payload.name, payload.personal);
-            if (organization && payload.userIds.length > 0) {
-                await uow.usersRepository.replaceUserOrganizationsByOrganizationId(organization.id, payload.userIds);
-            }
+            if(payload.address != null){
+                const organizationModel = {
+                    name: payload.name,
+                    ...payload.address
+                };
 
-            await uow.commitTransaction();
-            
-            return organization;
+                const existingOrganization = await uow.organizationsRepository.getOrganizationByOrganizationInformation(organizationModel);
+
+                if (existingOrganization === null) {
+                    logger.debug(`Creating the organization ${organizationModel.name}`);
+                    const dbOrganization = await uow.organizationsRepository.createOrganizationWithAddress(organizationModel);
+
+                    await uow.commitTransaction();
+                    return dbOrganization;
+                }
+                else{
+                    return httpResponseService.conflict(h);
+                }
+            }
+            else {
+                const organization = await uow.organizationsRepository.createOrganization(payload.name, payload.personal);
+                if (organization && payload.userIds.length > 0) {
+                    await uow.usersRepository.replaceUserOrganizationsByOrganizationId(organization.id, payload.userIds);
+                }
+
+                await uow.commitTransaction();
+
+                return organization;
+            }
         }
     },
     {
@@ -167,5 +193,5 @@ module.exports = [
             await uow.commitTransaction();
             return organization;
         }
-    }
+    },
 ];
