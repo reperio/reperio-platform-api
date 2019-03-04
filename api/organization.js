@@ -6,7 +6,6 @@ module.exports = [
         method: 'POST',
         path: '/organizations',
         config: {
-            auth: false,
             validate: {
                 payload: {
                     name: Joi.string().required(),
