@@ -102,7 +102,8 @@ module.exports = [
                     organizationIds: Joi.array()
                     .items(
                         Joi.string().guid()
-                    ).optional()
+                    ).optional(),
+                    applicationId: Joi.string().optional().allow(null).allow('')
                 }
             }
         },
@@ -143,7 +144,7 @@ module.exports = [
             await uow.commitTransaction();
 
             //send verification email
-            await emailService.sendVerificationEmail(userEmail, uow, request);
+            await emailService.sendVerificationEmail(userEmail, uow, request, payload.applicationId);
 
             return updatedUser;
         }
@@ -203,7 +204,8 @@ module.exports = [
                             email: Joi.string().email(),
                             id: Joi.string().guid().allow(null)
                         })
-                    )
+                    ),
+                    applicationId: Joi.string().optional().allow(null).allow('')
                 }
             }
         },
@@ -221,7 +223,7 @@ module.exports = [
 
             if (newOrReusedUserEmails) {
                 const promises = newOrReusedUserEmails.map(async userEmail => {
-                    return await emailService.sendVerificationEmail(userEmail, uow, request)
+                    return await emailService.sendVerificationEmail(userEmail, uow, request, payload.applicationId)
                 });
 
                 Promise.all(promises);
