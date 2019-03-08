@@ -22,6 +22,17 @@ const filterProperties = async (oldObj, propertiesToObfuscate, replacementText) 
     }
     return obj;
 };
+const applicationList = async () => {
+    const uow = new UnitOfWork();
+    const apps = await uow.applicationsRepository.getAllApplications();
+
+    const result = apps.reduce((map, app) => {
+        map[app.id] = app;
+        return map;
+    }, {});
+
+    return result;
+}
 
 const extensions = {
     onPostAuth: { 
@@ -135,6 +146,25 @@ const extensions = {
 
             return h.continue;
         }
+    },
+    onRequestApplicationAuth: { 
+        type: 'onRequest', 
+        method: async (request, h) => {
+            console.log('in onPreHandlerApplicationAuth');
+            const appList = await applicationList();
+
+            if (appList[request.headers['application-token']]){
+                console.log(`Request from ${appList[request.headers['application-token']].name}`);
+            } else {
+                console.log('Unregistered application making a request.');
+                const response = h.response('unauthorized');
+                response.statusCode = 401;
+                return response.takeover();
+            }
+
+
+            return h.continue;
+        }
     }
 };
 
@@ -144,6 +174,7 @@ const registerExtensions = async (server) => {
     await server.registerExtension(extensions.onPreHandlerRegisterAppFunctions);
     await server.registerExtension(extensions.onPreResponseActivityLogging);
     await server.registerExtension(extensions.onPreResponseAuthToken);
+    await server.registerExtension(extensions.onRequestApplicationAuth);
 };
 
 const registerAPIPlugin = async (server) => {
