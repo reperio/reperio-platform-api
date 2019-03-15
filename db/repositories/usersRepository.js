@@ -262,6 +262,20 @@ class UsersRepository {
             throw err;
         }
     }
+
+    async getUserByPhoneNumber(number) {
+        try {
+            return await this.uow._models.User
+                .query(this.uow._transaction)
+                .mergeEager('userPhones')
+                .where('number', number)
+                .first();
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch user using phone: ${phone}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
 }
 
 module.exports = UsersRepository;

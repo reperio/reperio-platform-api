@@ -194,4 +194,58 @@ module.exports = [
             return organization;
         }
     },
+    {
+        method: 'GET',
+        path: '/organizations/exists',
+        config: {
+            auth: false,
+            validate: {
+                query: {
+                    name: Joi.string().optional(),
+                    address1: Joi.string().optional(),
+                    address2: Joi.string().optional()
+                }
+            }
+        },
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+
+            if(request.query.name != null) {
+                const name = request.query.name;
+
+                logger.debug(`Getting organization by name`);
+                logger.debug(`using name: ${name}`);
+
+                const organization = await uow.organizationsRepository.getOrganizationByname(name);
+
+                if (organization != null) {
+                    logger.debug(`An organization exists that has that name`);
+                    return true;
+                }
+
+                logger.debug(`An organization does not exists that has that name`);
+                return false;
+            }
+            if(request.query.address1 != null && request.query.address2 != null) {
+                const organizationInfo = {
+                    streetAddress: request.query.address1,
+                    suiteNumber: request.query.address2
+                };
+
+                logger.debug(`Getting organization by address`);
+                logger.debug(`using address: ${organizationInfo.streetAddress}, ${organizationInfo.suiteNumber}`);
+
+                const organization = await uow.organizationsRepository.getOrganizationByOrganizationInformation(organizationInfo);
+
+                if (organization != null) {
+                    logger.debug(`An organization exists that has that address`);
+                    return true;
+                }
+
+                logger.debug(`An organization does not exists that has that address`);
+                return false;
+            }
+        }
+    }
 ];

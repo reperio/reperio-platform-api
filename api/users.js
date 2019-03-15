@@ -40,7 +40,8 @@ module.exports = [
             auth: false,
             validate: {
                 query: {
-                    emailAddress: Joi.string().email(),
+                    emailAddress: Joi.string().email().optional(),
+                    phoneNumber: Joi.string().optional()
                 }
             }
         },
@@ -48,20 +49,39 @@ module.exports = [
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
 
-            const emailAddress = request.query.emailAddress;
+            if(request.query.emailAddress != null) {
+                const emailAddress = request.query.emailAddress;
 
-            logger.debug(`Getting User by primary email address`);
-            logger.debug(`using email address: ${emailAddress}`);
+                logger.debug(`Getting User by primary email address`);
+                logger.debug(`using email address: ${emailAddress}`);
 
-            const user = await uow.usersRepository.getUserByEmail(emailAddress);
+                const user = await uow.usersRepository.getUserByEmail(emailAddress);
 
-            if (user != null) {
-                logger.debug(`A user exists that has that primary email address`);
-                return true;
+                if (user != null) {
+                    logger.debug(`A user exists that has that primary email address`);
+                    return true;
+                }
+
+                logger.debug(`A user does not exists that has that primary email address or it is not a valid email address`);
+                return false;
             }
+            if(request.query.phoneNumber != null){
 
-            logger.debug(`A user does not exists that has that primary email address or it is not a valid email address`);
-            return false;
+                const phoneNumber = request.query.phoneNumber;
+
+                logger.debug(`Getting User by phone`);
+                logger.debug(`using phone number: ${phoneNumber}`);
+
+                const user = await uow.usersRepository.getUserByPhoneNumber(phoneNumber);
+
+                if (user != null) {
+                    logger.debug(`A user exists that has that phone number`);
+                    return true;
+                }
+
+                logger.debug(`A user does not exists that has that phone number`);
+                return false;
+            }
         }
     },
     {

@@ -118,6 +118,20 @@ class OrganizationsRepository {
         }
     }
 
+    async getOrganizationByname(organizationName) {
+        try {
+            return await this.uow._models.Organization
+                .query(this.uow._transaction)
+                .where('organizations.name', '=', organizationName)
+                .first();
+
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch organizations by organization name: ${organizationName}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
     async getAllOrganizations() {
         try {
             return await this.uow._models.Organization
