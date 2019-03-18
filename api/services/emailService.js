@@ -5,8 +5,13 @@ class EmailService {
         const tokenUrl = `${request.server.app.config.webAppUrl}/emailVerification/${emailVerification.id}`;
         let emailContent = `Please <a href="${tokenUrl}">verify</a> your email address.`
 
-        switch (applicationId) {
-            case '2ce36838-27ae-4c00-b754-e2db7b61c577': // Reperio Managed IT Services
+        let application = uow.applicationsRepository.getApplicationById(applicationId);
+        if (!application) {
+            throw new Error("Application not found");
+        }
+
+        switch (application.name) {
+            case 'Managed IT Services': // Reperio Managed IT Services
                 emailContent = `Thanks for completing our survey, <a href="${tokenUrl}">click here</a> to go register your first desktop`
                 break;
         
