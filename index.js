@@ -14,7 +14,7 @@ const start = async function () {
             statusMonitor: true,
             cors: true,
             corsOrigins: ['*'],
-            corsHeaders: 'Content-Type, Authorization, application-token',
+            accessControlAllowHeaders: 'Content-Type, Authorization, application-token',
             authEnabled: true,
             authSecret: Config.jsonSecret,
             cache: [
