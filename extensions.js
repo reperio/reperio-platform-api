@@ -23,6 +23,20 @@ const filterProperties = async (oldObj, propertiesToObfuscate, replacementText) 
     return obj;
 };
 
+const getApplicationList = async () => {
+    const uow = new UnitOfWork();
+    const apps = await uow.applicationsRepository.getAllApplications();
+
+    const result = apps.reduce((map, app) => {
+        map[app.secretKey] = app;
+        return map;
+    }, {});
+
+    return result;
+};
+
+let appList = null;
+
 const extensions = {
     onPostAuth: { 
         type: 'onPostAuth', 
@@ -42,6 +56,14 @@ const extensions = {
                     const response = h.response('unauthorized');
                     response.statusCode = 401;
                     return response.takeover();
+                }
+            } else {
+                if (!appList) {
+                    appList = await getApplicationList();
+                }
+                if (request.method !== 'options' && appList[request.headers['application-token']]) {
+                    request.auth.isAuthenticated = true;
+                    request.app.currentApplication = appList[request.headers['application-token']];
                 }
             }
 
