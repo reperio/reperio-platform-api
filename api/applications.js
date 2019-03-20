@@ -186,7 +186,7 @@ module.exports = [
             }
         },
         options: {
-            auth: false,
+            auth: 'application-token',
             validate: {
                 payload: {
                     primaryEmailAddress: Joi.string().email().required(),
