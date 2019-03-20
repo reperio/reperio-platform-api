@@ -3,21 +3,9 @@ const ReperioServer = require('@reperio/hapijs-starter');
 const Config = require('./config');
 const {knex} = require('./db/connect');
 const extensions = require('./extensions');
-const UnitOfWork = require('./db');
+const {getApplicationList} = require('./helpers/getApplicationList');
 
 let reperio_server = null;
-
-const getApplicationList = async () => {
-    const uow = new UnitOfWork();
-    const apps = await uow.applicationsRepository.getAllApplications();
-
-    const result = apps.reduce((map, app) => {
-        map[app.secretKey] = app;
-        return map;
-    }, {});
-
-    return result;
-};
 
 const start = async function () {
     try {

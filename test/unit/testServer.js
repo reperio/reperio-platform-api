@@ -1,5 +1,7 @@
+const Boom = require('boom');
 const {registerAPIPlugin} = require('../../extensions');
 const Server = require('@reperio/hapijs-starter');
+const {getApplicationList} = require('../../db');
 
 const jsonSecret = '496d7e4d-eb86-4706-843b-5ede72fad0e8';
 const adminAuthHeader = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXJyZW50VXNlcklkIjoiZDA4YTFmNzYtN2M0YS00ZGQ5LWEzNzctODNmZmZmYTc1MmY0IiwidXNlcklkIjoiZDA4YTFmNzYtN2M0YS00ZGQ5LWEzNzctODNmZmZmYTc1MmY0IiwidXNlckVtYWlsIjoic3VwcG9ydEByZXBlci5pbyIsInVzZXJQZXJtaXNzaW9ucyI6WyJWaWV3VXNlcnMiLCJDcmVhdGVVc2VycyIsIkRlbGV0ZVVzZXJzIiwiTWFuYWdlVXNlck9yZ2FuaXphdGlvbnMiLCJNYW5hZ2VVc2VyUm9sZXMiLCJBZGRFbWFpbCIsIlNldFByaW1hcnlFbWFpbCIsIkRlbGV0ZUVtYWlsIiwiVmlld1JvbGVzIiwiQ3JlYXRlUm9sZXMiLCJVcGRhdGVSb2xlcyIsIkRlbGV0ZVJvbGVzIiwiVmlld09yZ2FuaXphdGlvbnMiLCJDcmVhdGVPcmdhbml6YXRpb25zIiwiVXBkYXRlT3JnYW5pemF0aW9ucyIsIkRlbGV0ZU9yZ2FuaXphdGlvbnMiLCJWaWV3UGVybWlzc2lvbnMiLCJVcGRhdGVQZXJtaXNzaW9ucyIsIlVwZGF0ZUJhc2ljVXNlckluZm8iLCJSZXNlbmRWZXJpZmljYXRpb25FbWFpbHMiXSwiaWF0IjoxNTQzMjUyNjQwLCJleHAiOjMzMTAwODUyNjQwfQ.fCOaMqGoe4butY4J4KbWrni4v9oJFNy7fGo0S4Fworc';
@@ -16,8 +18,6 @@ const createTestServer = async function() {
         logDefaultConsoleTransport: false
     });
     
-    await registerAPIPlugin(server);
-    
     server.server.app.config = {
         jsonSecret: jsonSecret,
         jwtValidTimespan: '12h',
@@ -25,6 +25,34 @@ const createTestServer = async function() {
             sender: 'fakeSender@reper.io'
         }
     };
+
+    server.server.auth.scheme('application', function (server, options) {
+        return {
+            authenticate: async function (request, h) {
+                const headers = request.headers;
+
+                if (!headers['application-token']) {
+                    return h.unauthenticated(Boom.unauthorized('Missing application token'));
+                }
+
+                const apps = {'test': {}};
+                const verifiedApplication = apps[headers['application-token']];
+                if (!verifiedApplication) {
+                    return h.unauthenticated(Boom.unauthorized('Invalid application token'));
+                }
+
+                h.authenticated({
+                    credentials: {
+                        currentApplication: verifiedApplication
+                    }
+                });
+                return h.continue;
+            }
+        }
+    })
+    server.server.auth.strategy('application-token', 'application')
+
+    await registerAPIPlugin(server);
     
     // replace all loggers
     server.server.app.logger = {
