@@ -1,11 +1,11 @@
+const Boom = require('boom');
 const ReperioServer = require('@reperio/hapijs-starter');
 const Config = require('./config');
 const {knex} = require('./db/connect');
 const extensions = require('./extensions');
+const {getApplicationList} = require('./helpers/getApplicationList');
 
 let reperio_server = null;
-
-
 
 const start = async function () {
     try {
@@ -25,6 +25,28 @@ const start = async function () {
                 }
             ]
         });
+
+        reperio_server.server.auth.scheme('application', function (server, options) {
+            return {
+                authenticate: async function (request, h) {
+                    const headers = request.headers;
+
+                    if (!headers['application-token']) {
+                        return h.unauthenticated(Boom.unauthorized('Missing application token'));
+                    }
+
+                    const apps = await getApplicationList();
+                    const verifiedApplication = apps[headers['application-token']];
+                    if(!verifiedApplication) {
+                        return h.unauthenticated(Boom.unauthorized('Invalid application token'));
+                    }
+
+                    h.authenticated({credentials: {currentApplication: verifiedApplication}});
+                    return h.continue;
+                }
+            }
+        })
+        reperio_server.server.auth.strategy('application-token', 'application')
 
         reperio_server.app.config = Config;
 

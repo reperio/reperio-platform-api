@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
-const Config = require('./config');
 const UnitOfWork = require('./db');
+const Config = require('./config');
 const RecaptchaService = require('./api/services/recaptchaService');
 const MessageHelper = require('./helpers/messageHelper');
 const RedisHelper = require('./helpers/redisHelper');
