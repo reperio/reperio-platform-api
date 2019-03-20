@@ -27,6 +27,8 @@ const start = async function () {
             ]
         });
 
+        await reperio_server.configure();
+
         reperio_server.server.auth.scheme('application', function (server, options) {
             return {
                 authenticate: async function (request, h) {
@@ -49,8 +51,7 @@ const start = async function () {
         })
         reperio_server.server.auth.strategy('application-token', 'application')
 
-        // reperio_server.app.config = Config;
-        await reperio_server.configure();
+        reperio_server.app.config = Config;
 
         knex.on('query', (query) => {
             if (query.bindings) {
