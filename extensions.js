@@ -147,22 +147,6 @@ const extensions = {
 
             return h.continue;
         }
-    },
-    onRequestApplicationAuth: { 
-        type: 'onRequest', 
-        method: async (request, h) => {
-            if (!appList){
-                appList = await getApplicationList();
-            }
-            if (request.method !== 'options' && !appList[request.headers['application-token']]) {
-                // console.log('Unregistered application making a request.');
-                const response = h.response('unauthorized');
-                response.statusCode = 401;
-                return response.takeover();
-            }
-            // console.log(`Request from ${appList[request.headers['application-token']].name}`);
-            return h.continue;
-        }
     }
 };
 
@@ -172,7 +156,6 @@ const registerExtensions = async (server) => {
     await server.registerExtension(extensions.onPreHandlerRegisterAppFunctions);
     await server.registerExtension(extensions.onPreResponseActivityLogging);
     await server.registerExtension(extensions.onPreResponseAuthToken);
-    await server.registerExtension(extensions.onRequestApplicationAuth);
 };
 
 const registerAPIPlugin = async (server) => {
