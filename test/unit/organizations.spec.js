@@ -26,7 +26,6 @@ describe('Organizations API', () => {
             }
         });
         await server.registerExtension(extensions.onPostAuth);
-        await server.startServer();
     });
 
     afterEach(async () => {
