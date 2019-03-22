@@ -26,7 +26,6 @@ describe('Roles API', () => {
             }
         });
         await server.registerExtension(extensions.onPostAuth);
-        await server.startServer();
     });
 
     afterEach(async () => {

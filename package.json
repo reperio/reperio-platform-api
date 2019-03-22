@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/reperio/platform-api#readme",
   "dependencies": {
-    "@reperio/hapijs-starter": "^4.4.0",
+    "@reperio/hapijs-starter": "^5.1.0",
     "@sendgrid/mail": "^6.3.1",
     "bcrypt": "^3.0.2",
     "boom": "^7.3.0",

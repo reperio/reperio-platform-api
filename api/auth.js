@@ -133,7 +133,7 @@ module.exports = [
                 await uow.commitTransaction();
 
                 //send verification email
-                await emailService.sendVerificationEmail(userEmail, uow, request);
+                await emailService.sendVerificationEmail(userEmail, uow, request, payload.applicationId);
 
                 return httpResponseService.loginSuccess(h, token);
             } catch (err) {
@@ -149,7 +149,8 @@ module.exports = [
                     lastName: Joi.string().required(),
                     primaryEmailAddress: Joi.string().required(),
                     password: Joi.string().required(),
-                    confirmPassword: Joi.string().required()
+                    confirmPassword: Joi.string().required(),
+                    applicationId: Joi.string().optional().allow(null).allow('')
                 }
             }
         }
@@ -170,7 +171,7 @@ module.exports = [
                     return httpResponseService.badData(h);
                 }
                 //send verification email
-                await emailService.sendVerificationEmail(userEmail, uow, request);
+                await emailService.sendVerificationEmail(userEmail, uow, request, payload.applicationId);
                 await uow.commitTransaction();
 
                 return true;
@@ -184,7 +185,8 @@ module.exports = [
             validate: {
                 payload: {
                     email: Joi.string().required(),
-                    userId: Joi.string().guid().required()
+                    userId: Joi.string().guid().required(),
+                    applicationId: Joi.string().optional().allow(null).allow('')
                 }
             }
         }

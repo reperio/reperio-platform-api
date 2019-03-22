@@ -1,6 +1,6 @@
 const Boom = require('boom');
 const {registerAPIPlugin} = require('../../extensions');
-const Server = require('@reperio/hapijs-starter');
+const ReperioServer = require('@reperio/hapijs-starter');
 const {getApplicationList} = require('../../db');
 
 const jsonSecret = '496d7e4d-eb86-4706-843b-5ede72fad0e8';
@@ -8,15 +8,18 @@ const adminAuthHeader = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXJyZW5
 const noPermissionsAuthHeader = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXJyZW50VXNlcklkIjoiNjBhNTE0MjUtODI3Zi00YjExLThhMTAtMDE0Y2I1MDU5NWUzIiwidXNlclBlcm1pc3Npb25zIjpbXSwiaWF0IjoxNTQzODg4MDc4LCJleHAiOjE1NDM5MzEyNzh9.jAkF9LqP2z5XmFADwKyyqyGny_mACc5igDFXckUY53c';
 
 const createTestServer = async function() {
-    const server = new Server({
+    const server = new ReperioServer.Server({
         statusMonitor: false,
         cors: true,
         corsOrigins: ['*'],
+        accessControlAllowHeaders: 'Content-Type, Authentication, application-token',
         authEnabled: true,
         authSecret: jsonSecret,
         testMode: true,
         logDefaultConsoleTransport: false
     });
+
+    await server.configure();
     
     server.server.app.config = {
         jsonSecret: jsonSecret,

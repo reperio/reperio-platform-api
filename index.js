@@ -10,10 +10,11 @@ let reperio_server = null;
 const start = async function () {
     try {
         //status monitor is turned off due to dependency issue with the pidusage dependency on the master branch of hapijs-status-monitor
-        reperio_server = new ReperioServer({
+        reperio_server = new ReperioServer.Server({
             statusMonitor: true,
             cors: true,
             corsOrigins: ['*'],
+            accessControlAllowHeaders: 'Content-Type, Authorization, application-token',
             authEnabled: true,
             authSecret: Config.jsonSecret,
             cache: [
@@ -25,6 +26,8 @@ const start = async function () {
                 }
             ]
         });
+
+        await reperio_server.configure();
 
         reperio_server.server.auth.scheme('application', function (server, options) {
             return {

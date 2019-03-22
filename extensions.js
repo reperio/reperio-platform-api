@@ -22,6 +22,18 @@ const filterProperties = async (oldObj, propertiesToObfuscate, replacementText) 
     }
     return obj;
 };
+const getApplicationList = async () => {
+    const uow = new UnitOfWork();
+    const apps = await uow.applicationsRepository.getAllApplications();
+
+    const result = apps.reduce((map, app) => {
+        map[app.id] = app;
+        return map;
+    }, {});
+
+    return result;
+}
+let appList = null;
 
 const extensions = {
     onPostAuth: { 
