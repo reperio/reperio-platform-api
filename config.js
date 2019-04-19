@@ -32,14 +32,14 @@ module.exports = {
     },
     redisOtpExpirationSeconds: process.env.REDIS_OTP_EXPIRATION_SECONDS || 60,
     db: {
-        host: process.env.CORE_DB_HOST || 'localhost',
+        host: process.env.CORE_DB_HOST || 'reperio-core-postgres',
         port: process.env.CORE_DB_PORT || '5432',
         user: process.env.CORE_DB_USER || 'reperio',
         password: process.env.CORE_DB_PASSWORD || 'reperio',
         database: process.env.CORE_DB_DATABASE || 'reperio_platform_dev'
     },
     redis: {
-        host: process.env.CORE_REDIS_HOST || '127.0.0.1',
+        host: process.env.CORE_REDIS_HOST || 'reperio-core-redis',
         port: process.env.CORE_REDIS_PORT || 6379
     },
     logObfuscation: {
