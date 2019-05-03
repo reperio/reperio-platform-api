@@ -1,5 +1,5 @@
 const delay = require('delay');
-const {knex} = require('./db/connect');
+const {knex} = require('./connect');
 
 async function initializeDatabase() {
     let attemptMigrations = true;

@@ -3,5 +3,5 @@
 set -e
 
 yarn
-node initializeDatabase.js
+(cd db && node initializeDatabase.js)
 nodemon index.js
