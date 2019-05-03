@@ -2,21 +2,40 @@ version: '3'
 
 services:
   postgres:
-    image: postgres:10.4
-    ports: 
-      - "5432:5432"
-    container_name: "reperio-postgres"
+    container_name: "reperio-core-postgres"
+    build: ./docker/db
+    ports:
+      - "5432"
     volumes:
       - data-volume:/usr/local/pgsql/data
-    build: ./docker-database/
+    networks:
+      - local
   redis:
+    container_name: "reperio-core-redis"
     image: redis:4.0.11
     ports:
-      - "6379:6379"
-    container_name: "reperio-redis"
+      - "6379"
     volumes:
       - redis-data:/data
+    networks:
+      - local
+  app:
+    container_name: "reperio-core-app"
+    build:
+      context: .
+      dockerfile: ./docker/app/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/opt/app
+      - /opt/app/node_modules
+    networks:
+      - local
+    command: ["docker/app/start.sh"]
 
 volumes:
     data-volume:
     redis-data:
+
+networks:
+  local:
