@@ -24,7 +24,7 @@ RUN npm install -g yarn
 
 COPY . .
 
-RUN rm -r /opt/app/node_modules
+RUN rm -rf /opt/app/node_modules
 RUN yarn
 
 CMD ["node", "index.js"]
