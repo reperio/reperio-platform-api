@@ -31,6 +31,7 @@ services:
       - /opt/app/node_modules
     networks:
       - local
+      - reperio
     command: ["docker/app/start.sh"]
 
 volumes:
@@ -39,3 +40,6 @@ volumes:
 
 networks:
   local:
+  reperio:
+    external:
+      name: reperio-network
