@@ -5,7 +5,10 @@ module.exports = [
     {
         method: 'POST',
         path: '/organizations',
-        config: {
+        options: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
             validate: {
                 payload: {
                     name: Joi.string().required(),
@@ -16,7 +19,7 @@ module.exports = [
                     personal: Joi.bool().required(),
                     address: Joi.object({
                         'streetAddress': Joi.string().required(),
-                        'suiteNumber': Joi.string().required(),
+                        'suiteNumber': Joi.string().required().allow(''),
                         'city': Joi.string().required(),
                         'state': Joi.string().required(),
                         'zip': Joi.string().required()
@@ -40,7 +43,7 @@ module.exports = [
 
                 const existingOrganization = await uow.organizationsRepository.getOrganizationByOrganizationInformation(organizationModel);
 
-                if (existingOrganization === null) {
+                if (existingOrganization == null) {
                     logger.debug(`Creating the organization ${organizationModel.name}`);
                     const dbOrganization = await uow.organizationsRepository.createOrganizationWithAddress(organizationModel);
 
