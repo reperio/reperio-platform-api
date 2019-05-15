@@ -18,4 +18,5 @@ before_script:
     - sudo service redis-server stop
     # wait for redis to shutdown
     - while sudo lsof -Pi :6379 -sTCP:LISTEN -t; do sleep 1; done
+    - docker network create reperio-network
     - yarn run rebuild-db
