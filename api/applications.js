@@ -186,7 +186,9 @@ module.exports = [
             }
         },
         options: {
-            auth: 'application-token',
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
             validate: {
                 payload: {
                     primaryEmailAddress: Joi.string().email().required(),
@@ -203,7 +205,7 @@ module.exports = [
                         Joi.object({
                             name: Joi.string().required(),
                             streetAddress: Joi.string().required(),
-                            suiteNumber: Joi.string().required(),
+                            suiteNumber: Joi.string().required().allow(''),
                             city: Joi.string().required(),
                             state: Joi.string().required(),
                             zip: Joi.string().required()
