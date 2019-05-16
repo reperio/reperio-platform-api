@@ -130,7 +130,7 @@ module.exports = [
                         const existingOrganization = await uow.organizationsRepository.getOrganizationByOrganizationInformation(organization);
                         if (existingOrganization == null) {
                             logger.debug(`Creating the organization ${organization.name}`);
-                            const dbOrganization = await uow.organizationsRepository.createOrganizationWithAddress(organization);
+                            const dbOrganization = await uow.organizationsRepository.createOrganizationWithAddress(organization, false);
                             dbOrganizationIds.push(dbOrganization.id);
                         }
                         else {
@@ -142,6 +142,11 @@ module.exports = [
                             return httpResponseService.conflict(h);
                         }
                     }
+
+                    //create personal organization for user
+                    const personalOrganizationName = (`${payload.firstName} ${payload.lastName}`).substring(0, 255);
+                    const personalOrganization = await uow.organizationsRepository.createOrganization(personalOrganizationName, true);
+                    dbOrganizationIds.push(personalOrganization.id);
 
                     //create the user and link the organizations
                     const user = await uow.usersRepository.createUser(userModel, dbOrganizationIds);
