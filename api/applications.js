@@ -198,24 +198,24 @@ module.exports = [
             },
             validate: {
                 payload: {
-                    primaryEmailAddress: Joi.string().email().required(),
-                    firstName: Joi.string().required(),
-                    lastName: Joi.string().required(),
+                    primaryEmailAddress: Joi.string().email().max(255).required(),
+                    firstName: Joi.string().max(255).required(),
+                    lastName: Joi.string().max(255).required(),
                     phones: Joi.array()
                         .items(
                             Joi.object({
-                                phoneNumber: Joi.string().required(),
-                                phoneType: Joi.string().required()
+                                phoneNumber: Joi.string().max(255).required(),
+                                phoneType: Joi.string().max(255).required()
                             })
                         ).required(),
                     organizations: Joi.array().items(
                         Joi.object({
-                            name: Joi.string().required(),
-                            streetAddress: Joi.string().required(),
-                            suiteNumber: Joi.string().required().allow(''),
-                            city: Joi.string().required(),
-                            state: Joi.string().required(),
-                            zip: Joi.string().required()
+                            name: Joi.string().max(255).required(),
+                            streetAddress: Joi.string().max(255).required(),
+                            suiteNumber: Joi.string().max(255).required().allow(''),
+                            city: Joi.string().max(255).required(),
+                            state: Joi.string().max(255).required(),
+                            zip: Joi.string().max(255).required()
                         })
                     ).required(),
                     sendConfirmationEmail: Joi.boolean().optional().default(true),
