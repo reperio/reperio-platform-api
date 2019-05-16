@@ -167,6 +167,8 @@ module.exports = [
 
                     let response = {
                         success: true,
+                        userId: user.id,
+                        organizationIds: dbOrganizationIds,
                         errors: errors
                     };
 
