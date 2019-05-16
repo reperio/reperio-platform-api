@@ -130,7 +130,7 @@ module.exports = [
                         const existingOrganization = await uow.organizationsRepository.getOrganizationByOrganizationInformation(organization);
                         if (existingOrganization == null) {
                             logger.debug(`Creating the organization ${organization.name}`);
-                            const dbOrganization = await uow.organizationsRepository.createOrganizationWithAddress(organization);
+                            const dbOrganization = await uow.organizationsRepository.createOrganizationWithAddress(organization, false);
                             dbOrganizationIds.push(dbOrganization.id);
                         }
                         else {
@@ -142,6 +142,11 @@ module.exports = [
                             return httpResponseService.conflict(h);
                         }
                     }
+
+                    //create personal organization for user
+                    const personalOrganizationName = (`${payload.firstName} ${payload.lastName}`).substring(0, 255);
+                    const personalOrganization = await uow.organizationsRepository.createOrganization(personalOrganizationName, true);
+                    dbOrganizationIds.push(personalOrganization.id);
 
                     //create the user and link the organizations
                     const user = await uow.usersRepository.createUser(userModel, dbOrganizationIds);
@@ -193,24 +198,24 @@ module.exports = [
             },
             validate: {
                 payload: {
-                    primaryEmailAddress: Joi.string().email().required(),
-                    firstName: Joi.string().required(),
-                    lastName: Joi.string().required(),
+                    primaryEmailAddress: Joi.string().email().max(255).required(),
+                    firstName: Joi.string().max(255).required(),
+                    lastName: Joi.string().max(255).required(),
                     phones: Joi.array()
                         .items(
                             Joi.object({
-                                phoneNumber: Joi.string().required(),
-                                phoneType: Joi.string().required()
+                                phoneNumber: Joi.string().max(255).required(),
+                                phoneType: Joi.string().max(255).required()
                             })
                         ).required(),
                     organizations: Joi.array().items(
                         Joi.object({
-                            name: Joi.string().required(),
-                            streetAddress: Joi.string().required(),
-                            suiteNumber: Joi.string().required().allow(''),
-                            city: Joi.string().required(),
-                            state: Joi.string().required(),
-                            zip: Joi.string().required()
+                            name: Joi.string().max(255).required(),
+                            streetAddress: Joi.string().max(255).required(),
+                            suiteNumber: Joi.string().max(255).required().allow(''),
+                            city: Joi.string().max(255).required(),
+                            state: Joi.string().max(255).required(),
+                            zip: Joi.string().max(255).required()
                         })
                     ).required(),
                     sendConfirmationEmail: Joi.boolean().optional().default(true),

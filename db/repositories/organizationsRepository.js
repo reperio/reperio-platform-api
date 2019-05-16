@@ -23,10 +23,10 @@ class OrganizationsRepository {
         }
     }
 
-    async createOrganizationWithAddress(organization) {
+    async createOrganizationWithAddress(organization, personal = true) {
         const organizationModel = {
             name: organization.name,
-            personal: true,
+            personal: personal,
             deleted: false
         };
         try {

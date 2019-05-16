@@ -135,7 +135,8 @@ module.exports = [
                 return httpResponseService.conflict(h);
             }
 
-            const organization = await uow.organizationsRepository.createOrganization(userModel.primaryEmailAddress, true);
+            const personalOrganizationName = (`${payload.firstName} ${payload.lastName}`).substring(0, 255);
+            const organization = await uow.organizationsRepository.createOrganization(personalOrganizationName, true);
             const user = await uow.usersRepository.createUser(userModel, payload.organizationIds.concat(organization.id));
             const userEmail = await uow.userEmailsRepository.createUserEmail(user.id, user.primaryEmailAddress);
             const updatedUser = await uow.usersRepository.editUser({primaryEmailId: userEmail.id}, user.id);
