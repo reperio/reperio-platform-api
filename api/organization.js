@@ -1,5 +1,6 @@
 const Joi = require('joi');
 const httpResponseService = require('./services/httpResponseService');
+const permissionService = require('./services/permissionService')
 
 module.exports = [
     {
@@ -102,33 +103,21 @@ module.exports = [
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
+            const userId = request.auth.credentials.currentUserId;
+            const viewAll = permissionService.userHasRequiredPermissions(request.auth.credentials.userPermissions, ['ViewOrganizations']);
 
-            logger.debug(`Fetching all organizations`);
+            if (viewAll) {
+                logger.debug(`Fetching all organizations`);
+    
+                const organizations = await uow.organizationsRepository.getAllOrganizations();
+                
+                return organizations;
+            } else {
+                logger.debug(`Fetching all organizations by user: ${userId}`);
 
-            const organizations = await uow.organizationsRepository.getAllOrganizations();
-            
-            return organizations;
-        }
-    },
-    {
-        method: 'GET',
-        path: '/organizations/user/{userId}',
-        handler: async (request, h) => {
-            const uow = await request.app.getNewUoW();
-            const logger = request.server.app.logger;
-            const userId = request.params.userId;
-
-            logger.debug(`Fetching all organizations by user: ${userId}`);
-
-            const organizations = await uow.organizationsRepository.getOrganizationsByUser(userId);
-            
-            return organizations;
-        },
-        options: {
-            validate: {
-                params: {
-                    userId: Joi.string().guid().required()
-                }
+                const organizations = await uow.organizationsRepository.getOrganizationsByUser(userId);
+                
+                return organizations;
             }
         }
     },
