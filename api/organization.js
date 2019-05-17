@@ -123,28 +123,6 @@ module.exports = [
     },
     {
         method: 'GET',
-        path: '/organizations/user/{userId}',
-        handler: async (request, h) => {
-            const uow = await request.app.getNewUoW();
-            const logger = request.server.app.logger;
-            const userId = request.params.userId;
-
-            logger.debug(`Fetching all organizations by user: ${userId}`);
-
-            const organizations = await uow.organizationsRepository.getOrganizationsByUser(userId);
-            
-            return organizations;
-        },
-        options: {
-            validate: {
-                params: {
-                    userId: Joi.string().guid().required()
-                }
-            }
-        }
-    },
-    {
-        method: 'GET',
         path: '/organizations/{organizationId}',
         config: {
             plugins: {
