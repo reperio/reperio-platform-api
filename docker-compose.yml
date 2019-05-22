@@ -34,7 +34,14 @@ services:
       - local
       - reperio
     command: ["docker/app/start.sh"]
-
+  maildev:
+    container_name: "reperio-core-mail"
+    image: "djfarrelly/maildev"
+    ports:
+      - "1080:80"
+    networks:
+      - local
+      - reperio
 volumes:
     data-volume:
     redis-data:
