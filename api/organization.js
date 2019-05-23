@@ -95,11 +95,7 @@ module.exports = [
     {
         method: 'GET',
         path: '/organizations',
-        config: {
-            plugins: {
-                requiredPermissions: ['ViewOrganizations']
-            }
-        },
+        config: {},
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
