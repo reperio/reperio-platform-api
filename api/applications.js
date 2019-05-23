@@ -103,7 +103,9 @@ module.exports = [
                 const userModel = {
                     primaryEmailAddress: payload.primaryEmailAddress,
                     firstName: payload.firstName,
-                    lastName: payload.lastName
+                    lastName: payload.lastName,
+                    disabled: false,
+                    deleted: false
                 };
 
                 let phones = payload.phones;
