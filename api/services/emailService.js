@@ -33,7 +33,7 @@ class EmailService {
     async sendForgotPasswordEmail(userEmail, uow, request) {
         const messageHelper = await request.app.getNewMessageHelper();
         const forgotPassword = await uow.forgotPasswordsRepository.addEntry(userEmail.id, userEmail.userId);
-        const tokenUrl = `${request.server.app.config.webAppUrl}/resetPassword/${forgotPassword.id}`
+        const tokenUrl = `${request.server.app.config.authWebAppUrl}/resetPassword/${forgotPassword.id}`
 
         const message = {
             to: userEmail.email,
