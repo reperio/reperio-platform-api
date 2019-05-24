@@ -100,21 +100,12 @@ module.exports = [
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
             const userId = request.auth.credentials.currentUserId;
-            const viewAll = permissionService.userHasRequiredPermissions(request.auth.credentials.userPermissions, ['ViewOrganizations']);
 
-            if (viewAll) {
-                logger.debug(`Fetching all organizations`);
-    
-                const organizations = await uow.organizationsRepository.getAllOrganizations();
-                
-                return organizations;
-            } else {
-                logger.debug(`Fetching all organizations by user: ${userId}`);
+            logger.debug(`Fetching organizations for userId: ${userId}`);
 
-                const organizations = await uow.organizationsRepository.getOrganizationsByUser(userId);
-                
-                return organizations;
-            }
+            const organizations = await uow.organizationsRepository.getOrganizationsByUserWithBilling(userId);
+
+            return organizations;
         }
     },
     {
