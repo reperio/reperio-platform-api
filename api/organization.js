@@ -132,41 +132,4 @@ module.exports = [
             return organization;
         }
     },
-    {
-        method: 'PUT',
-        path: '/organizations/{organizationId}',
-        config: {
-            plugins: {
-                requiredPermissions: ['ViewOrganizations', 'UpdateOrganizations']
-            },
-            validate: {
-                params: {
-                    organizationId: Joi.string().guid(),
-                },
-                payload: {
-                    name: Joi.string().required(),
-                    userIds: Joi.array()
-                        .items(
-                            Joi.string()
-                        ).required()
-                }
-            }
-        },
-        handler: async (request, h) => {
-            const uow = await request.app.getNewUoW();
-            const logger = request.server.app.logger;
-            const organizationId = request.params.organizationId;
-            const payload = request.payload;
-            
-            logger.debug(`Updating organization: ${organizationId}`);
-
-            await uow.beginTransaction();
-
-            const organization = await uow.organizationsRepository.editOrganization(organizationId, payload.name);
-            await uow.usersRepository.replaceUserOrganizationsByOrganizationId(organizationId, payload.userIds);
-
-            await uow.commitTransaction();
-            return organization;
-        }
-    },
 ];
