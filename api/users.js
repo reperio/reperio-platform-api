@@ -27,8 +27,10 @@ module.exports = [
             logger.debug(`Fetching user ${userId}`);
 
             const user = await uow.usersRepository.getUserById(userId);
-            user.permissions = permissionService.getUserPermissions(user);
-            user.password = null;
+            if (user) {
+                user.permissions = permissionService.getUserPermissions(user);
+                user.password = null;
+            }
             
             return user;
         }
