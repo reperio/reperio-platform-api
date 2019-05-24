@@ -134,6 +134,8 @@ module.exports = [
                             logger.debug(`Creating the organization ${organization.name}`);
                             const dbOrganization = await uow.organizationsRepository.createOrganizationWithAddress(organization, false);
                             dbOrganizationIds.push(dbOrganization.id);
+                            const userOrganizationRole = await uow.rolesRepository.createRole('Organization Admin', dbOrganization.id);
+                            const userOrganizationRolePermissions = await uow.rolesRepository.updateRolePermissions(userOrganizationRole.id, ['UpdateOrganization']);
                         }
                         else {
                             await uow.rollbackTransaction();
@@ -148,6 +150,8 @@ module.exports = [
                     //create personal organization for user
                     const personalOrganizationName = (`${payload.firstName} ${payload.lastName}`).substring(0, 255);
                     const personalOrganization = await uow.organizationsRepository.createOrganization(personalOrganizationName, true);
+                    const userPersonalOrganiztionRole = await uow.rolesRepository.createRole('Organization Admin', personalOrganization.id);
+                    const userPersonalOrganizationRolePermissions = await uow.rolesRepository.updateRolePermissions(userPersonalOrganiztionRole.id, ['UpdateOrganization']);
                     dbOrganizationIds.push(personalOrganization.id);
 
                     //create the user and link the organizations
