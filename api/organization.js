@@ -13,10 +13,7 @@ module.exports = [
             validate: {
                 payload: {
                     name: Joi.string().required(),
-                    userIds: Joi.array()
-                        .items(
-                            Joi.string()
-                        ).required(),
+                    userId: Joi.string().guid().required(),
                     personal: Joi.bool().required(),
                     address: Joi.object({
                         'streetAddress': Joi.string().required(),
@@ -34,6 +31,7 @@ module.exports = [
             const payload = request.payload;
 
             logger.debug(`Creating organization`);
+            let organization;
             await uow.beginTransaction();
 
             if(payload.address != null){
@@ -46,25 +44,23 @@ module.exports = [
 
                 if (existingOrganization == null) {
                     logger.debug(`Creating the organization ${organizationModel.name}`);
-                    const dbOrganization = await uow.organizationsRepository.createOrganizationWithAddress(organizationModel);
-
-                    await uow.commitTransaction();
-                    return dbOrganization;
+                    organization = await uow.organizationsRepository.createOrganizationWithAddress(organizationModel);
                 }
                 else{
                     return httpResponseService.conflict(h);
                 }
             }
             else {
-                const organization = await uow.organizationsRepository.createOrganization(payload.name, payload.personal);
-                if (organization && payload.userIds.length > 0) {
-                    await uow.usersRepository.replaceUserOrganizationsByOrganizationId(organization.id, payload.userIds);
-                }
-
-                await uow.commitTransaction();
-
-                return organization;
+                organization = await uow.organizationsRepository.createOrganization(payload.name, payload.personal);
             }
+            //add Organization Admin role, add role permission, add userRole mapping
+            const role = await uow.rolesRepository.createRole('Organization Admin', organization.id);
+            const rolePermission = await uow.rolesRepository.updateRolePermissions(role.id, ['UpdateOrganization']);
+            const userRole = await uow.usersRepository.addRoles(payload.userId, [role.id]);
+
+            await uow.commitTransaction();
+
+            return organization;
         }
     },
     {
