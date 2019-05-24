@@ -9,20 +9,7 @@ class UsersRepository {
             const user = await this.uow._models.User
                 .query(this.uow._transaction)
                 .insertAndFetch(userModel);
-
-            const userOrganizationModel = organizationIds
-                .map(organizationId => {
-                    return {
-                        userId: user.id,
-                        organizationId
-                    }
-            });
-
-            await this.uow._models.UserOrganization
-                .query(this.uow._transaction)
-                .insert(userOrganizationModel)
-                .returning("*");
-
+                
             return user;
         } catch (err) {
             this.uow._logger.error(err);
@@ -131,7 +118,6 @@ class UsersRepository {
         try {
             return await this.uow._models.User
                 .query(this.uow._transaction)
-                .mergeEager('userOrganizations.organization')
                 .mergeEager('userRoles.role.rolePermissions.permission')
                 .mergeEager('userEmails')
                 .where('users.id', userId)
@@ -172,7 +158,6 @@ class UsersRepository {
         try {
             return await this.uow._models.User
                 .query(this.uow._transaction)
-                .mergeEager('userOrganizations.organization')
                 .mergeEager('userRoles.role.rolePermissions.permission')
                 .mergeEager('userEmails')
                 .where('primaryEmailAddress', primaryEmailAddress)
@@ -180,6 +165,26 @@ class UsersRepository {
         } catch (err) {
             this.uow._logger.error(`Failed to fetch user using email: ${primaryEmailAddress}`);
             this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async addRoles(userId, roleIds) {
+        try {
+            const userRoles = roleIds.map((id) => {
+                return {
+                    roleId: id,
+                    userId
+                };
+            });
+
+            return await this.uow._models.UserRole
+                .query(this.uow._transaction)
+                .insert(userRoles)
+                .returning('roleId');
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to add user roles: ${userId}`);
             throw err;
         }
     }

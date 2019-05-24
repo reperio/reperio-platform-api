@@ -3,11 +3,10 @@ class RolesRepository {
         this.uow = uow;
     }
 
-    async createRole(name, organizationId, applicationId) {
+    async createRole(name, organizationId) {
         const payload = {
             name,
             organizationId,
-            applicationId,
             deleted: false
         };
 

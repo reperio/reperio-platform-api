@@ -140,6 +140,15 @@ exports.seed = async function (knex, Promise) {
             deleted: false
         },
         {
+            name: 'UpdateOrganization',
+            displayName: 'Update Organization',
+            description: 'Allows for updating single organization',
+            isSystemAdminPermission: false,
+            createdDate: moment().utc().format(),
+            lastEditedDate: moment().utc().format(),
+            deleted: false
+        },
+        {
             name: 'DeleteOrganizations',
             displayName: 'Delete Organizations',
             description: 'Allows for deleting organizations',

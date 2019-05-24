@@ -2,9 +2,7 @@ const moment = require('moment');
 
 exports.seed = async function (knex, Promise) {
     // Deletes ALL existing entries
-    await knex('userOrganizations').del()
     await knex('userRoles').del()
-    await knex('roleApplicationPermissions').del()
     await knex('rolePermissions').del()
     await knex('roles').del()
     await knex('applicationOrganizations').del()

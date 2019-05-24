@@ -88,11 +88,30 @@ class OrganizationsRepository {
         try {
             return await this.uow._models.Organization
                 .query(this.uow._transaction)
-                .join('userOrganizations as userOrganization', 'userOrganization.organizationId', 'organizations.id')
-                .where('userOrganization.userId', '=', userId)
+                .join('roles', 'organizations.id', 'roles.organizationId')
+                .join('userRoles', 'roles.id', 'userRoles.roleId')
+                .join('users', 'userRoles.userId', 'users.id')
+                .where('users.id', '=', userId)
                 .orderBy('name');
         } catch (err) {
             this.uow._logger.error(`Failed to fetch organizations by userId: ${userId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async getOrganizationsByUserWithBilling(userId) {
+        try {
+            return await this.uow._models.Organization
+                .query(this.uow._transaction)
+                .join('roles', 'organizations.id', 'roles.organizationId')
+                .join('userRoles', 'roles.id', 'userRoles.roleId')
+                .join('users', 'userRoles.userId', 'users.id')
+                .where('users.id', '=', userId)
+                .andWhere('roles.name', '=', 'Organization Admin')
+                .orderBy('name');
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch organizations with billing by userId: ${userId}`);
             this.uow._logger.error(err);
             throw err;
         }
