@@ -9,20 +9,7 @@ class UsersRepository {
             const user = await this.uow._models.User
                 .query(this.uow._transaction)
                 .insertAndFetch(userModel);
-
-            const userOrganizationModel = organizationIds
-                .map(organizationId => {
-                    return {
-                        userId: user.id,
-                        organizationId
-                    }
-            });
-
-            await this.uow._models.UserOrganization
-                .query(this.uow._transaction)
-                .insert(userOrganizationModel)
-                .returning("*");
-
+                
             return user;
         } catch (err) {
             this.uow._logger.error(err);
@@ -131,7 +118,6 @@ class UsersRepository {
         try {
             return await this.uow._models.User
                 .query(this.uow._transaction)
-                .mergeEager('userOrganizations.organization')
                 .mergeEager('userRoles.role.rolePermissions.permission')
                 .mergeEager('userEmails')
                 .where('users.id', userId)
@@ -172,7 +158,6 @@ class UsersRepository {
         try {
             return await this.uow._models.User
                 .query(this.uow._transaction)
-                .mergeEager('userOrganizations.organization')
                 .mergeEager('userRoles.role.rolePermissions.permission')
                 .mergeEager('userEmails')
                 .where('primaryEmailAddress', primaryEmailAddress)
