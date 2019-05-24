@@ -140,8 +140,9 @@ module.exports = [
             const user = await uow.usersRepository.createUser(userModel, payload.organizationIds.concat(organization.id));
             const userEmail = await uow.userEmailsRepository.createUserEmail(user.id, user.primaryEmailAddress);
             const updatedUser = await uow.usersRepository.editUser({primaryEmailId: userEmail.id}, user.id);
-            const userRole = await uow.rolesRepository.createRole('Organization Admin', organization.id);
-            const userRolePermissions = await uow.rolesRepository.updateRolePermissions(userRole.id, ['UpdateOrganization']);
+            const role = await uow.rolesRepository.createRole('Organization Admin', organization.id);
+            const rolePermission = await uow.rolesRepository.updateRolePermissions(role.id, ['UpdateOrganization']);
+            const userRole = await uow.usersRepository.addRoles(user.id, [role.id]);
             updatedUser.permissions = permissionService.getUserPermissions(updatedUser);
 
             await uow.commitTransaction();
