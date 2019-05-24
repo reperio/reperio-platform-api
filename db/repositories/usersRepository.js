@@ -169,6 +169,26 @@ class UsersRepository {
         }
     }
 
+    async addRoles(userId, roleIds) {
+        try {
+            const userRoles = roleIds.map((id) => {
+                return {
+                    roleId: id,
+                    userId
+                };
+            });
+
+            return await this.uow._models.UserRole
+                .query(this.uow._transaction)
+                .insert(userRoles)
+                .returning('roleId');
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to add user roles: ${userId}`);
+            throw err;
+        }
+    }
+
     async updateRoles(userId, roleIds) {
         try {
             await this.uow._models.UserRole

@@ -128,14 +128,16 @@ module.exports = [
 
                     //if an organization matching the new organization information, add it to errors and don't create it
                     let dbOrganizationIds = [];
+                    let dbRoleIds = [];
                     for (let organization of organizations) {
                         const existingOrganization = await uow.organizationsRepository.getOrganizationByOrganizationInformation(organization);
                         if (existingOrganization == null) {
                             logger.debug(`Creating the organization ${organization.name}`);
                             const dbOrganization = await uow.organizationsRepository.createOrganizationWithAddress(organization, false);
-                            dbOrganizationIds.push(dbOrganization.id);
                             const userOrganizationRole = await uow.rolesRepository.createRole('Organization Admin', dbOrganization.id);
                             const userOrganizationRolePermissions = await uow.rolesRepository.updateRolePermissions(userOrganizationRole.id, ['UpdateOrganization']);
+                            dbOrganizationIds.push(dbOrganization.id);
+                            dbRoleIds.push(userOrganizationRole.id);
                         }
                         else {
                             await uow.rollbackTransaction();
@@ -153,9 +155,13 @@ module.exports = [
                     const userPersonalOrganiztionRole = await uow.rolesRepository.createRole('Organization Admin', personalOrganization.id);
                     const userPersonalOrganizationRolePermissions = await uow.rolesRepository.updateRolePermissions(userPersonalOrganiztionRole.id, ['UpdateOrganization']);
                     dbOrganizationIds.push(personalOrganization.id);
+                    dbRoleIds.push(userPersonalOrganiztionRole.id);
 
                     //create the user and link the organizations
                     const user = await uow.usersRepository.createUser(userModel, dbOrganizationIds);
+
+                    //add userRoles for Organization Admin
+                    const userRoles = await uow.usersRepository.addRoles(user.id, dbRoleIds);
 
                     //create userPhones based on the new user and phone information
                     for (let phone of phones) {
