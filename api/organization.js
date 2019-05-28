@@ -132,4 +132,66 @@ module.exports = [
             return organization;
         }
     },
+    {
+        method: 'POST',
+        path: '/organizations/{organizationId}/applications',
+        config: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
+            validate: {
+                params: {
+                    organizationId: Joi.string().uuid().required()
+                },
+                payload: {
+                    userId: Joi.string().guid().required(),
+                    applicationId: Joi.string().uuid().required()
+                }
+            }
+        },
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const {userId, applicationId} = request.payload;
+            const organizationId = request.params.organizationId;
+
+            logger.debug(`Creating application for organization`);
+            const userRoles = await uow.usersRepository.getUserRoles(userId);
+            
+            const hasPermission = userRoles.find(role => {
+                if (role.organizationId === organizationId) {
+                    switch (role.name) {
+                        case 'Organization Admin':
+                            return true;
+                        default:
+                            return false;
+                    }
+                } else if (role.name === 'Core Super Admin') {
+                    return true;
+                }
+            });
+            
+            if (!hasPermission) {
+                return httpResponseService.unauthorized(h);
+            }
+
+            try {
+                const applicationOrganization = await uow.organizationsRepository.getApplicationOrganization(organizationId, applicationId);
+                if (applicationOrganization) {
+                    if (!applicationOrganization.active) {
+                        await uow.organizationsRepository.enableApplicationOrganization(organizationId, applicationId);
+                    }
+                    return true;
+                }
+                await uow.beginTransaction();
+                await uow.organizationsRepository.createApplicationOrganization(organizationId, applicationId);
+                await uow.commitTransaction();
+                return true;
+            } catch (err) {
+                logger.error(err);
+                uow.rollbackTransaction();
+                throw err;
+            }
+        }
+    }
 ];

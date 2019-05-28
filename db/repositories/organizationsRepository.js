@@ -160,6 +160,56 @@ class OrganizationsRepository {
             throw err;
         }
     }
+
+    async getApplicationOrganization(organizationId, applicationId) {
+        try {
+            return await this.uow._models.ApplicationOrganization
+                .query(this.uow._transaction)
+                .where('applicationId', applicationId)
+                .andWhere('organizationId', organizationId)
+                .first();
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch applicationOrganization using applicationId: ${applicationId} - organizationId: ${organizationId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async createApplicationOrganization(organizationId, applicationId) {
+        const organizationApplicationModel = {
+            applicationId,
+            organizationId,
+            active: true
+        };
+
+        try {
+            return await this.uow._models.ApplicationOrganization
+                .query(this.uow._transaction)
+                .insert(organizationApplicationModel)
+                .returning("*");
+        } catch (err) {
+            this.uow._logger.error(`Failed to create applicationOrganization - applicationId: ${applicationId} - organizationId: ${organizationId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async enableApplicationOrganization(organizationId, applicationId) {
+        try {
+            return await this.uow._models.ApplicationOrganization
+                .query(this.uow._transaction)
+                .patch({active: true})
+                .where('applicationId', applicationId)
+                .where('organizationId', organizationId)
+                .returning("*")
+                .first();
+
+        } catch (err) {
+            this.uow._logger.error(`Failed to enable applicationOrganization - applicationId: ${applicationId} - organizationId: ${organizationId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
 }
 
 module.exports = OrganizationsRepository;
