@@ -235,5 +235,33 @@ module.exports = [
                 }
             }
         }
+    },
+    {
+        method: 'POST',
+        path: '/applications/{applicationId}/organizationSearch',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const {applicationId} = request.params
+            const {organizationIds} = request.payload;
+
+            logger.debug(`Fetching organizations in list: ${organizationIds} that are active for application: ${applicationId}`);
+
+            const organizations = await uow.applicationsRepository.getOrganizationsForApplicationByIds(applicationId, organizationIds);
+            return organizations;
+        },
+        options: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
+            plugins: {
+                requiredPermissions: ['ViewOrganizations', 'ViewApplications']
+            },
+            validate: {
+                payload: {
+                    organizationIds: Joi.array().items(Joi.string()).required()
+                }
+            }
+        }
     }
 ];
