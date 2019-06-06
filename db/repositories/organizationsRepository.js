@@ -100,6 +100,23 @@ class OrganizationsRepository {
         }
     }
 
+    async getOrganizationByIdAndUserId(organizationId, userId) {
+        try {
+            return await this.uow._models.Organization
+                .query(this.uow._transaction)
+                .join('roles', 'organizations.id', 'roles.organizationId')
+                .join('userRoles', 'roles.id', 'userRoles.roleId')
+                .join('users', 'userRoles.userId', 'users.id')
+                .where('organizations.id', '=', organizationId)
+                .andWhere('users.id', '=', userId)
+                .first();
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch organization: ${organizationId} by userId: ${userId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
     async getOrganizationsByUserWithBilling(userId) {
         try {
             return await this.uow._models.Organization
