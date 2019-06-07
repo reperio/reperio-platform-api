@@ -75,7 +75,6 @@ class OrganizationsRepository {
             return await this.uow._models.Organization
                 .query(this.uow._transaction)
                 .where('id', organizationId)
-                .eager('userOrganizations.user')
                 .first();
         } catch (err) {
             this.uow._logger.error(`Failed to fetch organization using id: ${organizationId}`);
@@ -196,7 +195,7 @@ class OrganizationsRepository {
         const organizationApplicationModel = {
             applicationId,
             organizationId,
-            active: true
+            active: false
         };
 
         try {

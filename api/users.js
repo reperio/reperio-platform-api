@@ -444,6 +444,9 @@ module.exports = [
             return userRoles;
         },
         options: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
             validate: {
                 params: {
                     userId: Joi.string().guid(),
