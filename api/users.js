@@ -9,6 +9,9 @@ module.exports = [
         method: 'GET',
         path: '/users/{userId}',
         config: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
             plugins: {
                 requiredPermissions: (request) => request.params.userId === request.app.currentUserId ? [] : ['ViewUsers']
             },
