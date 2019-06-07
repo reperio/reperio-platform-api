@@ -9,6 +9,9 @@ module.exports = [
         method: 'GET',
         path: '/users/{userId}',
         config: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
             plugins: {
                 requiredPermissions: (request) => request.params.userId === request.app.currentUserId ? [] : ['ViewUsers']
             },
@@ -333,6 +336,32 @@ module.exports = [
         }
     },
     {
+        method: 'GET',
+        path: '/users/{userId}/organizations/{organizationId}',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const {userId, organizationId} = request.params;
+
+            logger.debug(`Fetching organization: ${organizationId} by user: ${userId}`);
+
+            const organization = await uow.organizationsRepository.getOrganizationByIdAndUserId(organizationId, userId);
+            
+            return organization;
+        },
+        options: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
+            validate: {
+                params: {
+                    userId: Joi.string().guid().required(),
+                    organizationId: Joi.string().guid().required()
+                }
+            }
+        }
+    },
+    {
         method: 'PUT',
         path: '/users/{userId}/organizations',
         config: {
@@ -415,6 +444,9 @@ module.exports = [
             return userRoles;
         },
         options: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
             validate: {
                 params: {
                     userId: Joi.string().guid(),

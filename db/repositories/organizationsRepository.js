@@ -75,7 +75,6 @@ class OrganizationsRepository {
             return await this.uow._models.Organization
                 .query(this.uow._transaction)
                 .where('id', organizationId)
-                .eager('userOrganizations.user')
                 .first();
         } catch (err) {
             this.uow._logger.error(`Failed to fetch organization using id: ${organizationId}`);
@@ -95,6 +94,23 @@ class OrganizationsRepository {
                 .orderBy('name');
         } catch (err) {
             this.uow._logger.error(`Failed to fetch organizations by userId: ${userId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async getOrganizationByIdAndUserId(organizationId, userId) {
+        try {
+            return await this.uow._models.Organization
+                .query(this.uow._transaction)
+                .join('roles', 'organizations.id', 'roles.organizationId')
+                .join('userRoles', 'roles.id', 'userRoles.roleId')
+                .join('users', 'userRoles.userId', 'users.id')
+                .where('organizations.id', '=', organizationId)
+                .andWhere('users.id', '=', userId)
+                .first();
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch organization: ${organizationId} by userId: ${userId}`);
             this.uow._logger.error(err);
             throw err;
         }
@@ -179,7 +195,7 @@ class OrganizationsRepository {
         const organizationApplicationModel = {
             applicationId,
             organizationId,
-            active: true
+            active: false
         };
 
         try {

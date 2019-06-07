@@ -108,6 +108,9 @@ module.exports = [
         method: 'GET',
         path: '/organizations/{organizationId}',
         config: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
             plugins: {
                 requiredPermissions: ['ViewOrganizations']
             },
@@ -125,9 +128,6 @@ module.exports = [
             logger.debug(`Fetching organization by organizationId: ${organizationId}`);
 
             const organization = await uow.organizationsRepository.getOrganizationById(organizationId);
-            if (organization.userOrganizations && organization.userOrganizations.length > 0) {
-                organization.userOrganizations.forEach(userOrganization => userOrganization.user.password = null)
-            }
             
             return organization;
         }
@@ -178,13 +178,65 @@ module.exports = [
             try {
                 const applicationOrganization = await uow.organizationsRepository.getApplicationOrganization(organizationId, applicationId);
                 if (applicationOrganization) {
-                    if (!applicationOrganization.active) {
-                        await uow.organizationsRepository.enableApplicationOrganization(organizationId, applicationId);
-                    }
                     return true;
                 }
                 await uow.beginTransaction();
                 await uow.organizationsRepository.createApplicationOrganization(organizationId, applicationId);
+                await uow.commitTransaction();
+                return true;
+            } catch (err) {
+                logger.error(err);
+                uow.rollbackTransaction();
+                throw err;
+            }
+        }
+    },
+    {
+        method: 'POST',
+        path: '/organizations/{organizationId}/applications/{applicationId}/enable',
+        config: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
+            validate: {
+                params: {
+                    organizationId: Joi.string().guid().required(),
+                    applicationId: Joi.string().guid().required()
+                },
+                payload: {
+                    userId: Joi.string().guid().required()
+                }
+            }
+        },
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const {organizationId, applicationId} = request.params;
+            const {userId} = request.payload;
+
+            logger.debug(`Enabling application for organization`);
+            const userRoles = await uow.usersRepository.getUserRoles(userId);
+            
+            const hasPermission = userRoles.find(role => {
+                if (role.organizationId === organizationId) {
+                    switch (role.name) {
+                        case 'Organization Admin':
+                            return true;
+                        default:
+                            return false;
+                    }
+                } else if (role.name === 'Core Super Admin') {
+                    return true;
+                }
+            });
+            
+            if (!hasPermission) {
+                return httpResponseService.unauthorized(h);
+            }
+
+            try {
+                await uow.beginTransaction();
+                const applicationOrganization = await uow.organizationsRepository.enableApplicationOrganization(organizationId, applicationId);
                 await uow.commitTransaction();
                 return true;
             } catch (err) {
