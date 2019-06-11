@@ -44,7 +44,7 @@ module.exports = [
 
                 if (existingOrganization == null) {
                     logger.debug(`Creating the organization ${organizationModel.name}`);
-                    organization = await uow.organizationsRepository.createOrganizationWithAddress(organizationModel);
+                    organization = await uow.organizationsRepository.createOrganizationWithAddress(organizationModel, payload.personal);
                 }
                 else{
                     return httpResponseService.conflict(h);
