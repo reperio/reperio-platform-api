@@ -32,7 +32,20 @@ const getApplicationList = async () => {
     }, {});
 
     return result;
-}
+};
+
+const checkRedisForJWT = async (decodedToken, request) => {
+    try {
+        const redisHelper = new RedisHelper(request.server.app.logger, Config);
+        const redisToken = await redisHelper.getJWT(request.auth.token);
+
+        return {isValid: !!redisToken};
+    } catch (e) {
+        console.log(e);
+        return {isValid: false}
+    }
+};
+
 let appList = null;
 
 const extensions = {
@@ -182,4 +195,4 @@ const registerRateLimitPlugin = async (server) => {
     await server.registerAdditionalPlugin(limitPluginPackage);
 };
 
-module.exports = { extensions, registerExtensions, registerAPIPlugin, registerRateLimitPlugin, filterProperties };
+module.exports = { extensions, registerExtensions, registerAPIPlugin, registerRateLimitPlugin, filterProperties, checkRedisForJWT };

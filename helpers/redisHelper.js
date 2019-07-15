@@ -40,6 +40,11 @@ class RedisHelper {
         await this.asyncRedisClient.set(redisKeyName, jwt);
         await this.asyncRedisClient.expire(redisKeyName, Config.redisJWTExpirationSeconds);
     }
+
+    async getJWT(jwt) {
+        const redisKeyName = `jwt:${jwt}`;
+        return await this.asyncRedisClient.get(redisKeyName);
+    }
 }
 
 module.exports = RedisHelper;
