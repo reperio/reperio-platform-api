@@ -7,7 +7,7 @@ class RedisHelper {
         this.logger = logger;
         this.config = config;
 
-        this.redisClient = redis.createClient();
+        this.redisClient = redis.createClient(Config.redis);
 
         this.asyncRedisClient = {
             get: promisify(this.redisClient.get).bind(this.redisClient),
@@ -33,6 +33,12 @@ class RedisHelper {
         const jwt = await this.asyncRedisClient.get(redisKeyName);
         await this.asyncRedisClient.del(redisKeyName);
         return jwt;
+    }
+
+    async addJWT(jwt) {
+        const redisKeyName = `jwt:${jwt}`;
+        await this.asyncRedisClient.set(redisKeyName, jwt);
+        await this.asyncRedisClient.expire(redisKeyName, Config.redisJWTExpirationSeconds);
     }
 }
 

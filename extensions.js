@@ -141,6 +141,9 @@ const extensions = {
                     expiresIn: Config.jwtValidTimespan
                 });
 
+                const redisHelper = await request.app.getNewRedisHelper();
+                await redisHelper.addJWT(token)
+
                 request.response.header('Access-Control-Expose-Headers', 'Authorization');
                 request.response.header("Authorization", `Bearer ${token}`);
             }
