@@ -36,7 +36,7 @@ const getApplicationList = async () => {
 
 const checkRedisForJWT = async (decodedToken, request) => {
     try {
-        const redisHelper = new RedisHelper(request.server.app.logger, Config);
+        const redisHelper = await request.app.getNewRedisHelper(request.server.app.logger, Config);
         const redisToken = await redisHelper.getJWT(request.auth.token);
 
         return {isValid: !!redisToken};
@@ -96,8 +96,8 @@ const extensions = {
             return h.continue;
         }
     },
-    onPreHandlerRegisterAppFunctions: { 
-        type: 'onPreHandler', 
+    onPreAuthRegisterAppFunctions: { 
+        type: 'onPreAuth', 
         method: async (request, h) => {
             request.app.uows = [];
             request.app.getNewUoW = async () => {
@@ -169,7 +169,7 @@ const extensions = {
 const registerExtensions = async (server) => {
     await server.registerExtension(extensions.onPostAuth);
     await server.registerExtension(extensions.onPreHandlerActivityLogging);
-    await server.registerExtension(extensions.onPreHandlerRegisterAppFunctions);
+    await server.registerExtension(extensions.onPreAuthRegisterAppFunctions);
     await server.registerExtension(extensions.onPreResponseActivityLogging);
     await server.registerExtension(extensions.onPreResponseAuthToken);
 };
