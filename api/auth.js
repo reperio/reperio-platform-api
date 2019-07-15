@@ -57,6 +57,20 @@ module.exports = [
     },
     {
         method: 'POST',
+        path: '/auth/logout',
+        handler: async (request, h) => {
+            const logger = request.server.app.logger;
+
+            logger.debug(`Logging out: ${request.auth.credentials.currentUserId}`);
+
+            const redisHelper = await request.app.getNewRedisHelper();
+            await redisHelper.deleteJWT(request.auth.token)
+
+            return "";
+        }
+    },
+    {
+        method: 'POST',
         path: '/auth/otp',
         handler: async (request, h) => {
             const {otp} = request.payload;

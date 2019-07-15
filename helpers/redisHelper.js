@@ -45,6 +45,11 @@ class RedisHelper {
         const redisKeyName = `jwt:${jwt}`;
         return await this.asyncRedisClient.get(redisKeyName);
     }
+
+    async deleteJWT(jwt) {
+        const redisKeyName = `jwt:${jwt}`;
+        await this.asyncRedisClient.del(redisKeyName);
+    }
 }
 
 module.exports = RedisHelper;
