@@ -179,7 +179,12 @@ module.exports = [
                     if (payload.sendConfirmationEmail) {
                         logger.debug(`Sending user verification email to user: ${user.id}`);
 
-                        await emailService.sendVerificationEmail(userEmail, uow, request, request.params.applicationId);
+                        try {
+                            await emailService.sendVerificationEmail(userEmail, uow, request, request.params.applicationId);
+                        } catch (error) {
+                            logger.error(`Failed to send verification email to user ${user.id}`);
+                            logger.error(error);
+                        }
                     }
 
                     let response = {

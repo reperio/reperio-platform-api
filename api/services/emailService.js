@@ -3,6 +3,7 @@ class EmailService {
         const messageHelper = await request.app.getNewMessageHelper();
         const forgotPassword = await uow.forgotPasswordsRepository.addEntry(userEmail.id, userEmail.userId);
         let tokenUrl = `${request.server.app.config.authWebAppUrl}/passwordManagement/${forgotPassword.id}/create`;
+        let encodedNext = encodeURIComponent(request.server.app.config.webAppUrl);
         let emailContent;
 
         let application = await uow.applicationsRepository.getApplicationById(applicationId);
@@ -12,13 +13,12 @@ class EmailService {
 
         switch (application.name) {
             case 'Managed IT Services': // Reperio Managed IT Services
-                const encodedNext = encodeURIComponent(application.clientUrl + '/login');
+                encodedNext = encodeURIComponent(application.clientUrl + '/login');
                 tokenUrl = `${tokenUrl}?next=${encodedNext}`; 
-                emailContent = `Thanks for completing our survey, <a href="${tokenUrl}">click here</a> to go register your first desktop`
+                emailContent = `Thanks for completing our survey, <a href="${tokenUrl}">click here</a> to set your password and go register your first desktop!`
                 break;
         
             default:
-                const encodedNext = encodeURIComponent(request.server.app.config.webAppUrl);
                 tokenUrl = `${tokenUrl}?next=${encodedNext}`; 
                 emailContent = `Please <a href="${tokenUrl}">verify</a> your email address.`;
                 break;
