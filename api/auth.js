@@ -36,6 +36,9 @@ module.exports = [
 
                 const token = authService.getAuthToken(user, request.server.app.config.jsonSecret, request.server.app.config.jwtValidTimespan);
 
+                const redisHelper = await request.app.getNewRedisHelper();
+                await redisHelper.addJWT(token)
+
                 return httpResponseService.loginSuccess(h, token);
             } catch (err) {
                 logger.error(err);
@@ -50,6 +53,20 @@ module.exports = [
                     password: Joi.string().required()
                 }
             }
+        }
+    },
+    {
+        method: 'POST',
+        path: '/auth/logout',
+        handler: async (request, h) => {
+            const logger = request.server.app.logger;
+
+            logger.debug(`Logging out: ${request.auth.credentials.currentUserId}`);
+
+            const redisHelper = await request.app.getNewRedisHelper();
+            await redisHelper.deleteJWT(request.auth.token)
+
+            return "";
         }
     },
     {
@@ -129,6 +146,9 @@ module.exports = [
 
                 //sign the user in
                 const token = authService.getAuthToken(updatedUser, request.server.app.config.jsonSecret, request.server.app.config.jwtValidTimespan);
+
+                const redisHelper = await request.app.getNewRedisHelper();
+                await redisHelper.addJWT(token)
 
                 await uow.commitTransaction();
 

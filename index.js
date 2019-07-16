@@ -17,6 +17,7 @@ const start = async function () {
             accessControlAllowHeaders: 'Content-Type, Authorization, application-token',
             authEnabled: true,
             authSecret: Config.jsonSecret,
+            authValidateFunc: extensions.checkRedisForJWT,
             cache: [
                 {
                     engine: require('catbox-redis'),
