@@ -120,6 +120,7 @@ class UsersRepository {
                 .query(this.uow._transaction)
                 .mergeEager('userRoles.role.rolePermissions.permission')
                 .mergeEager('userEmails')
+                .mergeEager('userRoles.role.organization')
                 .where('users.id', userId)
                 .first();
         } catch (err) {
