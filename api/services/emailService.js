@@ -13,7 +13,8 @@ class EmailService {
 
         switch (application.name) {
             case 'Managed IT Services': // Reperio Managed IT Services
-                encodedNext = encodeURIComponent(application.clientUrl + '/login');
+                const appURI = new URL(application.clientUrl);
+                encodedNext = encodeURIComponent(appURI.origin + '/login');
                 tokenUrl = `${tokenUrl}?next=${encodedNext}&email=${encodeURIComponent(userEmail.email)}`; 
                 emailContent = `Thanks for completing our survey, <a href="${tokenUrl}">click here</a> to set your password and go register your first desktop!`
                 break;
