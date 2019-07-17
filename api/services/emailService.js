@@ -14,12 +14,12 @@ class EmailService {
         switch (application.name) {
             case 'Managed IT Services': // Reperio Managed IT Services
                 encodedNext = encodeURIComponent(application.clientUrl + '/login');
-                tokenUrl = `${tokenUrl}?next=${encodedNext}`; 
+                tokenUrl = `${tokenUrl}?next=${encodedNext}&email=${userEmail.email}`; 
                 emailContent = `Thanks for completing our survey, <a href="${tokenUrl}">click here</a> to set your password and go register your first desktop!`
                 break;
         
             default:
-                tokenUrl = `${tokenUrl}?next=${encodedNext}`; 
+                tokenUrl = `${tokenUrl}?next=${encodedNext}&email=${userEmail.email}`; 
                 emailContent = `Please <a href="${tokenUrl}">verify</a> your email address.`;
                 break;
         }
@@ -38,7 +38,7 @@ class EmailService {
     async sendForgotPasswordEmail(userEmail, uow, request) {
         const messageHelper = await request.app.getNewMessageHelper();
         const forgotPassword = await uow.forgotPasswordsRepository.addEntry(userEmail.id, userEmail.userId);
-        const tokenUrl = `${request.server.app.config.authWebAppUrl}/passwordManagement/${forgotPassword.id}/reset`
+        const tokenUrl = `${request.server.app.config.authWebAppUrl}/passwordManagement/${forgotPassword.id}/reset?email=${userEmail.email}`
 
         const message = {
             to: userEmail.email,
