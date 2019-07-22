@@ -47,5 +47,7 @@ module.exports = {
     logObfuscation: {
         properties: process.env.CORE_LOG_OBFUSCATION_PROPERTIES || ['password', 'confirmPassword', 'secretKey'],
         mask: process.env.CORE_LOG_OBFUSCATION_MASK || '**********'
-    }
+    },
+    sendEmailNotifications: (process.env.SEND_EMAIL_NOTIFICATIONS == 'true') || false,
+    notificationEmail: process.env.NOTIFICATION_EMAIL || 'support@reper.io'
 };

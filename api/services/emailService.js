@@ -51,6 +51,21 @@ class EmailService {
 
         return await messageHelper.processMessage(message);
     }
+
+    async sendNewCustomerEmail(reperioEmail, uow, request, organizationId) {
+        const messageHelper = await request.app.getNewMessageHelper();
+        const organization = await uow.organizationsRepository.getOrganizationById(organizationId);
+
+        const message = {
+            to: reperioEmail,
+            from: request.server.app.config.email.sender,
+            type: 'email',
+            subject: 'New Customer - Sign Up',
+            contents: `A new customer has signed up; the organization is named ${organization.name} and was given id ${organization.id}.`
+        };
+
+        return await messageHelper.processMessage(message);
+    }
 }
 
 const emailService = new EmailService();
