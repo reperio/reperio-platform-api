@@ -120,6 +120,7 @@ class UsersRepository {
                 .query(this.uow._transaction)
                 .mergeEager('userRoles.role.rolePermissions.permission')
                 .mergeEager('userEmails')
+                .mergeEager('userRoles.role.organization')
                 .where('users.id', userId)
                 .first();
         } catch (err) {
@@ -133,7 +134,7 @@ class UsersRepository {
         try {
             return await this.uow._models.User
                 .query(this.uow._transaction)
-                .eager('userOrganizations.organization');
+                .eager('userRoles.role.organization');
         } catch (err) {
             this.uow._logger.error(`Failed to fetch users`);
             this.uow._logger.error(err);
