@@ -52,16 +52,19 @@ class EmailService {
         return await messageHelper.processMessage(message);
     }
 
-    async sendNewCustomerEmail(reperioEmail, uow, request, organizationId) {
+    async sendNotificationEmail(uow, request, applicationId, addressee, body) {
         const messageHelper = await request.app.getNewMessageHelper();
-        const organization = await uow.organizationsRepository.getOrganizationById(organizationId);
+        let application = await uow.applicationsRepository.getApplicationById(applicationId);
+        if (!application) {
+            throw new Error("Application not found");
+        }
 
         const message = {
-            to: reperioEmail,
+            to: addressee,
             from: request.server.app.config.email.sender,
             type: 'email',
-            subject: 'New Customer - Sign Up',
-            contents: `A new customer has signed up; the organization is named ${organization.name} and was given id ${organization.id}.`
+            subject: `This is a notification from application: ${application.name}`,
+            contents: body
         };
 
         return await messageHelper.processMessage(message);
