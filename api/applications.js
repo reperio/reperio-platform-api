@@ -268,5 +268,44 @@ module.exports = [
                 }
             }
         }
+    },
+    {
+        method: 'POST',
+        path: '/applications/{applicationId}/emailNotification',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const applicationId = request.params.applicationId;
+            const addressee = request.payload.addressee;
+            const body = request.payload.body;
+
+            logger.debug(`Sending email notification to ${addressee}, with body: ${body}`);
+
+            try {
+                await emailService.sendNotificationEmail(uow, request, applicationId, addressee, body);
+                return true;
+            } catch(err) {
+                logger.error(err);
+                throw err;
+            }
+            return false;
+        },
+        options: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
+            plugins: {
+                requiredPermissions: ['ViewOrganizations']
+            },
+            validate: {
+                params: {
+                    applicationId: Joi.string().uuid().required()
+                },
+                payload: {
+                    addressee: Joi.string().required(),
+                    body: Joi.string().required()
+                }
+            }
+        }
     }
 ];

@@ -247,41 +247,5 @@ module.exports = [
                 throw err;
             }
         }
-    },
-    {
-        method: 'POST',
-        path: '/organizations/{organizationId}/newCustomerEmail',
-        config: {
-            plugins: {
-                requiredPermissions: ['ViewOrganizations']
-            },
-            auth: {
-                strategies: ['jwt', 'application-token']
-            },
-            validate: {
-                params: {
-                    organizationId: Joi.string().uuid().required()
-                }
-            }
-        },
-        handler: async (request, h) => {
-            const uow = await request.app.getNewUoW();
-            const logger = request.server.app.logger;
-            const organizationId = request.params.organizationId;
-            const notificationEmail = config.notificationEmail;
-
-            logger.debug(`Sending new customer email to ${notificationEmail} for organization with id: ${organizationId}`);
-
-            if(config.sendEmailNotifications) {
-                try {
-                    await emailService.sendNewCustomerEmail(notificationEmail, uow, request, organizationId);
-                    return true;
-                } catch(err) {
-                    logger.error(err);
-                    throw err;
-                }
-            }
-            return false;
-        }
     }
 ];
