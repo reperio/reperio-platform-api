@@ -5,13 +5,12 @@ async function initializeDatabase() {
     let attemptMigrations = true;
     while (attemptMigrations) {
         try {
-            console.log('attempting to run db migrations and seeds');
+            console.log('attempting to run db migrations');
             await knex.migrate.latest();
-            await knex.seed.run();
-            console.log('db migrations and seeds ran successfully');
+            console.log('db migrations ran successfully');
             attemptMigrations = false;
         } catch (e) {
-            console.log('unable to run migrations and seeds, will retry');
+            console.log('unable to run migrations, will retry');
             await delay(2000);
         }
     }
