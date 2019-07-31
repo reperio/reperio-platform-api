@@ -6,6 +6,7 @@ exports.seed = async function (knex, Promise) {
     await knex('rolePermissions').del()
     await knex('roles').del()
     await knex('applicationOrganizations').del()
+    await knex('applications').del()
     await knex('organizationAddresses').del()
     await knex('organizations').del()
     await knex('organizations').insert([
