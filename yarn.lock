@@ -18,10 +18,10 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
-"@reperio/hapijs-starter@^5.1.0":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@reperio/hapijs-starter/-/hapijs-starter-5.1.0.tgz#44488a4a36121b67fc34a04ddcb9893c3a29afe1"
-  integrity sha512-XlHEZKDuwjWMBo2B5u75I8BtAI1eqJS7M9fOG/YAucL8FNUq4Yg5LsmMmhBY27dH4R7f+QLP68YvwPYfZ5RVJw==
+"@reperio/hapijs-starter@^5.2.0":
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/@reperio/hapijs-starter/-/hapijs-starter-5.2.0.tgz#2de8194b8fc4caaaf9d7c5cbc4eef49e1f171076"
+  integrity sha512-DIFOrxqLl5Wdi9dVxaat7dV9zt3r8opD+WIrZSzgHt32kiY27egXJb1fC+mwD6g12Am8YYtc0mkWaTGPLpEg8Q==
   dependencies:
     "@types/hapi-auth-jwt2" "^8.0.2"
     "@types/jest" "^23.3.10"
