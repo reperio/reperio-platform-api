@@ -3,6 +3,7 @@ const authService = require('./services/authService');
 const httpResponseService = require('./services/httpResponseService');
 const emailService = require('./services/emailService');
 const recaptchaService = require('./services/recaptchaService');
+const permissionService = require('./services/permissionService');
 const moment = require('moment');
 
 const uuid4 = require("uuid/v4");
@@ -12,7 +13,18 @@ module.exports = [
         method: 'GET',
         path: '/auth',
         handler: async (request, h) => {
-            return "";
+            const {userId} = request.auth.credentials;
+            const uow = await request.app.getNewUoW();
+            const user = await uow.usersRepository.getUserById(userId);
+            const permissions = permissionService.getUserPermissions(user)
+            
+            const userWithPermissions = {
+                ...user,
+                password: null,
+                permissions
+            };
+
+            return userWithPermissions;
         }
     },
     {
