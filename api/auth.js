@@ -78,7 +78,7 @@ module.exports = [
             const redisHelper = await request.app.getNewRedisHelper();
             await redisHelper.deleteJWT(request.auth.token)
 
-            return "";
+            return httpResponseService.logoutSuccess(h);
         }
     },
     {

@@ -23,6 +23,14 @@ class HttpResponseService {
         return response;
     }
 
+    logoutSuccess(h) {
+        const response = h.response('');
+        response.statusCode = 204;
+        response.unstate('token');
+    
+        return response;
+    }
+
     conflict(h) {
         const response = h.response('conflict');
         response.statusCode = 409;
