@@ -67,6 +67,17 @@ const start = async function () {
         await extensions.registerRateLimitPlugin(reperio_server);
         await extensions.registerExtensions(reperio_server);
 
+        // auth token
+        reperio_server.server.state('token', {
+            ttl: Config.authCookie.ttl,
+            isSecure: Config.authCookie.isSecure,
+            isHttpOnly: Config.authCookie.isHttpOnly,
+            isSameSite: Config.authCookie.isSameSite,
+            path: Config.authCookie.path,
+            domain: Config.authCookie.domain,
+            encoding: 'none'
+        });
+
         await reperio_server.startServer();
     } catch (err) {
         console.error(err);
