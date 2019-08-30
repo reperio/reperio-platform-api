@@ -268,6 +268,21 @@ class UsersRepository {
             throw err;
         }
     }
+
+    async getUserPermissionsByOrganization(userId, organizationId) {
+        try {
+            return await this.uow._models.RolePermission
+                .query(this.uow._transaction)
+                .join('roles', 'rolePermissions.roleId', '=', 'roles.id')
+                .join('userRoles', 'rolePermissions.roleId', '=', 'userRoles.roleId')
+                .where('userRoles.userId', userId)
+                .andWhere('roles.organizationId', organizationId);
+        } catch (err) {
+            this.uow._logger.error(err);
+            this.uow._logger.error(`Failed to get permissions for user: ${userId} and organization: ${organizationId}`);
+            throw err;
+        }
+    }
 }
 
 module.exports = UsersRepository;

@@ -362,6 +362,32 @@ module.exports = [
         }
     },
     {
+        method: 'GET',
+        path: '/users/{userId}/organizations/{organizationId}/permissions',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const {userId, organizationId} = request.params;
+
+            logger.debug(`Fetching permissions for organization: ${organizationId} and user: ${userId}`);
+
+            const permissions = await uow.usersRepository.getUserPermissionsByOrganization(userId, organizationId);
+            
+            return permissions;
+        },
+        options: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
+            validate: {
+                params: {
+                    userId: Joi.string().guid().required(),
+                    organizationId: Joi.string().guid().required()
+                }
+            }
+        }
+    },
+    {
         method: 'PUT',
         path: '/users/{userId}/organizations',
         config: {
