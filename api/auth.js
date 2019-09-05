@@ -386,5 +386,27 @@ module.exports = [
                 }
             }
         }
+    },
+    {
+        method: 'DELETE',
+        path: '/auth',
+        handler: async (request, h) => {
+            const logger = request.server.app.logger;
+
+            logger.debug(`Logging out: ${request.auth.credentials.currentUserId}`);
+
+            const redisHelper = await request.app.getNewRedisHelper();
+            await redisHelper.deleteJWT(request.auth.token);
+
+            return httpResponseService.logoutSuccess(h);
+        },
+        options: {
+            auth: false,
+            validate: {
+                payload: {
+                    token: Joi.string().guid().required()
+                }
+            }
+        }
     }
 ];
