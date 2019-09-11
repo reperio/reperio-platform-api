@@ -19,6 +19,7 @@ services:
       - redis-data:/data
     networks:
       - local
+      - reperio
   app:
     container_name: "reperio-core-app"
     build:
