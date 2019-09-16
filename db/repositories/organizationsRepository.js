@@ -1,4 +1,5 @@
 const uuid4 = require("uuid/v4");
+const QueryHelper = require('../../helpers/queryHelper');
 
 class OrganizationsRepository {
     constructor(uow) {
@@ -128,6 +129,25 @@ class OrganizationsRepository {
                 .orderBy('name');
         } catch (err) {
             this.uow._logger.error(`Failed to fetch organizations with billing by userId: ${userId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async getOrganizationsByUserWithBillingQuery(userId, queryParameters) {
+        try {
+            const q = this.uow._models.Organization
+                .query(this.uow._transaction)
+                .join('roles', 'organizations.id', 'roles.organizationId')
+                .join('userRoles', 'roles.id', 'userRoles.roleId')
+                .join('users', 'userRoles.userId', 'users.id')
+                .where('users.id', '=', userId)
+                .andWhere('roles.name', '=', 'Organization Admin');
+
+            const queryHelper = new QueryHelper(this.uow, this.uow._logger);
+            return await queryHelper.getQueryResult(q, queryParameters);
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch organizations with billing by userId by query: ${userId}`);
             this.uow._logger.error(err);
             throw err;
         }
