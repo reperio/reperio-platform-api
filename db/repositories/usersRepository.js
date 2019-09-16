@@ -1,4 +1,4 @@
-const raw = require('objection').raw;
+const QueryHelper = require('../../helpers/queryHelper');
 
 class UsersRepository {
     constructor(uow) {
@@ -144,36 +144,14 @@ class UsersRepository {
         }
     }
 
-    createRawSql(columns) {
-        if (columns.length > 0) {
-            let sql = "WHERE ";
-            columns.forEach(x => {
-                sql += x + " = ? ";
-            });
-            console.log("RAW SQL: " + sql);
-            return sql;
-        }
-        return "";
-    }
-
-    async getAllUsersQuery(query) {
-        const { page, pageSize, filter, sort } = query;
-        const columns = filter ? filter.map(x=> {
-            return x.id;
-        }) : [];
-
-        const values = filter ? filter.map(x=> {
-            return x.value;
-        }) : [];
-
-        console.log(JSON.stringify(values));
-
+    async getAllUsersQuery(queryParameters) {
+        const queryHelper = new QueryHelper(this.uow, this.uow._logger);
         try {
-            return await this.uow._models.User
+            const q = this.uow._models.User
                 .query(this.uow._transaction)
-                .eager('userRoles.role.organization')
-                .where(raw(this.createRawSql(columns), values))
-                .page(page, pageSize);
+                .eager('userRoles.role.organization');
+
+                return await queryHelper.getQueryResult(q, queryParameters);
         } catch (err) {
             this.uow._logger.error(`Failed to fetch users by query`);
             this.uow._logger.error(err);

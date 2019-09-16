@@ -91,14 +91,14 @@ module.exports = [
         }
     },
     {
-        method: 'GET',
+        method: 'POST',
         path: '/users/query',
         config: {
             plugins: {
                 requiredPermissions: ['ViewUsers']
             },
             validate: {
-                query: {
+                payload: {
                     page: Joi.number(),
                     pageSize: Joi.number(),
                     sort: Joi.array().items(
@@ -119,7 +119,7 @@ module.exports = [
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const query = request.query;
+            const query = request.payload;
 
             logger.debug(`Fetching all users with query`);
 

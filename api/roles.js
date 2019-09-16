@@ -21,6 +21,49 @@ module.exports = [
         }
     },
     {
+        method: 'POST',
+        path: '/roles/query',
+        config: {
+            plugins: {
+                requiredPermissions: ['ViewRoles']
+            },
+            validate: {
+                payload: {
+                    page: Joi.number(),
+                    pageSize: Joi.number(),
+                    sort: Joi.array().items(
+                        Joi.object({
+                            id: Joi.string(),
+                            desc: Joi.bool()
+                        })
+                    ).optional(),
+                    filter: Joi.array().items(
+                        Joi.object({
+                            id: Joi.string(),
+                            value: Joi.string()
+                        })
+                    ).optional()
+                }
+            }
+        },
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const query = request.payload;
+
+            logger.debug(`Fetching all roles with query`);
+
+            const { results, total } = await uow.rolesRepository.getAllActiveRolesQuery(query);
+
+            let pages = Math.ceil(total / query.pageSize);
+            
+            return {
+                data: results,
+                pages
+            };
+        }
+    },
+    {
         method: 'GET',
         path: '/roles/{roleId}',
         config: {
