@@ -103,7 +103,9 @@ module.exports = [
                 const userModel = {
                     primaryEmailAddress: payload.primaryEmailAddress,
                     firstName: payload.firstName,
-                    lastName: payload.lastName
+                    lastName: payload.lastName,
+                    disabled: false,
+                    deleted: false
                 };
 
                 let phones = payload.phones;
@@ -126,12 +128,16 @@ module.exports = [
 
                     //if an organization matching the new organization information, add it to errors and don't create it
                     let dbOrganizationIds = [];
+                    let dbRoleIds = [];
                     for (let organization of organizations) {
                         const existingOrganization = await uow.organizationsRepository.getOrganizationByOrganizationInformation(organization);
                         if (existingOrganization == null) {
                             logger.debug(`Creating the organization ${organization.name}`);
-                            const dbOrganization = await uow.organizationsRepository.createOrganizationWithAddress(organization);
+                            const dbOrganization = await uow.organizationsRepository.createOrganizationWithAddress(organization, false);
+                            const userOrganizationRole = await uow.rolesRepository.createRole('Organization Admin', dbOrganization.id);
+                            const userOrganizationRolePermissions = await uow.rolesRepository.updateRolePermissions(userOrganizationRole.id, ['UpdateOrganization']);
                             dbOrganizationIds.push(dbOrganization.id);
+                            dbRoleIds.push(userOrganizationRole.id);
                         }
                         else {
                             await uow.rollbackTransaction();
@@ -143,8 +149,19 @@ module.exports = [
                         }
                     }
 
+                    //create personal organization for user
+                    const personalOrganizationName = (`${payload.firstName} ${payload.lastName}`).substring(0, 255);
+                    const personalOrganization = await uow.organizationsRepository.createOrganization(personalOrganizationName, true);
+                    const userPersonalOrganiztionRole = await uow.rolesRepository.createRole('Organization Admin', personalOrganization.id);
+                    const userPersonalOrganizationRolePermissions = await uow.rolesRepository.updateRolePermissions(userPersonalOrganiztionRole.id, ['UpdateOrganization']);
+                    dbOrganizationIds.push(personalOrganization.id);
+                    dbRoleIds.push(userPersonalOrganiztionRole.id);
+
                     //create the user and link the organizations
                     const user = await uow.usersRepository.createUser(userModel, dbOrganizationIds);
+
+                    //add userRoles for Organization Admin
+                    const userRoles = await uow.usersRepository.addRoles(user.id, dbRoleIds);
 
                     //create userPhones based on the new user and phone information
                     for (let phone of phones) {
@@ -162,11 +179,18 @@ module.exports = [
                     if (payload.sendConfirmationEmail) {
                         logger.debug(`Sending user verification email to user: ${user.id}`);
 
-                        await emailService.sendForgotPasswordEmail(userEmail, uow, request);
+                        try {
+                            await emailService.sendVerificationEmail(userEmail, uow, request, request.params.applicationId);
+                        } catch (error) {
+                            logger.error(`Failed to send verification email to user ${user.id}`);
+                            logger.error(error);
+                        }
                     }
 
                     let response = {
                         success: true,
+                        userId: user.id,
+                        organizationIds: dbOrganizationIds,
                         errors: errors
                     };
 
@@ -186,31 +210,100 @@ module.exports = [
             }
         },
         options: {
-            auth: false,
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
             validate: {
                 payload: {
-                    primaryEmailAddress: Joi.string().email().required(),
-                    firstName: Joi.string().required(),
-                    lastName: Joi.string().required(),
+                    primaryEmailAddress: Joi.string().email().max(255).required(),
+                    firstName: Joi.string().max(255).required(),
+                    lastName: Joi.string().max(255).required(),
                     phones: Joi.array()
                         .items(
                             Joi.object({
-                                phoneNumber: Joi.string().required(),
-                                phoneType: Joi.string().required()
+                                phoneNumber: Joi.string().max(255).required(),
+                                phoneType: Joi.string().max(255).required()
                             })
                         ).required(),
                     organizations: Joi.array().items(
                         Joi.object({
-                            name: Joi.string().required(),
-                            streetAddress: Joi.string().required(),
-                            suiteNumber: Joi.string().required(),
-                            city: Joi.string().required(),
-                            state: Joi.string().required(),
-                            zip: Joi.string().required()
+                            name: Joi.string().max(255).required(),
+                            streetAddress: Joi.string().max(255).required(),
+                            suiteNumber: Joi.string().max(255).required().allow(''),
+                            city: Joi.string().max(255).required(),
+                            state: Joi.string().max(255).required(),
+                            zip: Joi.string().max(255).required()
                         })
                     ).required(),
                     sendConfirmationEmail: Joi.boolean().optional().default(true),
                     confirmationRedirectLink: Joi.string().optional()
+                }
+            }
+        }
+    },
+    {
+        method: 'POST',
+        path: '/applications/{applicationId}/organizationSearch',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const {applicationId} = request.params
+            const {organizationIds} = request.payload;
+
+            logger.debug(`Fetching organizations in list: ${organizationIds} that are active for application: ${applicationId}`);
+
+            const organizations = await uow.applicationsRepository.getOrganizationsForApplicationByIds(applicationId, organizationIds);
+            return organizations;
+        },
+        options: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
+            plugins: {
+                requiredPermissions: ['ViewOrganizations', 'ViewApplications']
+            },
+            validate: {
+                payload: {
+                    organizationIds: Joi.array().items(Joi.string()).required()
+                }
+            }
+        }
+    },
+    {
+        method: 'POST',
+        path: '/applications/{applicationId}/emailNotification',
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const applicationId = request.params.applicationId;
+            const addressee = request.payload.addressee;
+            const body = request.payload.body;
+
+            logger.debug(`Sending email notification to ${addressee}, with body: ${body}`);
+
+            try {
+                await emailService.sendNotificationEmail(uow, request, applicationId, addressee, body);
+                return true;
+            } catch(err) {
+                logger.error(err);
+                throw err;
+            }
+            return false;
+        },
+        options: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
+            plugins: {
+                requiredPermissions: ['ViewOrganizations']
+            },
+            validate: {
+                params: {
+                    applicationId: Joi.string().uuid().required()
+                },
+                payload: {
+                    addressee: Joi.string().required(),
+                    body: Joi.string().required()
                 }
             }
         }

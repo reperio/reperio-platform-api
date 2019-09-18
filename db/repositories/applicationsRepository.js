@@ -63,6 +63,21 @@ class ApplicationsRepository {
             throw err;
         }
     }
+
+    async getOrganizationsForApplicationByIds(applicationId, organizationIds) {
+        try {
+            return await this.uow._models.Organization
+                .query(this.uow._transaction)
+                .join('applicationOrganizations', 'organizations.id', '=', 'applicationOrganizations.organizationId')
+                .where('applicationOrganizations.active', '=', true)
+                .andWhere('applicationOrganizations.applicationId', '=', applicationId)
+                .whereIn('organizations.id', organizationIds);
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch organizations for application`);
+            this.uow._logger.error(err.message);
+            throw err;
+        }
+    }
 }
 
 module.exports = ApplicationsRepository;

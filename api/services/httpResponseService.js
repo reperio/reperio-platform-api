@@ -18,6 +18,15 @@ class HttpResponseService {
         const response = h.response();
         response.header('Authorization', `Bearer ${token}`);
         response.header('Access-Control-Expose-Headers', 'Authorization');
+        response.state('token', token);
+    
+        return response;
+    }
+
+    logoutSuccess(h) {
+        const response = h.response('');
+        response.statusCode = 204;
+        response.unstate('token');
     
         return response;
     }

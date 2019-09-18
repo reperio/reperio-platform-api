@@ -1,4 +1,5 @@
 const uuid4 = require("uuid/v4");
+const QueryHelper = require('../../helpers/queryHelper');
 
 class OrganizationsRepository {
     constructor(uow) {
@@ -23,10 +24,10 @@ class OrganizationsRepository {
         }
     }
 
-    async createOrganizationWithAddress(organization) {
+    async createOrganizationWithAddress(organization, personal = true) {
         const organizationModel = {
             name: organization.name,
-            personal: true,
+            personal: personal,
             deleted: false
         };
         try {
@@ -75,7 +76,6 @@ class OrganizationsRepository {
             return await this.uow._models.Organization
                 .query(this.uow._transaction)
                 .where('id', organizationId)
-                .eager('userOrganizations.user')
                 .first();
         } catch (err) {
             this.uow._logger.error(`Failed to fetch organization using id: ${organizationId}`);
@@ -88,11 +88,66 @@ class OrganizationsRepository {
         try {
             return await this.uow._models.Organization
                 .query(this.uow._transaction)
-                .join('userOrganizations as userOrganization', 'userOrganization.organizationId', 'organizations.id')
-                .where('userOrganization.userId', '=', userId)
+                .join('roles', 'organizations.id', 'roles.organizationId')
+                .join('userRoles', 'roles.id', 'userRoles.roleId')
+                .join('users', 'userRoles.userId', 'users.id')
+                .where('users.id', '=', userId)
                 .orderBy('name');
         } catch (err) {
             this.uow._logger.error(`Failed to fetch organizations by userId: ${userId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async getOrganizationByIdAndUserId(organizationId, userId) {
+        try {
+            return await this.uow._models.Organization
+                .query(this.uow._transaction)
+                .join('roles', 'organizations.id', 'roles.organizationId')
+                .join('userRoles', 'roles.id', 'userRoles.roleId')
+                .join('users', 'userRoles.userId', 'users.id')
+                .where('organizations.id', '=', organizationId)
+                .andWhere('users.id', '=', userId)
+                .first();
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch organization: ${organizationId} by userId: ${userId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async getOrganizationsByUserWithBilling(userId) {
+        try {
+            return await this.uow._models.Organization
+                .query(this.uow._transaction)
+                .join('roles', 'organizations.id', 'roles.organizationId')
+                .join('userRoles', 'roles.id', 'userRoles.roleId')
+                .join('users', 'userRoles.userId', 'users.id')
+                .where('users.id', '=', userId)
+                .andWhere('roles.name', '=', 'Organization Admin')
+                .orderBy('name');
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch organizations with billing by userId: ${userId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async getOrganizationsByUserWithBillingQuery(userId, queryParameters) {
+        try {
+            const q = this.uow._models.Organization
+                .query(this.uow._transaction)
+                .join('roles', 'organizations.id', 'roles.organizationId')
+                .join('userRoles', 'roles.id', 'userRoles.roleId')
+                .join('users', 'userRoles.userId', 'users.id')
+                .where('users.id', '=', userId)
+                .andWhere('roles.name', '=', 'Organization Admin');
+
+            const queryHelper = new QueryHelper(this.uow, this.uow._logger);
+            return await queryHelper.getQueryResult(q, queryParameters);
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch organizations with billing by userId by query: ${userId}`);
             this.uow._logger.error(err);
             throw err;
         }
@@ -138,6 +193,56 @@ class OrganizationsRepository {
         } catch (err) {
             this.uow._logger.error(err);
             this.uow._logger.error(`Failed to edit organization`);
+            throw err;
+        }
+    }
+
+    async getApplicationOrganization(organizationId, applicationId) {
+        try {
+            return await this.uow._models.ApplicationOrganization
+                .query(this.uow._transaction)
+                .where('applicationId', applicationId)
+                .andWhere('organizationId', organizationId)
+                .first();
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch applicationOrganization using applicationId: ${applicationId} - organizationId: ${organizationId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async createApplicationOrganization(organizationId, applicationId) {
+        const organizationApplicationModel = {
+            applicationId,
+            organizationId,
+            active: false
+        };
+
+        try {
+            return await this.uow._models.ApplicationOrganization
+                .query(this.uow._transaction)
+                .insert(organizationApplicationModel)
+                .returning("*");
+        } catch (err) {
+            this.uow._logger.error(`Failed to create applicationOrganization - applicationId: ${applicationId} - organizationId: ${organizationId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async enableApplicationOrganization(organizationId, applicationId) {
+        try {
+            return await this.uow._models.ApplicationOrganization
+                .query(this.uow._transaction)
+                .patch({active: true})
+                .where('applicationId', applicationId)
+                .where('organizationId', organizationId)
+                .returning("*")
+                .first();
+
+        } catch (err) {
+            this.uow._logger.error(`Failed to enable applicationOrganization - applicationId: ${applicationId} - organizationId: ${organizationId}`);
+            this.uow._logger.error(err);
             throw err;
         }
     }

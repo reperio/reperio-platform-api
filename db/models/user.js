@@ -29,7 +29,6 @@ class User extends BaseModel {
     static get relationMappings() {
         const UserPhone = require('./userPhone');
         const UserEmail = require('./userEmail');
-        const UserOrganization = require('./userOrganization');
         const UserRole = require('./userRole');
 
         return {
@@ -55,14 +54,6 @@ class User extends BaseModel {
                 join: {
                     from: 'users.primaryEmailId',
                     to: 'userEmails.id'
-                }
-            },
-            userOrganizations: {
-                relation: Model.HasManyRelation,
-                modelClass: UserOrganization,
-                join: {
-                    from: 'users.id',
-                    to: 'userOrganizations.userId'
                 }
             },
             userRoles: {

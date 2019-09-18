@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
-const Config = require('./config');
 const UnitOfWork = require('./db');
+const Config = require('./config');
 const RecaptchaService = require('./api/services/recaptchaService');
 const MessageHelper = require('./helpers/messageHelper');
 const RedisHelper = require('./helpers/redisHelper');
@@ -22,6 +22,31 @@ const filterProperties = async (oldObj, propertiesToObfuscate, replacementText) 
     }
     return obj;
 };
+const getApplicationList = async () => {
+    const uow = new UnitOfWork();
+    const apps = await uow.applicationsRepository.getAllApplications();
+
+    const result = apps.reduce((map, app) => {
+        map[app.id] = app;
+        return map;
+    }, {});
+
+    return result;
+};
+
+const checkRedisForJWT = async (decodedToken, request) => {
+    try {
+        const redisHelper = await request.app.getNewRedisHelper(request.server.app.logger, Config);
+        const redisToken = await redisHelper.getJWT(request.auth.token);
+
+        return {isValid: !!redisToken};
+    } catch (e) {
+        console.log(e);
+        return {isValid: false}
+    }
+};
+
+let appList = null;
 
 const extensions = {
     onPostAuth: { 
@@ -71,8 +96,8 @@ const extensions = {
             return h.continue;
         }
     },
-    onPreHandlerRegisterAppFunctions: { 
-        type: 'onPreHandler', 
+    onPreAuthRegisterAppFunctions: { 
+        type: 'onPreAuth', 
         method: async (request, h) => {
             request.app.uows = [];
             request.app.getNewUoW = async () => {
@@ -129,6 +154,9 @@ const extensions = {
                     expiresIn: Config.jwtValidTimespan
                 });
 
+                const redisHelper = await request.app.getNewRedisHelper();
+                await redisHelper.addJWT(token)
+
                 request.response.header('Access-Control-Expose-Headers', 'Authorization');
                 request.response.header("Authorization", `Bearer ${token}`);
             }
@@ -141,7 +169,7 @@ const extensions = {
 const registerExtensions = async (server) => {
     await server.registerExtension(extensions.onPostAuth);
     await server.registerExtension(extensions.onPreHandlerActivityLogging);
-    await server.registerExtension(extensions.onPreHandlerRegisterAppFunctions);
+    await server.registerExtension(extensions.onPreAuthRegisterAppFunctions);
     await server.registerExtension(extensions.onPreResponseActivityLogging);
     await server.registerExtension(extensions.onPreResponseAuthToken);
 };
@@ -167,4 +195,4 @@ const registerRateLimitPlugin = async (server) => {
     await server.registerAdditionalPlugin(limitPluginPackage);
 };
 
-module.exports = { extensions, registerExtensions, registerAPIPlugin, registerRateLimitPlugin, filterProperties };
+module.exports = { extensions, registerExtensions, registerAPIPlugin, registerRateLimitPlugin, filterProperties, checkRedisForJWT };

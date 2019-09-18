@@ -14,7 +14,7 @@ class AuthService {
             currentUserId: user.id,
             userId: user.id,
             userEmail: user.primaryEmailAddress,
-            userPermissions: PermissionService.getUserPermissions(user)
+            userPermissions: PermissionService.getUserPermissions(user),
         };
     
         const token = jwt.sign(tokenPayload, secret, {

@@ -38,7 +38,6 @@ describe('Applications API', () => {
             }
         });
         await server.registerExtension(extensions.onPostAuth);
-        await server.startServer();
     });
 
     afterEach(async () => {
@@ -62,6 +61,9 @@ describe('Applications API', () => {
             const options = {
                 url: '/api/applications/123456/userSignup',
                 method: 'POST',
+                headers: {
+                    'application-token': 'test'
+                },
                 payload: {
                     firstName:"admin",
                     lastName:"admin"
@@ -136,6 +138,9 @@ describe('Applications API', () => {
             const options = {
                 url: '/api/applications/d08a1f76-7c4a-4dd9-a377-83ffffa752f4/userSignup',
                 method: 'POST',
+                headers: {
+                    'application-token': 'test'
+                },
                 payload: {
                     primaryEmailAddress: "andrewrobb@sevenhillstechnology.com",
                     firstName: "admin",
@@ -242,6 +247,9 @@ describe('Applications API', () => {
             const options = {
                 url: '/api/applications/d08a1f76-7c4a-4dd9-a377-83ffffa752f4/userSignup',
                 method: 'POST',
+                headers: {
+                    'application-token': 'test'
+                },
                 payload: {
                     primaryEmailAddress: "andrewrobb@sevenhillstechnology.com",
                     firstName: "admin",
@@ -344,6 +352,9 @@ describe('Applications API', () => {
             const options = {
                 url: '/api/applications/d08a1f76-7c4a-4dd9-a377-83ffffa752f4/userSignup',
                 method: 'POST',
+                headers: {
+                    'application-token': 'test'
+                },
                 payload: {
                     primaryEmailAddress: "andrewrobb@sevenhillstechnology.com",
                     firstName: "admin",
@@ -442,6 +453,9 @@ describe('Applications API', () => {
             const options = {
                 url: '/api/applications/d08a1f76-7c4a-4dd9-a377-83ffffa752f4/userSignup',
                 method: 'POST',
+                headers: {
+                    'application-token': 'test'
+                },
                 payload: {
                     primaryEmailAddress: "andrewrobb@sevenhillstechnology.com",
                     firstName: "admin",
@@ -549,6 +563,9 @@ describe('Applications API', () => {
             const options = {
                 url: '/api/applications/d08a1f76-7c4a-4dd9-a377-83ffffa752f4/userSignup',
                 method: 'POST',
+                headers: {
+                    'application-token': 'test'
+                },
                 payload: {
                     primaryEmailAddress: "andrewrobb@sevenhillstechnology.com",
                     firstName: "admin",

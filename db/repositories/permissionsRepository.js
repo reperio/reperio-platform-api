@@ -1,4 +1,5 @@
 const moment = require('moment');
+const QueryHelper = require('../../helpers/queryHelper');
 
 class PermissionsRepository {
     constructor(uow) {
@@ -26,6 +27,21 @@ class PermissionsRepository {
                 .eager('rolePermissions.role');
         } catch (err) { 
             this.uow._logger.error(`Failed to fetch permissions`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async getAllPermissionsQuery(queryParameters) {
+        const queryHelper = new QueryHelper(this.uow, this.uow._logger);
+        try {
+            const q = this.uow._models.Permission
+                .query(this.uow._transaction)
+                .eager('rolePermissions.role');
+
+            return await queryHelper.getQueryResult(q, queryParameters);
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch permissions by query`);
             this.uow._logger.error(err);
             throw err;
         }

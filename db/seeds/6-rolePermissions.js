@@ -65,6 +65,10 @@ exports.seed = async function (knex, Promise) {
         },
         {
             roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+            permissionName: 'UpdateOrganization'
+        },
+        {
+            roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
             permissionName: 'DeleteOrganizations'
         },
         {
@@ -82,6 +86,22 @@ exports.seed = async function (knex, Promise) {
         {
             roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
             permissionName: 'ResendVerificationEmails'
-        }
+        },
+        {
+            roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+            permissionName: 'ViewApplications'
+        },
+        {
+            roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+            permissionName: 'CreateApplications'
+        },
+        {
+            roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+            permissionName: 'UpdateApplications'
+        },
+        {
+            roleId: 'e37c87b4-b92e-11e8-96f8-529269fb1459',
+            permissionName: 'DeleteApplications'
+        },
     ]);
 };

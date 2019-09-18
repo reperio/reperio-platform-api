@@ -140,6 +140,15 @@ exports.seed = async function (knex, Promise) {
             deleted: false
         },
         {
+            name: 'UpdateOrganization',
+            displayName: 'Update Organization',
+            description: 'Allows for updating single organization',
+            isSystemAdminPermission: false,
+            createdDate: moment().utc().format(),
+            lastEditedDate: moment().utc().format(),
+            deleted: false
+        },
+        {
             name: 'DeleteOrganizations',
             displayName: 'Delete Organizations',
             description: 'Allows for deleting organizations',
@@ -179,6 +188,42 @@ exports.seed = async function (knex, Promise) {
             name: 'ResendVerificationEmails',
             displayName: 'Resend Verification Emails',
             description: 'Allows for resending verification emails to user emails',
+            isSystemAdminPermission: false,
+            createdDate: moment().utc().format(),
+            lastEditedDate: moment().utc().format(),
+            deleted: false
+        },
+        {
+            name: 'ViewApplications',
+            displayName: 'View Applications',
+            description: 'Allows for viewing applications',
+            isSystemAdminPermission: false,
+            createdDate: moment().utc().format(),
+            lastEditedDate: moment().utc().format(),
+            deleted: false
+        },
+        {
+            name: 'CreateApplications',
+            displayName: 'Create Applications',
+            description: 'Allows for creating applications',
+            isSystemAdminPermission: false,
+            createdDate: moment().utc().format(),
+            lastEditedDate: moment().utc().format(),
+            deleted: false
+        },
+        {
+            name: 'UpdateApplications',
+            displayName: 'Update Applications',
+            description: 'Allows for updating applications',
+            isSystemAdminPermission: false,
+            createdDate: moment().utc().format(),
+            lastEditedDate: moment().utc().format(),
+            deleted: false
+        },
+        {
+            name: 'DeleteApplications',
+            displayName: 'Delete Applications',
+            description: 'Allows for deleting applications',
             isSystemAdminPermission: false,
             createdDate: moment().utc().format(),
             lastEditedDate: moment().utc().format(),

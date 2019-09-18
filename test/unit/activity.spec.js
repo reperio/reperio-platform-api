@@ -36,7 +36,6 @@ describe('Activity logging', () => {
             }
         });
         await server.registerExtension(extensions.onPostAuth);
-        await server.startServer();
     });
 
     // stop the server after each test and dereference it

@@ -1,22 +1,25 @@
 const Joi = require('joi');
 const httpResponseService = require('./services/httpResponseService');
+const permissionService = require('./services/permissionService');
+const emailService = require('./services/emailService');
+const config = require('./../config');
 
 module.exports = [
     {
         method: 'POST',
         path: '/organizations',
-        config: {
+        options: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
             validate: {
                 payload: {
                     name: Joi.string().required(),
-                    userIds: Joi.array()
-                        .items(
-                            Joi.string()
-                        ).required(),
+                    userId: Joi.string().guid().required(),
                     personal: Joi.bool().required(),
                     address: Joi.object({
                         'streetAddress': Joi.string().required(),
-                        'suiteNumber': Joi.string().required(),
+                        'suiteNumber': Joi.string().required().allow(''),
                         'city': Joi.string().required(),
                         'state': Joi.string().required(),
                         'zip': Joi.string().required()
@@ -30,6 +33,7 @@ module.exports = [
             const payload = request.payload;
 
             logger.debug(`Creating organization`);
+            let organization;
             await uow.beginTransaction();
 
             if(payload.address != null){
@@ -40,27 +44,25 @@ module.exports = [
 
                 const existingOrganization = await uow.organizationsRepository.getOrganizationByOrganizationInformation(organizationModel);
 
-                if (existingOrganization === null) {
+                if (existingOrganization == null) {
                     logger.debug(`Creating the organization ${organizationModel.name}`);
-                    const dbOrganization = await uow.organizationsRepository.createOrganizationWithAddress(organizationModel);
-
-                    await uow.commitTransaction();
-                    return dbOrganization;
+                    organization = await uow.organizationsRepository.createOrganizationWithAddress(organizationModel, payload.personal);
                 }
                 else{
                     return httpResponseService.conflict(h);
                 }
             }
             else {
-                const organization = await uow.organizationsRepository.createOrganization(payload.name, payload.personal);
-                if (organization && payload.userIds.length > 0) {
-                    await uow.usersRepository.replaceUserOrganizationsByOrganizationId(organization.id, payload.userIds);
-                }
-
-                await uow.commitTransaction();
-
-                return organization;
+                organization = await uow.organizationsRepository.createOrganization(payload.name, payload.personal);
             }
+            //add Organization Admin role, add role permission, add userRole mapping
+            const role = await uow.rolesRepository.createRole('Organization Admin', organization.id);
+            const rolePermission = await uow.rolesRepository.updateRolePermissions(role.id, ['UpdateOrganization']);
+            const userRole = await uow.usersRepository.addRoles(payload.userId, [role.id]);
+
+            await uow.commitTransaction();
+
+            return organization;
         }
     },
     {
@@ -91,48 +93,67 @@ module.exports = [
     {
         method: 'GET',
         path: '/organizations',
-        config: {
-            plugins: {
-                requiredPermissions: ['ViewOrganizations']
-            }
-        },
+        config: {},
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
+            const userId = request.auth.credentials.currentUserId;
 
-            logger.debug(`Fetching all organizations`);
+            logger.debug(`Fetching organizations for userId: ${userId}`);
 
-            const organizations = await uow.organizationsRepository.getAllOrganizations();
-            
+            const organizations = await uow.organizationsRepository.getOrganizationsByUserWithBilling(userId);
+
             return organizations;
         }
     },
     {
-        method: 'GET',
-        path: '/organizations/user/{userId}',
+        method: 'POST',
+        path: '/organizations/query',
+        config: {
+            validate: {
+                payload: {
+                    page: Joi.number(),
+                    pageSize: Joi.number(),
+                    sort: Joi.array().items(
+                        Joi.object({
+                            id: Joi.string(),
+                            desc: Joi.bool()
+                        })
+                    ).optional(),
+                    filter: Joi.array().items(
+                        Joi.object({
+                            id: Joi.string(),
+                            value: Joi.string()
+                        })
+                    ).optional()
+                }
+            }
+        },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const userId = request.params.userId;
+            const query = request.payload;
+            const userId = request.auth.credentials.currentUserId;
 
-            logger.debug(`Fetching all organizations by user: ${userId}`);
+            logger.debug(`Fetching all organizations with query`);
 
-            const organizations = await uow.organizationsRepository.getOrganizationsByUser(userId);
+            const { results, total } = await uow.organizationsRepository.getOrganizationsByUserWithBillingQuery(userId, query);
+
+            let pages = Math.ceil(total / query.pageSize);
             
-            return organizations;
-        },
-        options: {
-            validate: {
-                params: {
-                    userId: Joi.string().guid().required()
-                }
-            }
+            return {
+                data: results,
+                pages
+            };
         }
     },
     {
         method: 'GET',
         path: '/organizations/{organizationId}',
         config: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
             plugins: {
                 requiredPermissions: ['ViewOrganizations']
             },
@@ -150,48 +171,122 @@ module.exports = [
             logger.debug(`Fetching organization by organizationId: ${organizationId}`);
 
             const organization = await uow.organizationsRepository.getOrganizationById(organizationId);
-            if (organization.userOrganizations && organization.userOrganizations.length > 0) {
-                organization.userOrganizations.forEach(userOrganization => userOrganization.user.password = null)
-            }
             
             return organization;
         }
     },
     {
-        method: 'PUT',
-        path: '/organizations/{organizationId}',
+        method: 'POST',
+        path: '/organizations/{organizationId}/applications',
         config: {
-            plugins: {
-                requiredPermissions: ['ViewOrganizations', 'UpdateOrganizations']
+            auth: {
+                strategies: ['jwt', 'application-token']
             },
             validate: {
                 params: {
-                    organizationId: Joi.string().guid(),
+                    organizationId: Joi.string().uuid().required()
                 },
                 payload: {
-                    name: Joi.string().required(),
-                    userIds: Joi.array()
-                        .items(
-                            Joi.string()
-                        ).required()
+                    userId: Joi.string().guid().required(),
+                    applicationId: Joi.string().uuid().required()
                 }
             }
         },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
+            const {userId, applicationId} = request.payload;
             const organizationId = request.params.organizationId;
-            const payload = request.payload;
+
+            logger.debug(`Creating application for organization`);
+            const userRoles = await uow.usersRepository.getUserRoles(userId);
             
-            logger.debug(`Updating organization: ${organizationId}`);
+            const hasPermission = userRoles.find(role => {
+                if (role.organizationId === organizationId) {
+                    switch (role.name) {
+                        case 'Organization Admin':
+                            return true;
+                        default:
+                            return false;
+                    }
+                } else if (role.name === 'Core Super Admin') {
+                    return true;
+                }
+            });
+            
+            if (!hasPermission) {
+                return httpResponseService.unauthorized(h);
+            }
 
-            await uow.beginTransaction();
-
-            const organization = await uow.organizationsRepository.editOrganization(organizationId, payload.name);
-            await uow.usersRepository.replaceUserOrganizationsByOrganizationId(organizationId, payload.userIds);
-
-            await uow.commitTransaction();
-            return organization;
+            try {
+                const applicationOrganization = await uow.organizationsRepository.getApplicationOrganization(organizationId, applicationId);
+                if (applicationOrganization) {
+                    return true;
+                }
+                await uow.beginTransaction();
+                await uow.organizationsRepository.createApplicationOrganization(organizationId, applicationId);
+                await uow.commitTransaction();
+                return true;
+            } catch (err) {
+                logger.error(err);
+                uow.rollbackTransaction();
+                throw err;
+            }
         }
     },
+    {
+        method: 'POST',
+        path: '/organizations/{organizationId}/applications/{applicationId}/enable',
+        config: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
+            validate: {
+                params: {
+                    organizationId: Joi.string().guid().required(),
+                    applicationId: Joi.string().guid().required()
+                },
+                payload: {
+                    userId: Joi.string().guid().required()
+                }
+            }
+        },
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const {organizationId, applicationId} = request.params;
+            const {userId} = request.payload;
+
+            logger.debug(`Enabling application for organization`);
+            const userRoles = await uow.usersRepository.getUserRoles(userId);
+            
+            const hasPermission = userRoles.find(role => {
+                if (role.organizationId === organizationId) {
+                    switch (role.name) {
+                        case 'Organization Admin':
+                            return true;
+                        default:
+                            return false;
+                    }
+                } else if (role.name === 'Core Super Admin') {
+                    return true;
+                }
+            });
+            
+            if (!hasPermission) {
+                return httpResponseService.unauthorized(h);
+            }
+
+            try {
+                await uow.beginTransaction();
+                const applicationOrganization = await uow.organizationsRepository.enableApplicationOrganization(organizationId, applicationId);
+                await uow.commitTransaction();
+                return true;
+            } catch (err) {
+                logger.error(err);
+                uow.rollbackTransaction();
+                throw err;
+            }
+        }
+    }
 ];
