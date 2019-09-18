@@ -1,3 +1,5 @@
+const QueryHelper = require('../../helpers/queryHelper');
+
 class RolesRepository {
     constructor(uow) {
         this.uow = uow;
@@ -42,6 +44,22 @@ class RolesRepository {
                 .eager('rolePermissions.permission');
         } catch (err) {
             this.uow._logger.error(`Failed to fetch roles`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async getAllActiveRolesQuery(queryParameters) {
+        const queryHelper = new QueryHelper(this.uow, this.uow._logger);
+        try {
+            const q = this.uow._models.Role
+                .query(this.uow._transaction)
+                .eager('rolePermissions.permission')
+                .where('deleted', false);
+
+            return await queryHelper.getQueryResult(q, queryParameters);
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch roles by query`);
             this.uow._logger.error(err);
             throw err;
         }

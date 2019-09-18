@@ -92,6 +92,51 @@ module.exports = [
     },
     {
         method: 'POST',
+        path: '/users/query',
+        config: {
+            plugins: {
+                requiredPermissions: ['ViewUsers']
+            },
+            validate: {
+                payload: {
+                    page: Joi.number(),
+                    pageSize: Joi.number(),
+                    sort: Joi.array().items(
+                        Joi.object({
+                            id: Joi.string(),
+                            desc: Joi.bool()
+                        })
+                    ).optional(),
+                    filter: Joi.array().items(
+                        Joi.object({
+                            id: Joi.string(),
+                            value: Joi.string()
+                        })
+                    ).optional()
+                }
+            }
+        },
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const query = request.payload;
+
+            logger.debug(`Fetching all users with query`);
+
+            const { results, total } = await uow.usersRepository.getAllUsersQuery(query);
+
+            results.forEach(x => x.password = null);
+
+            let pages = Math.ceil(total / query.pageSize);
+            
+            return {
+                data: results,
+                pages
+            };
+        }
+    },
+    {
+        method: 'POST',
         path: '/users',
         config: {
             plugins: {

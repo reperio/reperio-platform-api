@@ -1,3 +1,5 @@
+const QueryHelper = require('../../helpers/queryHelper');
+
 class UsersRepository {
     constructor(uow) {
         this.uow = uow;
@@ -137,6 +139,21 @@ class UsersRepository {
                 .eager('userRoles.role.organization');
         } catch (err) {
             this.uow._logger.error(`Failed to fetch users`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async getAllUsersQuery(queryParameters) {
+        const queryHelper = new QueryHelper(this.uow, this.uow._logger);
+        try {
+            const q = this.uow._models.User
+                .query(this.uow._transaction)
+                .eager('userRoles.role.organization');
+
+                return await queryHelper.getQueryResult(q, queryParameters);
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch users by query`);
             this.uow._logger.error(err);
             throw err;
         }
