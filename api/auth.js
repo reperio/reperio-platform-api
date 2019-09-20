@@ -35,6 +35,7 @@ module.exports = [
             
             try {
                 const payload = request.payload;
+                payload.primaryEmailAddress = payload.primaryEmailAddress.toLowerCase();
                 logger.debug(`Login attempt for email: ${payload.primaryEmailAddress}`);
                 const uow = await request.app.getNewUoW();
 
@@ -122,6 +123,7 @@ module.exports = [
 
             try {
                 const payload = request.payload;
+                payload.primaryEmailAddress = payload.primaryEmailAddress.toLowerCase();
 
                 logger.debug(`New account signup with email: ${payload.primaryEmailAddress}`);
 
@@ -194,8 +196,9 @@ module.exports = [
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
             const payload = request.payload;
+            payload.email = payload.email.toLowerCase();
 
-            logger.debug(`Ssending verification email for user: ${payload.userId}`);
+            logger.debug(`Sending verification email for user: ${payload.userId}`);
             try {
                 await uow.beginTransaction();
                 const userEmail = await uow.userEmailsRepository.getUserEmail(payload.userId, payload.email);
@@ -285,6 +288,7 @@ module.exports = [
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
             const payload = request.payload;
+            payload.primaryEmailAddress = payload.primaryEmailAddress.toLowerCase();
 
             const existingUser = await uow.usersRepository.getUserByEmail(payload.primaryEmailAddress);
             if (existingUser == null) {
