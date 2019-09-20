@@ -53,7 +53,7 @@ module.exports = [
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
 
-            const emailAddress = request.query.emailAddress;
+            const emailAddress = request.query.emailAddress.toLowerCase();
 
             logger.debug(`Getting User by primary email address`);
             logger.debug(`using email address: ${emailAddress}`);
@@ -163,6 +163,7 @@ module.exports = [
 
             logger.debug(`Creating user`);
             const payload = request.payload;
+            payload.primaryEmailAddress = payload.primaryEmailAddress.toLowerCase();
 
             //validate signup details
             if (payload.password !== payload.confirmPassword) {
@@ -270,6 +271,8 @@ module.exports = [
             const userId = request.params.userId;
             logger.debug(`Editing user emails: ${userId}`);
             await uow.beginTransaction();
+
+            payload.userEmails.map(e => e.email = e.email.toLowerCase());
 
             const newOrReusedUserEmails = await uow.userEmailsRepository.addUserEmails(userId, payload.userEmails);
 
