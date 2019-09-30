@@ -361,20 +361,25 @@ module.exports = [
                 logger.debug(`Forgot password for user: ${entry.userId}`);
 
                 if (payload.password != payload.confirmPassword) {
-                    logger.debug(`Passwords don't match`);
-                    return httpResponseService.badData(h);
+                    const validationError = 'Error: passwords must match';
+                    logger.error(validationError);
+                    return httpResponseService.badData(h, validationError);
+                } else if (payload.password.length < 8) {
+                    const validationError = 'Error: password must be at least 8 characters';
+                    logger.error(validationError);
+                    return httpResponseService.badData(h, validationError);
                 }
 
                 await uow.forgotPasswordsRepository.trigger(payload.token, now.format());
 
                 if (now.diff(entry.createdAt, 'minutes') >= request.server.app.config.email.linkTimeout) {
-                    logger.debug(`Link expired`);
+                    logger.error(`Link expired`);
                     return false;
                 }
                 else {
                     const password = await authService.hashPassword(payload.password);
                     await uow.usersRepository.editUser({password}, entry.userId);
-                    logger.debug(`Forgot password successful`);
+                    logger.debug(`Reset password successful`);
                     return true;
                 }
             }

@@ -8,8 +8,8 @@ class HttpResponseService {
         return response;
     }
 
-    badData(h) {
-        const response = h.response('bad data');
+    badData(h, message = null) {
+        const response = h.response(message ? message : 'bad data');
         response.statusCode = 400;
         return response;
     }
