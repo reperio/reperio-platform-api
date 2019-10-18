@@ -132,6 +132,21 @@ class UsersRepository {
         }
     }
 
+    async getUsersByOrganizationId(organizationId) {
+        try {
+            return await this.uow._models.User
+                .query(this.uow._transaction)
+                .select(['users.*', 'roles.name AS role'])
+                .join('userRoles', 'users.id', 'userRoles.userId')
+                .join('roles', 'roles.id', 'userRoles.roleId')
+                .where('roles.organizationId', organizationId);
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch user using id: ${userId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
     async getAllUsers() {
         try {
             return await this.uow._models.User
