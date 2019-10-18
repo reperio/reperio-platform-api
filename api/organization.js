@@ -288,5 +288,35 @@ module.exports = [
                 throw err;
             }
         }
+    },
+    {
+        method: 'GET',
+        path: '/organizations/{organizationId}/users',
+        config: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
+            validate: {
+                params: {
+                    organizationId: Joi.string().guid().required()
+                }
+            }
+        },
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const {organizationId} = request.params;
+            
+            logger.debug(`Fetching all users for organization id: ${organizationId}`);
+
+            try {
+                const users =  await uow.usersRepository.getUsersByOrganizationId(organizationId);
+                return users;
+            } catch (err) {
+                logger.error(`Failed to fetch all users for organization id: ${organizationId}`);
+                logger.error(err);
+                throw err;
+            }
+        }
     }
 ];
