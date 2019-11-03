@@ -94,6 +94,9 @@ module.exports = [
         method: 'POST',
         path: '/users/query',
         config: {
+            auth: {
+                strategies: ['jwt', 'application-token'],
+            },
             plugins: {
                 requiredPermissions: ['ViewUsers']
             },
@@ -112,18 +115,20 @@ module.exports = [
                             id: Joi.string(),
                             value: Joi.string()
                         })
-                    ).optional()
+                    ).optional(),
+                    organizationId: Joi.string().guid().optional()
                 }
             }
         },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const query = request.payload;
+            const {page, pageSize, sort, filter, organizationId} = request.payload;
+            const query = {page, pageSize, sort, filter};
 
             logger.debug(`Fetching all users with query`);
 
-            const { results, total } = await uow.usersRepository.getAllUsersQuery(query);
+            const { results, total } = await uow.usersRepository.getAllUsersQuery(query, organizationId);
 
             results.forEach(x => x.password = null);
 
