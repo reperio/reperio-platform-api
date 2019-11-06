@@ -121,7 +121,6 @@ class UsersRepository {
             return await this.uow._models.User
                 .query(this.uow._transaction)
                 .mergeEager('userRoles.role.rolePermissions.permission')
-                .mergeEager('userEmails')
                 .mergeEager('userRoles.role.organization')
                 .where('users.id', userId)
                 .first();
@@ -204,7 +203,6 @@ class UsersRepository {
             return await this.uow._models.User
                 .query(this.uow._transaction)
                 .mergeEager('userRoles.role.rolePermissions.permission')
-                .mergeEager('userEmails')
                 .where('primaryEmailAddress', primaryEmailAddress)
                 .first();
         } catch (err) {
