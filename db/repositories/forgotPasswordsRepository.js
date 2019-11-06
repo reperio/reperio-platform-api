@@ -5,10 +5,9 @@ class ForgotPasswordsRepository {
         this.uow = uow;
     }
 
-    async addEntry(userEmailId, userId) {
+    async addEntry(userId) {
         const payload = {
            createdAt: moment.utc().format(),
-           userEmailId,
            userId
         }
         try {

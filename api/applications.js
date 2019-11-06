@@ -105,7 +105,8 @@ module.exports = [
                     firstName: payload.firstName,
                     lastName: payload.lastName,
                     disabled: false,
-                    deleted: false
+                    deleted: false,
+                    emailVerified: false
                 };
 
                 let phones = payload.phones;
@@ -167,10 +168,6 @@ module.exports = [
                     for (let phone of phones) {
                         await uow.userPhonesRepository.createUserPhone(user.id, phone.phoneNumber, phone.phoneType);
                     }
-
-                    //create userEmail based on the email and new user information
-                    const userEmail = await uow.userEmailsRepository.createUserEmail(user.id, user.primaryEmailAddress);
-                    await uow.usersRepository.editUser({primaryEmailId: userEmail.id}, user.id);
 
                     //commit transaction
                     await uow.commitTransaction();

@@ -194,7 +194,6 @@ module.exports = [
             const personalOrganizationName = (`${payload.firstName} ${payload.lastName}`).substring(0, 255);
             const organization = await uow.organizationsRepository.createOrganization(personalOrganizationName, true);
             const user = await uow.usersRepository.createUser(userModel, payload.organizationIds.concat(organization.id));
-            const userEmail = await uow.userEmailsRepository.createUserEmail(user.id, user.primaryEmailAddress);
             const updatedUser = await uow.usersRepository.editUser({primaryEmailId: userEmail.id}, user.id);
             const role = await uow.rolesRepository.createRole('Organization Admin', organization.id);
             const rolePermission = await uow.rolesRepository.updateRolePermissions(role.id, ['UpdateOrganization']);
@@ -204,7 +203,7 @@ module.exports = [
             await uow.commitTransaction();
 
             //send verification email
-            await emailService.sendVerificationEmail(userEmail, uow, request, payload.applicationId);
+            await emailService.sendVerificationEmail(user.id, user.primaryEmailAddress, uow, request, payload.applicationId);
 
             return updatedUser;
         }
@@ -245,125 +244,6 @@ module.exports = [
             await uow.commitTransaction();
             
             return user;
-        }
-    },
-    {
-        method: 'POST',
-        path: '/users/{userId}/addUserEmails',
-        config: {
-            plugins: {
-                requiredPermissions: ['ViewUsers', 'AddEmail']
-            },
-            validate: {
-                params: {
-                    userId: Joi.string().guid(),
-                },
-                payload: {
-                    userEmails: Joi.array().items(
-                        Joi.object({
-                            email: Joi.string().email(),
-                            id: Joi.string().guid().allow(null)
-                        })
-                    ),
-                    applicationId: Joi.string().optional().allow(null).allow('')
-                }
-            }
-        },
-        handler: async (request, h) => {
-            const uow = await request.app.getNewUoW();
-            const logger = request.server.app.logger;
-            const payload = request.payload;
-            const userId = request.params.userId;
-            logger.debug(`Editing user emails: ${userId}`);
-            await uow.beginTransaction();
-
-            payload.userEmails.map(e => e.email = e.email.toLowerCase());
-
-            const newOrReusedUserEmails = await uow.userEmailsRepository.addUserEmails(userId, payload.userEmails);
-
-            await uow.commitTransaction();
-
-            if (newOrReusedUserEmails) {
-                const promises = newOrReusedUserEmails.map(async userEmail => {
-                    return await emailService.sendVerificationEmail(userEmail, uow, request, payload.applicationId)
-                });
-
-                Promise.all(promises);
-            }
-            
-            return true;
-        }
-    },
-    {
-        method: 'POST',
-        path: '/users/{userId}/deleteUserEmails',
-        config: {
-            plugins: {
-                requiredPermissions: ['ViewUsers', 'DeleteEmail']
-            },
-            validate: {
-                params: {
-                    userId: Joi.string().guid()
-                },
-                payload: {
-                    userEmailIds: Joi.array()
-                    .items(
-                        Joi.string().guid()
-                    ).required()
-                }
-            }
-        },
-        handler: async (request, h) => {
-            const uow = await request.app.getNewUoW();
-            const logger = request.server.app.logger;
-            const userId = request.params.userId;
-            const userEmailIds = request.payload.userEmailIds;
-            logger.debug(`Editing user emails: ${userId}`);
-            await uow.beginTransaction();
-
-            const user = await uow.usersRepository.getUserById(userId);
-            if (userEmailIds.includes(user.primaryEmailId)) {
-                return httpResponseService.badData(h);
-            }
-
-            await uow.userEmailsRepository.deleteUserEmails(userEmailIds, userId);
-
-            await uow.commitTransaction();
-            
-            return true;
-        }
-    },
-    {
-        method: 'PUT',
-        path: '/users/{userId}/setPrimaryUserEmail',
-        config: {
-            plugins: {
-                requiredPermissions: ['ViewUsers', 'SetPrimaryEmail']
-            },
-            validate: {
-                params: {
-                    userId: Joi.string().guid()
-                },
-                payload: {
-                    primaryUserEmailId: Joi.string().guid().required()
-                }
-            }
-        },
-        handler: async (request, h) => {
-            const uow = await request.app.getNewUoW();
-            const logger = request.server.app.logger;
-            const userId = request.params.userId;
-            const primaryUserEmailId = request.payload.primaryUserEmailId;
-            logger.debug(`Updating primary email for: ${userId}`);
-            await uow.beginTransaction();
-
-            const userEmail = await uow.userEmailsRepository.getUserEmailById(primaryUserEmailId);
-
-            await uow.usersRepository.setPrimaryUserEmail(userId, userEmail);
-
-            await uow.commitTransaction();
-            
-            return true;
         }
     },
     {
