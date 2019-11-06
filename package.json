@@ -9,6 +9,8 @@
     "start": "node index.js",
     "rebuild-db": "./docker-database/rebuild-db.sh",
     "knex": "knex --knexfile db/knexfile.js",
+    "migrate": "cd db && knex --knexfile knexfile.js migrate:latest",
+    "rollback": "cd db && knex --knexfile knexfile.js migrate:rollback",
     "seed": "cd db && knex seed:run"
   },
   "repository": {
