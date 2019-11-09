@@ -116,7 +116,7 @@ module.exports = [
                             value: Joi.string()
                         })
                     ).optional(),
-                    organizationId: Joi.string().guid().optional()
+                    organizationId: Joi.string().guid().optional().allow(null).allow("")
                 }
             }
         },
