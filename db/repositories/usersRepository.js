@@ -132,6 +132,21 @@ class UsersRepository {
         }
     }
 
+    async getUsersByOrganizationId(organizationId) {
+        try {
+            return await this.uow._models.User
+                .query(this.uow._transaction)
+                .select(['users.*', 'roles.name AS role'])
+                .join('userRoles', 'users.id', 'userRoles.userId')
+                .join('roles', 'roles.id', 'userRoles.roleId')
+                .where('roles.organizationId', organizationId);
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch user using id: ${userId}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
     async getAllUsers() {
         try {
             return await this.uow._models.User
@@ -144,14 +159,26 @@ class UsersRepository {
         }
     }
 
-    async getAllUsersQuery(queryParameters) {
+    async getAllUsersQuery(queryParameters, organizationId = null) {
         const queryHelper = new QueryHelper(this.uow, this.uow._logger);
         try {
-            const q = this.uow._models.User
-                .query(this.uow._transaction)
-                .eager('userRoles.role.organization');
+            let q;
+            if (organizationId) {
+                q = this.uow._models.User
+                    .query(this.uow._transaction)
+                    .join('userRoles', 'users.id', 'userRoles.userId')
+                    .join('roles', 'userRoles.roleId', 'roles.id')
+                    .join('organizations', 'roles.organizationId', 'organizations.id')
+                    .where('organizations.id', '=', organizationId);
 
                 return await queryHelper.getQueryResult(q, queryParameters);
+            } else {
+                q = this.uow._models.User
+                    .query(this.uow._transaction)
+                    .eager('userRoles.role.organization')
+            }
+
+            return await queryHelper.getQueryResult(q, queryParameters);
         } catch (err) {
             this.uow._logger.error(`Failed to fetch users by query`);
             this.uow._logger.error(err);
