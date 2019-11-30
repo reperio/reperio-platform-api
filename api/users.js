@@ -411,5 +411,49 @@ module.exports = [
             
             return result;
         }
+    },
+    {
+        method: 'POST',
+        path: '/users/invite/email',
+        config: {
+            auth: {
+                strategies: ['jwt', 'application-token']
+            },
+            validate: {
+                payload: {
+                    primaryEmailAddress: Joi.string().email().max(255).required(),
+                    firstName: Joi.string().max(255).optional(),
+                    lastName: Joi.string().max(255).optional(),
+                    organizationIds: Joi.array().items(Joi.string().guid()).required(),
+                }
+            }
+        },
+        handler: async (request, h) => {
+            const uow = await request.app.getNewUoW();
+            const logger = request.server.app.logger;
+            const {primaryEmailAddress, firstName, lastName, organizationIds} = request.payload;
+
+            try {
+                logger.info(`Inviting user email: ${email} to organizationId(s): ${organizationIds.join(', ')}`);
+                logger.debug(request.payload);
+
+                if (firstName && lastName) {
+                    const existingUser = await uow.usersRepository.getUserByEmail(primaryEmailAddress);
+                    if (existingUser) {
+                        return httpResponseService.conflict(h);
+                    }
+                    // TODO: Make user (no orgs or anything)
+                }
+
+                const invitedUser = await uow.usersRepository.getUserByEmail(primaryEmailAddress);
+
+                await emailService.sendInviteEmail(invitedUser.id, invitedUser.primaryEmailAddress, uow, request, ''); //TODO: get applicationId from params of request
+            } catch (err) {
+                logger.error(err);
+                logger.error(err.message);
+                throw err;
+            }
+
+        }
     }
 ];

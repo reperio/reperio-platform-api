@@ -36,6 +36,41 @@ class EmailService {
         return await messageHelper.processMessage(message);
     }
 
+    async sendInviteEmail(userId, email, uow, request, applicationId, existingUser) {
+        const messageHelper = await request.app.getNewMessageHelper();
+        const tokenEntry = await uow.forgotPasswordsRepository.addEntry(userId);
+        let emailContent;
+
+        let application = await uow.applicationsRepository.getApplicationById(applicationId);
+        if (!application) {
+            throw new Error("Application not found");
+        }
+        const appURI = new URL(application.clientUrl);
+
+        if (existingUser) {
+            //* login -> MITS invite accept
+            encodedNext = encodeURIComponent(`${appURI.origin}/invitation/${userId}?token=${tokenEntry.id}`);
+            tokenUrl = `${request.server.app.config.authWebAppUrl}/login?next=${encodedNext}&email=${encodeURIComponent(email)}`
+            emailContent = `You have been invited to join an organization! <a href="${tokenUrl}>Click Here</a> to join.`; // TODO: include org name and inviting user
+        } else {
+            //* create password -> login -> MITS invite accept
+            const passwordEntry = await uow.forgotPasswordsRepository.addEntry(userId); // TODO: might need to reverse order of token creation
+            encodedNext = encodeURIComponent(`${appURI.origin}/invitation/${userId}?token=${tokenEntry.id}`);
+            tokenUrl = `${appURI.origin}/passwordManagement/${passwordEntry.id}/create&next=${encodedNext}&email=${encodeURIComponent(email)}`;
+            emailContent = `You have been invited to join an organization! <a href="${tokenUrl}>Click Here</a> to join and create a Reperio user account.`; // TODO: include org name and inviting user
+        }
+
+        const message = {
+            to: email,
+            from: request.server.app.config.email.sender,
+            type: 'email',
+            subject: 'Invitation to Reperio Organization',
+            contents: emailContent
+        };
+
+        return await messageHelper.processMessage(message);
+    }
+
     async sendForgotPasswordEmail(userId, email, uow, request) {
         const messageHelper = await request.app.getNewMessageHelper();
         const forgotPassword = await uow.forgotPasswordsRepository.addEntry(userId);
