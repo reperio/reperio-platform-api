@@ -116,19 +116,31 @@ module.exports = [
                             value: Joi.string()
                         })
                     ).optional(),
-                    organizationId: Joi.string().guid().optional().allow(null).allow("")
+                    organizationId: Joi.string().guid().optional().allow(null).allow(""),
+                    userIds: Joi.array().items(Joi.string().guid()).optional().allow(null)
                 }
             }
         },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const {page, pageSize, sort, filter, organizationId} = request.payload;
+            const {page, pageSize, sort, filter, organizationId, userIds} = request.payload;
             const query = {page, pageSize, sort, filter};
 
             logger.debug(`Fetching all users with query`);
 
-            const { results, total } = await uow.usersRepository.getAllUsersQuery(query, organizationId);
+            let results, total;
+
+            if (userIds && userIds.length) {
+                const queryResponse = await uow.usersRepository.getAllUsersByIdsQuery(query, userIds);
+                results = queryResponse.results;
+                total = queryResponse.total;
+            } else {
+                const queryResponse = await uow.usersRepository.getAllUsersQuery(query, organizationId);
+                results = queryResponse.results;
+                total = queryResponse.total;
+            }
+
 
             results.forEach(x => x.password = null);
 
@@ -421,39 +433,59 @@ module.exports = [
             },
             validate: {
                 payload: {
+                    applicationId: Joi.string().guid().required(),
+                    invitingId: Joi.string().guid().required(),
                     primaryEmailAddress: Joi.string().email().max(255).required(),
                     firstName: Joi.string().max(255).optional(),
                     lastName: Joi.string().max(255).optional(),
-                    organizationIds: Joi.array().items(Joi.string().guid()).required(),
+                    organizationId: Joi.string().guid().required(),
                 }
             }
         },
         handler: async (request, h) => {
             const uow = await request.app.getNewUoW();
             const logger = request.server.app.logger;
-            const {primaryEmailAddress, firstName, lastName, organizationIds} = request.payload;
+            const {applicationId, invitingId, primaryEmailAddress, firstName, lastName, organizationId} = request.payload;
 
             try {
-                logger.info(`Inviting user email: ${email} to organizationId(s): ${organizationIds.join(', ')}`);
+                logger.info(`Inviting user email: ${primaryEmailAddress} to organizationId: ${organizationId}`);
                 logger.debug(request.payload);
 
+                let invitedUser;
+                let existingUser;
                 if (firstName && lastName) {
-                    const existingUser = await uow.usersRepository.getUserByEmail(primaryEmailAddress);
-                    if (existingUser) {
+                    const checkUser = await uow.usersRepository.getUserByEmail(primaryEmailAddress);
+                    if (checkUser) {
                         return httpResponseService.conflict(h);
                     }
-                    // TODO: Make user (no orgs or anything)
+                    existingUser = false;
+                    logger.info(`Creating new user email: ${primaryEmailAddress}`);
+                    const userModel = {
+                        primaryEmailAddress,
+                        firstName,
+                        lastName,
+                        disabled: false,
+                        deleted: false,
+                        emailVerified: false
+                    };
+                    invitedUser = await uow.usersRepository.createUser(userModel); 
+                } else {
+                    logger.info(`Inviting existing user email: ${primaryEmailAddress}`);
+                    existingUser = true;
+                    invitedUser = await uow.usersRepository.getUserByEmail(primaryEmailAddress);
                 }
 
-                const invitedUser = await uow.usersRepository.getUserByEmail(primaryEmailAddress);
+                const invitingUser = await uow.usersRepository.getUserById(invitingId);
+                const organization = await uow.organizationsRepository.getOrganizationById(organizationId);
 
-                await emailService.sendInviteEmail(invitedUser.id, invitedUser.primaryEmailAddress, uow, request, ''); //TODO: get applicationId from params of request
+                await emailService.sendInviteEmail(invitedUser, existingUser, invitingUser, organization, applicationId, uow, request);
+
+                return true;
             } catch (err) {
                 logger.error(err);
                 logger.error(err.message);
                 throw err;
             }
-
         }
     }
 ];

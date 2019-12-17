@@ -36,9 +36,9 @@ class EmailService {
         return await messageHelper.processMessage(message);
     }
 
-    async sendInviteEmail(userId, email, uow, request, applicationId, existingUser) {
+    async sendInviteEmail(invitedUser, existingUser, invitingUser, organization, applicationId, uow, request) {
         const messageHelper = await request.app.getNewMessageHelper();
-        const tokenEntry = await uow.forgotPasswordsRepository.addEntry(userId);
+        const tokenEntry = await uow.forgotPasswordsRepository.addEntry(invitedUser.id);
         let emailContent;
 
         let application = await uow.applicationsRepository.getApplicationById(applicationId);
@@ -49,19 +49,19 @@ class EmailService {
 
         if (existingUser) {
             //* login -> MITS invite accept
-            encodedNext = encodeURIComponent(`${appURI.origin}/invitation/${userId}?token=${tokenEntry.id}`);
-            tokenUrl = `${request.server.app.config.authWebAppUrl}/login?next=${encodedNext}&email=${encodeURIComponent(email)}`
-            emailContent = `You have been invited to join an organization! <a href="${tokenUrl}>Click Here</a> to join.`; // TODO: include org name and inviting user
+            const encodedNext = encodeURIComponent(`${appURI.origin}/invitation/${invitedUser.id}?organizationId=${organization.id}&token=${tokenEntry.id}`);
+            const tokenUrl = `${request.server.app.config.authWebAppUrl}/login?next=${encodedNext}&email=${encodeURIComponent(invitedUser.primaryEmailAddress)}`
+            emailContent = `You have been invited to join ${organization.name} by ${invitingUser.firstName} ${invitingUser.lastName}! Please <a href="${tokenUrl}">Click Here</a> to join.`;
         } else {
             //* create password -> login -> MITS invite accept
-            const passwordEntry = await uow.forgotPasswordsRepository.addEntry(userId); // TODO: might need to reverse order of token creation
-            encodedNext = encodeURIComponent(`${appURI.origin}/invitation/${userId}?token=${tokenEntry.id}`);
-            tokenUrl = `${appURI.origin}/passwordManagement/${passwordEntry.id}/create&next=${encodedNext}&email=${encodeURIComponent(email)}`;
-            emailContent = `You have been invited to join an organization! <a href="${tokenUrl}>Click Here</a> to join and create a Reperio user account.`; // TODO: include org name and inviting user
+            const passwordEntry = await uow.forgotPasswordsRepository.addEntry(invitedUser.id); // TODO: might need to reverse order of token creation
+            const encodedNext = encodeURIComponent(`${appURI.origin}/invitation/${invitedUser.id}?organizationId=${organization.id}&token=${tokenEntry.id}`);
+            const tokenUrl = `${request.server.app.config.authWebAppUrl}/passwordManagement/${passwordEntry.id}/create?next=${encodedNext}&email=${encodeURIComponent(invitedUser.primaryEmailAddress)}`;
+            emailContent = `You have been invited to join ${organization.name} by ${invitingUser.firstName} ${invitingUser.lastName}! <br/><br/> Please <a href="${tokenUrl}">Click Here</a> to join and create a Reperio user account.`;
         }
 
         const message = {
-            to: email,
+            to: invitedUser.primaryEmailAddress,
             from: request.server.app.config.email.sender,
             type: 'email',
             subject: 'Invitation to Reperio Organization',

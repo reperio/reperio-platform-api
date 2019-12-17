@@ -5,7 +5,7 @@ class UsersRepository {
         this.uow = uow;
     }
 
-    async createUser(userModel, organizationIds) {
+    async createUser(userModel, organizationIds = null) {
         try {
 
             const user = await this.uow._models.User
@@ -176,6 +176,22 @@ class UsersRepository {
                     .query(this.uow._transaction)
                     .eager('userRoles.role.organization')
             }
+
+            return await queryHelper.getQueryResult(q, queryParameters);
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch users by query`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async getAllUsersByIdsQuery(queryParameters, userIds) {
+        const queryHelper = new QueryHelper(this.uow, this.uow._logger);
+        try {
+            let q = this.uow._models.User
+                    .query(this.uow._transaction)
+                    .eager('userRoles.role.organization') //? important? maybe :)
+                    .whereIn('users.id', userIds);
 
             return await queryHelper.getQueryResult(q, queryParameters);
         } catch (err) {
