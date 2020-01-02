@@ -16,7 +16,6 @@ class ForgotPassword extends BaseModel {
             properties: {
                 id: { type: 'string' },
                 userId: { type: 'string' },
-                userEmailId: { type: 'string' },
                 createdAt: { type: 'dateTime' },
                 triggeredAt: { type: 'dateTime' }
             }
@@ -24,18 +23,9 @@ class ForgotPassword extends BaseModel {
     }
 
     static get relationMappings() {
-        const UserEmail = require('./userEmail');
         const User = require('./user');
 
         return {
-            userEmail: {
-                relation: Model.HasOneRelation,
-                modelClass: UserEmail,
-                join: {
-                    from: 'forgotPasswords.userEmailId',
-                    to: 'userEmails.id'
-                }
-            },
             user: {
                 relation: Model.HasOneRelation,
                 modelClass: User,

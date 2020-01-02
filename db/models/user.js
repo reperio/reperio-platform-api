@@ -18,17 +18,16 @@ class User extends BaseModel {
                 firstName: { type: 'string' },
                 lastName: { type: 'string' },
                 primaryEmailAddress: { type: 'string' },
-                primaryEmailId: { type: 'string' },
                 password: { type: ['string', 'null']},
                 disabled: { type: 'boolean' },
-                deleted: { type: 'boolean' }
+                deleted: { type: 'boolean' },
+                emailVerified: { type: 'boolean' }
             }
         };
     }
 
     static get relationMappings() {
         const UserPhone = require('./userPhone');
-        const UserEmail = require('./userEmail');
         const UserRole = require('./userRole');
 
         return {
@@ -38,22 +37,6 @@ class User extends BaseModel {
                 join: {
                     from: 'users.id',
                     to: 'userPhones.userId'
-                }
-            },
-            userEmails: {
-                relation: Model.HasManyRelation,
-                modelClass: UserEmail,
-                join: {
-                    from: 'users.id',
-                    to: 'userEmails.userId'
-                }
-            },
-            primaryEmail: {
-                relation: Model.HasOneRelation,
-                modelClass: UserEmail,
-                join: {
-                    from: 'users.primaryEmailId',
-                    to: 'userEmails.id'
                 }
             },
             userRoles: {

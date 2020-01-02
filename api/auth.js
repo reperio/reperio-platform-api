@@ -150,12 +150,11 @@ module.exports = [
                     lastName: payload.lastName,
                     password,
                     disabled: false,
-                    deleted: false
+                    deleted: false,
+                    emailVerified: false
                 };
                 
                 const user = await uow.usersRepository.createUser(userModel, [organization.id]);
-                const userEmail = await uow.userEmailsRepository.createUserEmail(user.id, payload.primaryEmailAddress);
-                const updatedUser = await uow.usersRepository.editUser({primaryEmailId: userEmail.id}, user.id);
                 updatedUser.password = null;
 
                 //sign the user in
@@ -201,7 +200,7 @@ module.exports = [
             logger.debug(`Sending verification email for user: ${payload.userId}`);
             try {
                 await uow.beginTransaction();
-                const userEmail = await uow.userEmailsRepository.getUserEmail(payload.userId, payload.email);
+                const userEmail = await uow.usersRepository.getUserEmail(payload.userId, payload.email);
                 if (userEmail == null) {
                     return httpResponseService.badData(h);
                 }
@@ -296,16 +295,9 @@ module.exports = [
             }
 
             logger.debug(`Password reset is requested from user: ${existingUser.id}`);
+            logger.debug(`Sending reset password email to email: ${payload.primaryEmailAddress}`);
 
-            const userEmail = await uow.userEmailsRepository.getUserEmail(existingUser.id, payload.primaryEmailAddress);
-
-            if (userEmail == null) {
-                return httpResponseService.badData(h);
-            }
-
-            logger.debug(`Sending reset password email to user: ${existingUser.id}`);
-
-            await emailService.sendForgotPasswordEmail(userEmail, uow, request);
+            await emailService.sendForgotPasswordEmail(existingUser.id, payload.primaryEmailAddress, uow, request);
 
             return true;
         },

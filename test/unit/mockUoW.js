@@ -286,20 +286,6 @@ module.exports = {
             ];
         }
     },
-    userEmailsRepository: {
-        createUserEmail: async () => { return '7e4d496d-843b-0647-eb86-fad0e85ede73'; },
-        getUserEmail: async () => { 
-            return {
-                id: '7e4d496d-843b-0647-eb86-fad0e85ede73',
-                userId: '123xyz',
-                emailVerified: false,
-                email: 'test@test.com',
-                deleted: false
-            }
-        },
-        getAllUserEmails: async () => { },
-        editUserEmails: async () => { }
-    },
     usersRepository: {
         createUser: async () => { return {}; },
         editUser: async () => { return {}; },
@@ -316,8 +302,8 @@ module.exports = {
                 "password": '$2a$12$pRM5xSQ5MQp7R8gy9..TBe.x1ZyBcWRSIrPMT5UqboatLi3gaDZUe',
                 "disabled": false,
                 "deleted": false,
-                "primaryEmailId": "a0ae75a5-72fe-429b-b3a4-37701c48ff63",
                 "primaryEmailAddress": "support@reper.io",
+                "emailVerified": true,
                 "userOrganizations": [
                     {
                         "organizationId": "966f4157-934c-45e7-9f44-b1e5fd8b79a7",
@@ -328,15 +314,6 @@ module.exports = {
                             "personal": true,
                             "deleted": false
                         }
-                    }
-                ],
-                "userEmails": [
-                    {
-                        "id": "a0ae75a5-72fe-429b-b3a4-37701c48ff63",
-                        "userId": "d08a1f76-7c4a-4dd9-a377-83ffffa752f4",
-                        "email": "support@reper.io",
-                        "emailVerified": true,
-                        "deleted": false
                     }
                 ],
                 "userRoles": [
@@ -636,8 +613,8 @@ module.exports = {
                 "password": '$2a$12$pRM5xSQ5MQp7R8gy9..TBe.x1ZyBcWRSIrPMT5UqboatLi3gaDZUe',
                 "disabled": false,
                 "deleted": false,
-                "primaryEmailId": "a0ae75a5-72fe-429b-b3a4-37701c48ff63",
                 "primaryEmailAddress": "support@reper.io",
+                "emailVerified": true,
                 "userOrganizations": [
                     {
                         "organizationId": "966f4157-934c-45e7-9f44-b1e5fd8b79a7",
@@ -648,15 +625,6 @@ module.exports = {
                             "personal": true,
                             "deleted": false
                         }
-                    }
-                ],
-                "userEmails": [
-                    {
-                        "id": "a0ae75a5-72fe-429b-b3a4-37701c48ff63",
-                        "userId": "d08a1f76-7c4a-4dd9-a377-83ffffa752f4",
-                        "email": "support@reper.io",
-                        "emailVerified": true,
-                        "deleted": false
                     }
                 ],
                 "userRoles": [
