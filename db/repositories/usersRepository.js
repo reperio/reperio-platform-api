@@ -5,7 +5,7 @@ class UsersRepository {
         this.uow = uow;
     }
 
-    async createUser(userModel, organizationIds) {
+    async createUser(userModel, organizationIds = null) {
         try {
 
             const user = await this.uow._models.User
@@ -121,7 +121,6 @@ class UsersRepository {
             return await this.uow._models.User
                 .query(this.uow._transaction)
                 .mergeEager('userRoles.role.rolePermissions.permission')
-                .mergeEager('userEmails')
                 .mergeEager('userRoles.role.organization')
                 .where('users.id', userId)
                 .first();
@@ -186,6 +185,22 @@ class UsersRepository {
         }
     }
 
+    async getAllUsersByIdsQuery(queryParameters, userIds) {
+        const queryHelper = new QueryHelper(this.uow, this.uow._logger);
+        try {
+            let q = this.uow._models.User
+                    .query(this.uow._transaction)
+                    .eager('userRoles.role.organization') //? important? maybe :)
+                    .whereIn('users.id', userIds);
+
+            return await queryHelper.getQueryResult(q, queryParameters);
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch users by query`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
     async verifyUserEmail(userEmailId) {
         try {
             return await this.uow._models.UserEmail
@@ -204,7 +219,6 @@ class UsersRepository {
             return await this.uow._models.User
                 .query(this.uow._transaction)
                 .mergeEager('userRoles.role.rolePermissions.permission')
-                .mergeEager('userEmails')
                 .where('primaryEmailAddress', primaryEmailAddress)
                 .first();
         } catch (err) {
