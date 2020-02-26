@@ -473,6 +473,10 @@ module.exports = [
                     logger.info(`Inviting existing user email: ${primaryEmailAddress}`);
                     existingUser = true;
                     invitedUser = await uow.usersRepository.getUserByEmail(primaryEmailAddress);
+                    if (!invitedUser.password) {
+                        logger.info('User exists in core but has no password, sending new user email');
+                        existingUser = false;
+                    }
                 }
 
                 const invitingUser = await uow.usersRepository.getUserById(invitingId);
